@@ -823,22 +823,32 @@
             if (!unsubscribeOrders) {
                 // [NOTIFIKASI HOOK 2 & 3] Modifikasi listener 'orders'
                 unsubscribeOrders = onSnapshot(collection(db, 'orders'), (snapshot) => {
-                    activeOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     
-                    // [NOTIFIKASI HOOK 2.A] keep for reminder scanner
-                    __activeOrdersShadow = activeOrders;
-                    window.__latestActiveOrdersForKitchen = activeOrders; // expose to add-on
-
-                    // [NOTIFIKASI HOOK 2.B] detect new docs
+                    // [NOTIFIKASI HOOK 2.B] deteksi perubahan status (REVISI)
                     snapshot.docChanges().forEach(ch => {
-                        if (ch.type === 'added') {
-                            // Beri notifikasi hanya jika pesanan baru (status pending)
-                            const orderData = ch.doc.data();
-                            if (orderData.status === 'pending') {
-                                try{ window.__kitchenNewOrderAlert && window.__kitchenNewOrderAlert({ id: ch.doc.id, ...orderData }); }catch(e){}
+                        if (ch.type === 'modified') {
+                            // Cari order lama di data shadow kita
+                            const oldOrder = __activeOrdersShadow.find(o => o.id === ch.doc.id);
+                            const newOrder = { id: ch.doc.id, ...ch.doc.data() };
+
+                            // Cek apakah status BARU SAJA berubah dari 'pending' ke 'preparing'
+                            if (oldOrder && oldOrder.status === 'pending' && newOrder.status === 'preparing') {
+                                // Ini adalah event "Konfirmasi Kasir", bunyikan alarm dapur
+                                try { 
+                                    window.__kitchenNewOrderAlert && window.__kitchenNewOrderAlert(newOrder); 
+                                } catch(e) {
+                                    console.error("Gagal membunyikan alarm:", e);
+                                }
                             }
                         }
                     });
+                    
+                    activeOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    
+                    // [NOTIFIKASI HOOK 2.A] keep for reminder scanner
+                    __activeOrdersShadow = activeOrders; // PERBARUI SHADOW *SETELAH* cek perubahan
+                    window.__latestActiveOrdersForKitchen = activeOrders; // expose to add-on
+
 
                     renderStaffOrders(activeOrders);
                     
@@ -1489,3 +1499,4 @@
     </script>
 </body>
 </html>
+
