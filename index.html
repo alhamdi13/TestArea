@@ -371,7 +371,7 @@
                     <div class="stat-card"><span class="stat-icon">📈</span><div class="stat-value" id="manager-avg-order">Rp 0</div><div class="stat-label">Rata-rata per Transaksi</div></div>
                 </div>
                 <div class="order-list"><h3>📊 Menu Terlaris Hari Ini</h3><div id="best-selling-list"><p>Belum ada data penjualan hari ini.</p></div></div>
-                
+            
                 <!-- [--- TAMBAHAN UNTUK VOID LOG ---] -->
                 <div class="order-list">
                     <h3>🚫 Daftar Pesanan Dibatalkan Hari Ini</h3>
@@ -404,303 +404,325 @@
     <!-- [--- AKHIR TAMBAHAN MODAL ---] -->
 
     
-    <!-- ====== [AWAL INTEGRASI NOTIFIKASI SUARA] ====== -->
-    <!-- UI controls shown only on Kitchen page -->
+    <!-- 
+    ==================================================================
+    KODE ADD-ON NOTIFIKASI DAPUR DIMASUKKAN DI SINI
+    (Sesuai instruksi, ditempel sebelum <script type="module">)
+    ==================================================================
+    -->
+    
+    <!-- ====== UI controls shown only on Kitchen page ====== -->
     <div id="kitchen-alert-toolbar" class="hidden" style="position:sticky;top:64px;z-index:1200;padding:12px 16px;margin:10px;border-radius:12px;background:#fff8e1;border:1px solid #ffecb3;box-shadow:0 6px 18px rgba(0,0,0,.08);display:flex;gap:14px;align-items:center;flex-wrap:wrap">
-        <strong>🔔 Alarm Dapur</strong>
-        <label style="display:flex;align-items:center;gap:6px">
-            <input type="checkbox" id="alarm-enabled" checked /> Aktif
-        </label>
-        <label style="display:flex;align-items:center;gap:6px">
-            Volume <input id="alarm-volume" type="range" min="0" max="1" step="0.01" value="1" style="width:140px"/>
-        </label>
-        <label style="display:flex;align-items:center;gap:6px">
-            Nada
-            <select id="alarm-preset" style="padding:6px 8px;border:1px solid #e0e0e0;border-radius:8px">
-                <option value="ding">Ding (singkat)</option>
-                <option value="siren">Sirine (naik–turun)</option>
-                <option value="long">Beep panjang</option>
-                <option value="triple">Tiga beep</option>
-                <option value="bell3">Bell 3 detik</option>
-            </select>
-        </label>
-        <button id="alarm-test" class="action-btn">Tes Bunyi</button>
-        <span id="alarm-status" style="font-size:.9rem;color:#795548"></span>
+    <strong>🔔 Alarm Dapur</strong>
+    <label style="display:flex;align-items:center;gap:6px">
+        <input type="checkbox" id="alarm-enabled" checked /> Aktif
+    </label>
+    <label style="display:flex;align-items:center;gap:6px">
+        Volume <input id="alarm-volume" type="range" min="0" max="1" step="0.01" value="1" style="width:140px"/>
+    </label>
+    <label style="display:flex;align-items:center;gap:6px">
+        Nada
+        <select id="alarm-preset" style="padding:6px 8px;border:1px solid #e0e0e0;border-radius:8px">
+        <option value="ding">Ding (singkat)</option>
+        <option value="siren">Sirine (naik–turun)</option>
+        <option value="long">Beep panjang</option>
+        <option value="triple">Tiga beep</option>
+        <option value="bell3">Bell 3 detik</option>
+        </select>
+    </label>
+    <button id="alarm-test" class="action-btn">Tes Bunyi</button>
+    <span id="alarm-status" style="font-size:.9rem;color:#795548"></span>
     </div>
 
-    <!-- Audio assets (offline, no internet needed) -->
+    <!-- ====== Audio assets (offline, no internet needed) ====== -->
     <audio id="alarm-audio" preload="auto">
-        <!-- piercing bell (base64 data dipersingkat untuk keterbacaan) -->
-        <source src="data:audio/mp3;base64,//uQZAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAACcQAA..." type="audio/mpeg" />
-        <!-- fallback simple beep (very short) -->
-        <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAABC7AAACABYAAA..." type="audio/wav" />
+    <!-- piercing bell -->
+    <source src="data:audio/mp3;base64,//uQZAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAACcQAA..." type="audio/mpeg" />
+    <!-- fallback simple beep (very short) -->
+    <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAABC7AAACABYAAA..." type="audio/wav" />
     </audio>
 
     <style>
-        /* pulse highlight for overdue orders */
-        .order-item.overdue { border-left-color:#d32f2f !important; background:#fff5f5; position:relative; }
-        .order-item.overdue::after{ content:"⏰ OVERDUE"; position:absolute; right:12px; top:12px; font-weight:700; color:#c62828; background:#ffcdd2; padding:2px 8px; border-radius:12px; font-size:.75rem; }
-        @keyframes overPulse{0%{box-shadow:0 0 0 0 rgba(211,47,47,.35)}70%{box-shadow:0 0 0 16px rgba(211,47,47,0)}100%{box-shadow:0 0 0 0 rgba(211,47,47,0)}}
-        .order-item.overdue { animation: overPulse 1.8s infinite; }
+    /* pulse highlight for overdue orders */
+    .order-item.overdue { border-left-color:#d32f2f !important; background:#fff5f5; position:relative; }
+    .order-item.overdue::after{ content:"⏰ OVERDUE"; position:absolute; right:12px; top:12px; font-weight:700; color:#c62828; background:#ffcdd2; padding:2px 8px; border-radius:12px; font-size:.75rem; }
+    @keyframes overPulse{0%{box-shadow:0 0 0 0 rgba(211,47,47,.35)}70%{box-shadow:0 0 0 16px rgba(211,47,47,0)}100%{box-shadow:0 0 0 0 rgba(211,47,47,0)}}
+    .order-item.overdue { animation: overPulse 1.8s infinite; }
     </style>
 
     <script>
     (function(){
-        // ===== CONFIG =====
-        const CFG = {
-            // minutes before an order is considered overdue
-            pendingOverMin: 3,      // "Menunggu" terlalu lama
-            preparingOverMin: 10,   // "Dimasak" terlalu lama
-            reAlertMinGap: 2,       // minimal jeda menit antar bunyi per order
-            newOrderChimeRepeats: 2 // bunyi berapa kali saat pesanan baru masuk
-        };
+    // ===== CONFIG =====
+    const CFG = {
+        // minutes before an order is considered overdue
+        pendingOverMin: 3,      // "Menunggu" terlalu lama
+        preparingOverMin: 10,   // "Dimasak" terlalu lama (SESUAI PERMINTAAN ANDA)
+        reAlertMinGap: 2,       // minimal jeda menit antar bunyi per order
+        newOrderChimeRepeats: 2 // bunyi berapa kali saat pesanan baru masuk
+    };
 
-        // ===== STATE =====
-        const s = {
-            enabled: true,
-            lastChime: 0,
-            // per-order throttling
-            lastAlertPerOrder: new Map(),
-            // observe active page
-            currentPage: 'cashier'
-        };
+    // ===== STATE =====
+    const s = {
+        enabled: true,
+        lastChime: 0,
+        // per-order throttling
+        lastAlertPerOrder: new Map(),
+        // observe active page
+        currentPage: 'cashier'
+    };
 
-        // restore prefs
-        const prefOn = localStorage.getItem('kitchenAlarm.enabled');
-        if (prefOn !== null) s.enabled = prefOn === 'true';
+    // restore prefs
+    const prefOn = localStorage.getItem('kitchenAlarm.enabled');
+    if (prefOn !== null) s.enabled = prefOn === 'true';
 
-        // DOM refs
-        const audioEl = document.getElementById('alarm-audio');
-        const toolbar = document.getElementById('kitchen-alert-toolbar');
-        const chkEnabled = document.getElementById('alarm-enabled');
-        const vol = document.getElementById('alarm-volume');
-        const testBtn = document.getElementById('alarm-test');
-        const info = document.getElementById('alarm-status');
-        const presetSel = document.getElementById('alarm-preset');
+    // DOM refs
+    const audioEl = document.getElementById('alarm-audio');
+    const toolbar = document.getElementById('kitchen-alert-toolbar');
+    const chkEnabled = document.getElementById('alarm-enabled');
+    const vol = document.getElementById('alarm-volume');
+    const testBtn = document.getElementById('alarm-test');
+    const info = document.getElementById('alarm-status');
+    const presetSel = document.getElementById('alarm-preset');
 
-        // WebAudio (lebih andal daripada <audio> data URI)
-        let audioCtx = null, gainNode = null;
-        function ensureAudio(){
-            try{
-                if(!audioCtx){
-                    const Ctx = window.AudioContext || window.webkitAudioContext;
-                    if(!Ctx) return false;
-                    audioCtx = new Ctx();
-                    gainNode = audioCtx.createGain();
-                    gainNode.gain.value = parseFloat(vol?.value||'1');
-                    gainNode.connect(audioCtx.destination);
-                }
-                if(audioCtx.state === 'suspended'){ audioCtx.resume(); }
-                return true;
-            }catch(e){ return false; }
-        }
-
-        // load saved volume
-        const savedVol = parseFloat(localStorage.getItem('kitchenAlarm.volume'));
-        if (!Number.isNaN(savedVol)) vol.value = savedVol;
-        audioEl.volume = parseFloat(vol.value || '1');
-        chkEnabled.checked = s.enabled;
-
-        // load saved preset
-        const savedPreset = localStorage.getItem('kitchenAlarm.preset');
-        if (savedPreset && presetSel) presetSel.value = savedPreset;
-
-        // simple chime with repeats (prioritas WebAudio). Fallback ke <audio> jika perlu
-        async function chime(times=1){
-            if(!s.enabled) return;
-
-            const preset = (presetSel?.value)||'ding';
-
-            // ===== WebAudio preferred =====
-            if(ensureAudio()){
-                try{
-                    for(let i=0;i<times;i++){
-                        if (preset==='ding'){
-                            await playTone(480, 980, 980, 'square');
-                        } else if (preset==='siren'){
-                            await playSiren(1800); // naik turun 1.8s
-                        } else if (preset==='long'){
-                            await playTone(1500, 850, 850, 'sawtooth'); // 1.5s manteng
-                        } else if (preset==='triple'){
-                            for(let k=0;k<3;k++){ await playTone(300, 1000, 1000, 'square'); await sleep(180); }
-                        } else if (preset==='bell3'){
-                            await playBell3();
-                        }
-                        await sleep(220);
-                    }
-                    return;
-                }catch(e){ /* fallback handled below */ }
+    // WebAudio (lebih andal daripada <audio> data URI)
+    let audioCtx = null, gainNode = null;
+    function ensureAudio(){
+        try{
+            if(!audioCtx){
+                const Ctx = window.AudioContext || window.webkitAudioContext;
+                if(!Ctx) return false;
+                audioCtx = new Ctx();
+                gainNode = audioCtx.createGain();
+                gainNode.gain.value = parseFloat(vol?.value||'1');
+                gainNode.connect(audioCtx.destination);
             }
+            if(audioCtx.state === 'suspended'){ audioCtx.resume(); }
+            return true;
+        }catch(e){ return false; }
+    }
 
-            // ===== Fallback <audio> simple ding =====
+    // load saved volume
+    const savedVol = parseFloat(localStorage.getItem('kitchenAlarm.volume'));
+    if (!Number.isNaN(savedVol)) vol.value = savedVol;
+    audioEl.volume = parseFloat(vol.value || '1');
+    chkEnabled.checked = s.enabled;
+
+    // load saved preset
+    const savedPreset = localStorage.getItem('kitchenAlarm.preset');
+    if (savedPreset && presetSel) presetSel.value = savedPreset;
+
+    // simple chime with repeats (prioritas WebAudio). Fallback ke <audio> jika perlu
+    async function chime(times=1){
+        if(!s.enabled) return;
+
+        const preset = (presetSel?.value)||'ding';
+
+        // ===== WebAudio preferred =====
+        if(ensureAudio()){
             try{
-                audioEl.muted = false;
                 for(let i=0;i<times;i++){
-                    audioEl.pause();
-                    audioEl.currentTime = 0;
-                    await audioEl.play();
-                    await sleep(800);
-                }
-            }catch(e){
-                info.textContent = 'Audio diblokir. Klik tombol ini sekali lalu pastikan tab tidak dimute.';
-            }
-        }
-
-        // helpers
-        function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
-
-        async function playTone(durationMs, fStart, fEnd, type='sine'){
-            const osc = audioCtx.createOscillator();
-            const g = audioCtx.createGain();
-            osc.type = type;
-            osc.connect(g); g.connect(gainNode);
-            const now = audioCtx.currentTime;
-            const v = (parseFloat(vol?.value||'1')) * 0.7;
-            gainNode.gain.value = v; // Perbarui volume dari gainNode utama
-            g.gain.setValueAtTime(Math.max(0.0001, 1.0), now); // Mulai gain osc di 1.0 (dikontrol oleh gainNode)
-            if (fStart===fEnd){ osc.frequency.setValueAtTime(fStart, now); }
-            else { osc.frequency.setValueAtTime(fStart, now); osc.frequency.linearRampToValueAtTime(fEnd, now + durationMs/1000); }
-            osc.start(now);
-            g.gain.exponentialRampToValueAtTime(0.001, now + durationMs/1000);
-            osc.stop(now + durationMs/1000 + 0.02);
-            await sleep(durationMs+30);
-        }
-
-        async function playSiren(totalMs){
-            const seg = 300; // naik/turun 300ms
-            let t = 0;
-            while (t < totalMs){
-                await playTone(seg, 700, 1300, 'square'); t+=seg;
-                if (t>=totalMs) break;
-                await playTone(seg, 1300, 700, 'square'); t+=seg;
-            }
-        }
-
-        async function playBell3(){
-            // serangan cepat lalu ekor panjang dengan overtone lembut
-            const base = audioCtx.createOscillator();
-            const harm = audioCtx.createOscillator();
-            const g = audioCtx.createGain();
-            const now = audioCtx.currentTime;
-            const v = (parseFloat(vol?.value||'1'));
-            gainNode.gain.value = v; // Perbarui volume dari gainNode utama
-            base.type='triangle'; base.frequency.value=880; // A5
-            harm.type='sine';     harm.frequency.value=1320; // +5th
-            base.connect(g); harm.connect(g); g.connect(gainNode);
-            g.gain.setValueAtTime(Math.max(0.0001, 1.0), now);
-            g.gain.exponentialRampToValueAtTime(0.001, now + 3.0);
-            base.start(now); harm.start(now);
-            base.stop(now+3.02); harm.stop(now+3.02);
-            await sleep(3050);
-        }
-
-        // page detection helper (assumes your existing nav sets .page.active)
-        function onPageChange(){
-            // Perbaikan: Cari .page.active di dalam .container
-            const active = document.querySelector('.container .page.active');
-            if(!active){ toolbar.classList.add('hidden'); return; }
-            if (active.id === 'kitchen-page'){
-                s.currentPage = 'kitchen';
-                toolbar.classList.remove('hidden');
-            } else {
-                s.currentPage = active.id.replace('-page','');
-                toolbar.classList.add('hidden');
-            }
-        }
-
-        // Observe class changes to detect page tab switch
-        // Perbaikan: Amati .container, tempat class .active berubah
-        const pageRoot = document.querySelector('.container');
-        if (pageRoot){
-            const mo = new MutationObserver(onPageChange);
-            // Amati perubahan atribut pada .container dan anak-anaknya (.page)
-            mo.observe(pageRoot,{ attributes:true, subtree:true, attributeFilter:['class'] });
-            // initial
-            onPageChange();
-        }
-
-        // UI events
-        testBtn?.addEventListener('click', ()=> chime(1));
-        presetSel?.addEventListener('change', (e)=>{
-            localStorage.setItem('kitchenAlarm.preset', e.target.value);
-        });
-        chkEnabled?.addEventListener('change', (e)=>{
-            s.enabled = !!e.target.checked; localStorage.setItem('kitchenAlarm.enabled', String(s.enabled));
-        });
-        vol?.addEventListener('input', (e)=>{
-            const v = parseFloat(e.target.value||'1'); 
-            audioEl.volume = v; 
-            if(gainNode) gainNode.gain.value = v; // Update WebAudio volume
-            localStorage.setItem('kitchenAlarm.volume', String(v));
-        });
-
-        // ===== HOOKS you can CALL from your main script =====
-        // Call this from your onSnapshot for 'orders' when a new doc is ADDED
-        window.__kitchenNewOrderAlert = function(order){
-            if(s.currentPage==='kitchen') chime(CFG.newOrderChimeRepeats);
-            // also flash title when tab hidden
-            if (document.hidden) flashTitle('🍳 Pesanan baru!');
-        };
-
-        // Call this periodically with the latest active orders array
-        window.__kitchenOverdueScan = function(orders){
-            if(!Array.isArray(orders)) return;
-            const now = Date.now();
-
-            // reset UI flags first
-            document.querySelectorAll('#kitchen-orders .order-item.overdue').forEach(e=>e.classList.remove('overdue'));
-
-            orders.forEach(o=>{
-                if(!o || !o.status) return;
-                // Gunakan updatedAt jika ada (untuk status 'preparing'), jika tidak, gunakan createdAt (untuk 'pending')
-                const tSec = (o.status === 'preparing' ? (o.updatedAt?.seconds || o.createdAt?.seconds) : (o.createdAt?.seconds)) || Math.floor(now/1000);
-                const ageMin = (now - (tSec*1000)) / 60000;
-                let isOver = false;
-                if (o.status==='pending' && ageMin >= CFG.pendingOverMin) isOver = true;
-                if (o.status==='preparing' && ageMin >= CFG.preparingOverMin) isOver = true;
-
-                // mark UI card as overdue
-                if (isOver){
-                    // Selector diperbarui untuk mencari data-order-id di .order-item itu sendiri
-                    const card = document.querySelector(`#kitchen-orders .order-item[data-order-id="${o.id}"]`);
-                    if (card) card.classList.add('overdue');
-
-                    // throttle per order alerts
-                    const last = s.lastAlertPerOrder.get(o.id) || 0;
-                    if (now - last > CFG.reAlertMinGap*60000){
-                        if (s.currentPage==='kitchen') chime(1);
-                        s.lastAlertPerOrder.set(o.id, now);
+                    if (preset==='ding'){
+                        await playTone(480, 980, 980, 'square');
+                    } else if (preset==='siren'){
+                        await playSiren(1800); // naik turun 1.8s
+                    } else if (preset==='long'){
+                        await playTone(1500, 850, 850, 'sawtooth'); // 1.5s manteng
+                    } else if (preset==='triple'){
+                        for(let k=0;k<3;k++){ await playTone(300, 1000, 1000, 'square'); await sleep(180); }
+                    } else if (preset==='bell3'){
+                        await playBell3();
                     }
+                    await sleep(220);
                 }
-            });
-        };
-
-        // title flasher when tab hidden
-        let flashTimer=null, origTitle=document.title;
-        function flashTitle(msg){
-            clearInterval(flashTimer); let on=false; let count=0; document.title = origTitle;
-            flashTimer = setInterval(()=>{
-                on=!on; document.title = on? (`${msg} · Payboss`): origTitle; if(++count>10){clearInterval(flashTimer); document.title=origTitle;}
-            }, 800);
+                return;
+            }catch(e){ /* fallback handled below */ }
         }
 
-        // OPTIONAL: desktop notification permission (trigger once after user interaction)
-        window.addEventListener('click', ()=>{
-            if('Notification' in window && Notification.permission==='default'){
-                Notification.requestPermission().catch(()=>{});
+        // ===== Fallback <audio> simple ding =====
+        try{
+            audioEl.muted = false;
+            for(let i=0;i<times;i++){
+                audioEl.pause();
+                audioEl.currentTime = 0;
+                await audioEl.play();
+                await sleep(800);
             }
-        }, { once:true });
+        }catch(e){
+            info.textContent = 'Audio diblokir. Klik tombol ini sekali lalu pastikan tab tidak dimute.';
+        }
+    }
 
-        // Periodic runner (in case main app forgets to call scan)
-        setInterval(()=>{
-            try{
-                const list = window.__latestActiveOrdersForKitchen || [];
-                window.__kitchenOverdueScan(list);
-            }catch(e){}
-        }, 30000);
+    // helpers
+    function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
+
+    async function playTone(durationMs, fStart, fEnd, type='sine'){
+        const osc = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        osc.type = type;
+        osc.connect(g); g.connect(gainNode);
+        const now = audioCtx.currentTime;
+        const v = (parseFloat(vol?.value||'1')) * 0.7;
+        g.gain.setValueAtTime(Math.max(0.0001, v), now);
+        if (fStart===fEnd){ osc.frequency.setValueAtTime(fStart, now); }
+        else { osc.frequency.setValueAtTime(fStart, now); osc.frequency.linearRampToValueAtTime(fEnd, now + durationMs/1000); }
+        osc.start(now);
+        g.gain.exponentialRampToValueAtTime(0.001, now + durationMs/1000);
+        osc.stop(now + durationMs/1000 + 0.02);
+        await sleep(durationMs+30);
+    }
+
+    async function playSiren(totalMs){
+        const seg = 300; // naik/turun 300ms
+        let t = 0;
+        while (t < totalMs){
+            await playTone(seg, 700, 1300, 'square'); t+=seg;
+            if (t>=totalMs) break;
+            await playTone(seg, 1300, 700, 'square'); t+=seg;
+        }
+    }
+
+    async function playBell3(){
+        // serangan cepat lalu ekor panjang dengan overtone lembut
+        const base = audioCtx.createOscillator();
+        const harm = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        const now = audioCtx.currentTime;
+        const v = (parseFloat(vol?.value||'1'));
+        base.type='triangle'; base.frequency.value=880; // A5
+        harm.type='sine';     harm.frequency.value=1320; // +5th
+        base.connect(g); harm.connect(g); g.connect(gainNode);
+        g.gain.setValueAtTime(Math.max(0.0001, v), now);
+        g.gain.exponentialRampToValueAtTime(0.001, now + 3.0);
+        base.start(now); harm.start(now);
+        base.stop(now+3.02); harm.stop(now+3.02);
+        await sleep(3050);
+    }
+
+    // page detection helper (assumes your existing nav sets .page.active)
+    function onPageChange(){
+        const active = document.querySelector('.page.active');
+        if(!active){ toolbar.classList.add('hidden'); return; }
+        if (active.id === 'kitchen-page'){
+            s.currentPage = 'kitchen';
+            toolbar.classList.remove('hidden');
+        } else {
+            s.currentPage = active.id.replace('-page','');
+            toolbar.classList.add('hidden');
+        }
+    }
+
+    // Observe class changes to detect page tab switch
+    // PERBAIKAN: Target observasi diubah ke .container agar lebih akurat
+    const pageRoot = document.querySelector('.container');
+    if (pageRoot){
+        const mo = new MutationObserver(onPageChange);
+        // Observasi perubahan class pada .page di dalam .container
+        mo.observe(pageRoot,{ attributes:true, subtree:true, attributeFilter:['class'] });
+        // initial
+        onPageChange();
+    }
+
+    // UI events
+    testBtn?.addEventListener('click', ()=> chime(1));
+    presetSel?.addEventListener('change', (e)=>{
+        localStorage.setItem('kitchenAlarm.preset', e.target.value);
+    });
+    chkEnabled?.addEventListener('change', (e)=>{
+        s.enabled = !!e.target.checked; localStorage.setItem('kitchenAlarm.enabled', String(s.enabled));
+    });
+    vol?.addEventListener('input', (e)=>{
+        const v = parseFloat(e.target.value||'1'); audioEl.volume = v; localStorage.setItem('kitchenAlarm.volume', String(v));
+        // Perbarui gainNode jika WebAudio sudah aktif
+        if (gainNode) gainNode.gain.value = v;
+    });
+
+    // ===== HOOKS you can CALL from your main script =====
+    // Call this from your onSnapshot for 'orders' when a new doc is ADDED
+    window.__kitchenNewOrderAlert = function(order){
+        if(s.currentPage==='kitchen') chime(CFG.newOrderChimeRepeats);
+        // also flash title when tab hidden
+        if (document.hidden) flashTitle('🍳 Pesanan baru!');
+    };
+
+    // Call this periodically with the latest active orders array
+    window.__kitchenOverdueScan = function(orders){
+        if(!Array.isArray(orders)) return;
+        const now = Date.now();
+
+        // reset UI flags first
+        document.querySelectorAll('#kitchen-orders .order-item.overdue').forEach(e=>e.classList.remove('overdue'));
+
+        orders.forEach(o=>{
+            if(!o || !o.status) return;
+            // Gunakan updatedAt jika ada (setelah konfirmasi/selesai), jika tidak, gunakan createdAt
+            const tSec = (o.updatedAt?.seconds || o.createdAt?.seconds || Math.floor(now/1000));
+            const ageMin = (now - (tSec*1000)) / 60000;
+            let isOver = false;
+            if (o.status==='pending' && ageMin >= CFG.pendingOverMin) isOver = true;
+            if (o.status==='preparing' && ageMin >= CFG.preparingOverMin) isOver = true;
+
+            // mark UI card as overdue
+            if (isOver){
+                // Selector ini mencari elemen [data-order-id] DI DALAM .order-item
+                const card = document.querySelector(`#kitchen-orders .order-item [data-order-id="${o.id}"]`)?.closest('.order-item')
+                        // Fallback jika data-order-id ada di .order-item-nya langsung (instruksi 5)
+                        || document.querySelector(`#kitchen-orders .order-item[data-order-id="${o.id}"]`)
+                        // Fallback terburuk: cari teks (jika hook 5 gagal diterapkan)
+                        || Array.from(document.querySelectorAll('#kitchen-orders .order-item')).find(div=> div.textContent.includes(`Meja ${o.table}`) && div.textContent.includes(o.customer));
+                
+                if (card) card.classList.add('overdue');
+
+                // throttle per order alerts
+                const last = s.lastAlertPerOrder.get(o.id) || 0;
+                if (now - last > CFG.reAlertMinGap*60000){
+                    if (s.currentPage==='kitchen') chime(1);
+                    s.lastAlertPerOrder.set(o.id, now);
+                }
+            }
+        });
+    };
+
+    // title flasher when tab hidden
+    let flashTimer=null, origTitle=document.title;
+    function flashTitle(msg){
+        clearInterval(flashTimer); let on=false; let count=0; document.title = origTitle;
+        flashTimer = setInterval(()=>{
+            on=!on; document.title = on? (`${msg} · Payboss`): origTitle; if(++count>10){clearInterval(flashTimer); document.title=origTitle;}
+        }, 800);
+    }
+    
+    // Hapus listener 'focus' jika ada, ganti dengan deteksi visibilitas
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+            clearInterval(flashTimer);
+            document.title = origTitle;
+        }
+    });
+
+    // OPTIONAL: desktop notification permission (trigger once after user interaction)
+    window.addEventListener('click', ()=>{
+        if('Notification' in window && Notification.permission==='default'){
+            Notification.requestPermission().catch(()=>{});
+        }
+        // Inisialisasi AudioContext juga saat klik pertama
+        ensureAudio();
+    }, { once:true });
+
+    // Periodic runner (in case main app forgets to call scan)
+    setInterval(()=>{
+        try{
+            const list = window.__latestActiveOrdersForKitchen || [];
+            window.__kitchenOverdueScan(list);
+        }catch(e){}
+    }, 30000);
     })();
     </script>
-    <!-- ====== [AKHIR INTEGRASI NOTIFIKASI SUARA] ====== -->
+    
+    <!-- 
+    ==================================================================
+    AKHIR DARI ADD-ON NOTIFIKASI
+    ==================================================================
+    -->
 
 
     <script type="module">
@@ -708,24 +730,25 @@
         import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, serverTimestamp, query, where, getDocs, getDoc, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-        // [NOTIFIKASI HOOK 1]
-        let __activeOrdersShadow = []; // keep last active list
-
         // Konfigurasi Firebase Anda
         const firebaseConfig = {
-         apiKey: "AIzaSyB0nHqdAw_dV9pHcQ_cSnWtNsn4CwwwUNc",
-         authDomain: "payboss-cafe-system.firebaseapp.com",
-         projectId: "payboss-cafe-system",
-         storageBucket: "payboss-cafe-system.appspot.com",
-         messagingSenderId: "570523503793",
-         appId: "1:570523503793:web:0a7ba7ce751eb95a3f6690",
-         measurementId: "G-H1NJ369HE9"
+            apiKey: "AIzaSyB0nHqdAw_dV9pHcQ_cSnWtNsn4CwwwUNc",
+            authDomain: "payboss-cafe-system.firebaseapp.com",
+            projectId: "payboss-cafe-system",
+            storageBucket: "payboss-cafe-system.appspot.com",
+            messagingSenderId: "570523503793",
+            appId: "1:570523503793:web:0a7ba7ce751eb95a3f6690",
+            measurementId: "G-H1NJ369HE9"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
         
+        // --- HOOK INTEGRASI NOTIFIKASI (1) ---
+        let __activeOrdersShadow = []; // keep last active list
+        // --- AKHIR HOOK ---
+
         const loginPage = document.getElementById('login-page');
         const appContainer = document.getElementById('app-container');
         const loginForm = document.getElementById('login-form');
@@ -821,40 +844,42 @@
             let completedToday = [];
 
             if (!unsubscribeOrders) {
-                // [NOTIFIKASI HOOK 2 & 3] Modifikasi listener 'orders'
+                // --- KODE INI DIMODIFIKASI UNTUK HOOK 2 & 3 ---
                 unsubscribeOrders = onSnapshot(collection(db, 'orders'), (snapshot) => {
-                    
-                    // [NOTIFIKASI HOOK 2.B] deteksi perubahan status (REVISI)
-                    snapshot.docChanges().forEach(ch => {
-                        if (ch.type === 'modified') {
-                            // Cari order lama di data shadow kita
-                            const oldOrder = __activeOrdersShadow.find(o => o.id === ch.doc.id);
-                            const newOrder = { id: ch.doc.id, ...ch.doc.data() };
-
-                            // Cek apakah status BARU SAJA berubah dari 'pending' ke 'preparing'
-                            if (oldOrder && oldOrder.status === 'pending' && newOrder.status === 'preparing') {
-                                // Ini adalah event "Konfirmasi Kasir", bunyikan alarm dapur
-                                try { 
-                                    window.__kitchenNewOrderAlert && window.__kitchenNewOrderAlert(newOrder); 
-                                } catch(e) {
-                                    console.error("Gagal membunyikan alarm:", e);
-                                }
-                            }
-                        }
-                    });
-                    
                     activeOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    
-                    // [NOTIFIKASI HOOK 2.A] keep for reminder scanner
-                    __activeOrdersShadow = activeOrders; // PERBARUI SHADOW *SETELAH* cek perubahan
-                    window.__latestActiveOrdersForKitchen = activeOrders; // expose to add-on
 
+                    // --- HOOK INTEGRASI NOTIFIKASI (2) ---
+                    // Simpan shadow copy untuk scanner alarm
+                    __activeOrdersShadow = activeOrders;
+                    window.__latestActiveOrdersForKitchen = activeOrders; // Expose to add-on
 
+                    // Deteksi pesanan BARU (type 'added') untuk bunyi notifikasi
+                    snapshot.docChanges().forEach(ch => {
+                      if (ch.type === 'added') {
+                        try { 
+                            // Panggil fungsi global dari skrip alarm
+                            window.__kitchenNewOrderAlert && window.__kitchenNewOrderAlert({ id: ch.doc.id, ...ch.doc.data() }); 
+                        } catch(e){
+                            console.error("Gagal trigger new order alert:", e);
+                        }
+                      }
+                    });
+                    // --- AKHIR HOOK (2) ---
+
+                    // Render UI seperti biasa
                     renderStaffOrders(activeOrders);
-                    
-                    // [NOTIFIKASI HOOK 3] Call scan after render
-                    try{ window.__kitchenOverdueScan && window.__kitchenOverdueScan(activeOrders); }catch(e){}
 
+                    // --- HOOK INTEGRASI NOTIFIKASI (3) ---
+                    // Panggil scanner overdue setelah render
+                    try { 
+                        // Panggil fungsi global dari skrip alarm
+                        window.__kitchenOverdueScan && window.__kitchenOverdueScan(activeOrders); 
+                    } catch(e){
+                        console.error("Gagal trigger overdue scan:", e);
+                    }
+                    // --- AKHIR HOOK (3) ---
+
+                    // Update dashboard seperti biasa
                     updateAllDashboards(activeOrders, completedToday);
                 });
             }
@@ -913,8 +938,12 @@
         function createOrderElement(order, type) {
             const div = document.createElement('div');
             div.className = 'order-item';
-            // [NOTIFIKASI HOOK 5] Tambahkan marker ID untuk scanner
-            div.dataset.orderId = order.id;
+
+            // --- HOOK INTEGRASI NOTIFIKASI (5) ---
+            // TIDAK MENARUH DI 'div' UTAMA, KARENA SELEKTOR ADD-ON MENCARI ANAK ELEMEN.
+            // KITA TARUH DI 'span.order-id' SESUAI REKOMENDASI HOOK (or inside any child element)
+            // div.dataset.orderId = order.id; // -> Ini tidak akan berfungsi dengan selector add-on
+            // --- AKHIR HOOK ---
 
             const statusMap = {
                 pending: { text: 'Menunggu', class: 'status-pending' },
@@ -958,7 +987,8 @@
 
             div.innerHTML = `
                 <div class="order-header">
-                    <span class="order-id">Meja ${order.table} - ${order.customer}</span>
+                    <!-- HOOK (5) DITERAPKAN DI SINI -->
+                    <span class="order-id" data-order-id="${order.id}">${order.table} - ${order.customer}</span>
                     <span class="order-status ${statusMap[order.status].class}">${statusMap[order.status].text}</span>
                 </div>
                 <div class="order-details">
@@ -1128,9 +1158,11 @@
                 const action = actionBtn.dataset.action;
                 const orderRef = doc(db, 'orders', orderId);
                 try {
-                    // [NOTIFIKASI HOOK 4] Tambahkan serverTimestamp
+                    // --- HOOK INTEGRASI NOTIFIKASI (4) ---
                     if (action === 'confirm') await updateDoc(orderRef, { status: 'preparing', updatedAt: serverTimestamp() });
                     else if (action === 'finish') await updateDoc(orderRef, { status: 'ready', updatedAt: serverTimestamp() });
+                    // --- AKHIR HOOK ---
+
                     else if (action === 'complete') {
                         const orderDoc = await getDoc(orderRef);
                         if (orderDoc.exists()){
@@ -1391,11 +1423,28 @@
                      pages.forEach(p => p.classList.remove('active'));
                      document.getElementById(`${target}-page`).classList.add('active');
                      
-                     // [NOTIFIKASI] Panggil onPageChange secara manual setelah navigasi
-                     // Kita tambahkan penundaan singkat agar class 'active' sempat diperbarui di DOM
-                     setTimeout(() => {
-                         if (window.onPageChange) window.onPageChange();
-                     }, 50);
+                     // --- TAMBAHAN UNTUK ALARM ---
+                     // Panggil onPageChange dari skrip alarm secara manual
+                     // saat navigasi internal terjadi
+                     if (window.onPageChange) {
+                         // Skrip add-on mungkin belum dimuat, jadi kita cek
+                         // Tapi karena kita menaruhnya di body, seharusnya sudah ada.
+                     } else {
+                         // Jika skrip alarm ada di scope global (seperti di kode Anda)
+                         // kita bisa memanggilnya
+                         try {
+                            // Fungsi onPageChange ada di dalam scope (function(){...})
+                            // Tapi, MutationObserver harusnya sudah menangani ini.
+                            // Kita panggil ulang deteksi halaman secara manual
+                            const activePage = document.querySelector('.page.active');
+                            const toolbar = document.getElementById('kitchen-alert-toolbar');
+                            if (activePage.id === 'kitchen-page') {
+                                toolbar.classList.remove('hidden');
+                            } else {
+                                toolbar.classList.add('hidden');
+                            }
+                         } catch(e) {}
+                     }
                  });
              });
         }
@@ -1499,4 +1548,3 @@
     </script>
 </body>
 </html>
-
