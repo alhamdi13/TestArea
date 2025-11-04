@@ -274,10 +274,6 @@
         }
         /* [--- AKHIR TAMBAHAN MODAL ---] */
 
-        /* [--- STYLES LAMA DIHAPUS ---] */
-        /* .order-item.flashing-warning ... dan @keyframes flash-warning ... telah dihapus */
-        /* Style baru akan ditambahkan oleh <style> dari add-on */
-
 
         @media (max-width: 768px) {
             .login-container { padding: 25px; }
@@ -293,8 +289,6 @@
     </style>
 </head>
 <body>
-
-    <!-- [--- AUDIO LAMA DIHAPUS ---] -->
 
     <div id="login-page">
         <div class="login-container">
@@ -377,7 +371,7 @@
                     <div class="stat-card"><span class="stat-icon">📈</span><div class="stat-value" id="manager-avg-order">Rp 0</div><div class="stat-label">Rata-rata per Transaksi</div></div>
                 </div>
                 <div class="order-list"><h3>📊 Menu Terlaris Hari Ini</h3><div id="best-selling-list"><p>Belum ada data penjualan hari ini.</p></div></div>
-            
+                
                 <!-- [--- TAMBAHAN UNTUK VOID LOG ---] -->
                 <div class="order-list">
                     <h3>🚫 Daftar Pesanan Dibatalkan Hari Ini</h3>
@@ -409,311 +403,304 @@
     </div>
     <!-- [--- AKHIR TAMBAHAN MODAL ---] -->
 
-    <!-- [--- KODE ADD-ON BARU DITEMPEL DI SINI ---] -->
-
-    <!-- ====== UI controls shown only on Kitchen page ====== -->
+    
+    <!-- ====== [AWAL INTEGRASI NOTIFIKASI SUARA] ====== -->
+    <!-- UI controls shown only on Kitchen page -->
     <div id="kitchen-alert-toolbar" class="hidden" style="position:sticky;top:64px;z-index:1200;padding:12px 16px;margin:10px;border-radius:12px;background:#fff8e1;border:1px solid #ffecb3;box-shadow:0 6px 18px rgba(0,0,0,.08);display:flex;gap:14px;align-items:center;flex-wrap:wrap">
-      <strong>🔔 Alarm Dapur</strong>
-      <label style="display:flex;align-items:center;gap:6px">
-        <input type="checkbox" id="alarm-enabled" checked /> Aktif
-      </label>
-      <label style="display:flex;align-items:center;gap:6px">
-        Volume <input id="alarm-volume" type="range" min="0" max="1" step="0.01" value="1" style="width:140px"/>
-      </label>
-      <label style="display:flex;align-items:center;gap:6px">
-        Nada
-        <select id="alarm-preset" style="padding:6px 8px;border:1px solid #e0e0e0;border-radius:8px">
-          <option value="ding">Ding (singkat)</option>
-          <option value="siren">Sirine (naik–turun)</option>
-          <option value="long">Beep panjang</option>
-          <option value="triple">Tiga beep</option>
-          <option value="bell3">Bell 3 detik</option>
-        </select>
-      </label>
-      <button id="alarm-test" class="action-btn">Tes Bunyi</button>
-      <span id="alarm-status" style="font-size:.9rem;color:#795548"></span>
+        <strong>🔔 Alarm Dapur</strong>
+        <label style="display:flex;align-items:center;gap:6px">
+            <input type="checkbox" id="alarm-enabled" checked /> Aktif
+        </label>
+        <label style="display:flex;align-items:center;gap:6px">
+            Volume <input id="alarm-volume" type="range" min="0" max="1" step="0.01" value="1" style="width:140px"/>
+        </label>
+        <label style="display:flex;align-items:center;gap:6px">
+            Nada
+            <select id="alarm-preset" style="padding:6px 8px;border:1px solid #e0e0e0;border-radius:8px">
+                <option value="ding">Ding (singkat)</option>
+                <option value="siren">Sirine (naik–turun)</option>
+                <option value="long">Beep panjang</option>
+                <option value="triple">Tiga beep</option>
+                <option value="bell3">Bell 3 detik</option>
+            </select>
+        </label>
+        <button id="alarm-test" class="action-btn">Tes Bunyi</button>
+        <span id="alarm-status" style="font-size:.9rem;color:#795548"></span>
     </div>
 
-    <!-- ====== Audio assets (offline, no internet needed) ====== -->
+    <!-- Audio assets (offline, no internet needed) -->
     <audio id="alarm-audio" preload="auto">
-      <!-- piercing bell -->
-      <source src="data:audio/mp3;base64,//uQZAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAACcQAA..." type="audio/mpeg" />
-      <!-- fallback simple beep (very short) -->
-      <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAABC7AAACABYAAA..." type="audio/wav" />
+        <!-- piercing bell (base64 data dipersingkat untuk keterbacaan) -->
+        <source src="data:audio/mp3;base64,//uQZAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAACcQAA..." type="audio/mpeg" />
+        <!-- fallback simple beep (very short) -->
+        <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAABC7AAACABYAAA..." type="audio/wav" />
     </audio>
 
     <style>
-      /* pulse highlight for overdue orders */
-      .order-item.overdue { border-left-color:#d32f2f !important; background:#fff5f5; position:relative; }
-      .order-item.overdue::after{ content:"⏰ TERLALU LAMA"; position:absolute; right:12px; top:12px; font-weight:700; color:#c62828; background:#ffcdd2; padding:2px 8px; border-radius:12px; font-size:.75rem; }
-      @keyframes overPulse{0%{box-shadow:0 0 0 0 rgba(211,47,47,.35)}70%{box-shadow:0 0 0 16px rgba(211,47,47,0)}100%{box-shadow:0 0 0 0 rgba(211,47,47,0)}}
-      .order-item.overdue { animation: overPulse 1.8s infinite; }
+        /* pulse highlight for overdue orders */
+        .order-item.overdue { border-left-color:#d32f2f !important; background:#fff5f5; position:relative; }
+        .order-item.overdue::after{ content:"⏰ OVERDUE"; position:absolute; right:12px; top:12px; font-weight:700; color:#c62828; background:#ffcdd2; padding:2px 8px; border-radius:12px; font-size:.75rem; }
+        @keyframes overPulse{0%{box-shadow:0 0 0 0 rgba(211,47,47,.35)}70%{box-shadow:0 0 0 16px rgba(211,47,47,0)}100%{box-shadow:0 0 0 0 rgba(211,47,47,0)}}
+        .order-item.overdue { animation: overPulse 1.8s infinite; }
     </style>
 
     <script>
     (function(){
-      // ===== CONFIG =====
-      const CFG = {
-        // minutes before an order is considered overdue
-        pendingOverMin: 3,      // "Menunggu" terlalu lama
-        preparingOverMin: 10,   // "Dimasak" terlalu lama
-        reAlertMinGap: 2,       // minimal jeda menit antar bunyi per order
-        newOrderChimeRepeats: 2 // bunyi berapa kali saat pesanan baru masuk
-      };
+        // ===== CONFIG =====
+        const CFG = {
+            // minutes before an order is considered overdue
+            pendingOverMin: 3,      // "Menunggu" terlalu lama
+            preparingOverMin: 10,   // "Dimasak" terlalu lama
+            reAlertMinGap: 2,       // minimal jeda menit antar bunyi per order
+            newOrderChimeRepeats: 2 // bunyi berapa kali saat pesanan baru masuk
+        };
 
-      // ===== STATE =====
-      const s = {
-        enabled: true,
-        lastChime: 0,
-        // per-order throttling
-        lastAlertPerOrder: new Map(),
-        // observe active page
-        currentPage: 'cashier'
-      };
+        // ===== STATE =====
+        const s = {
+            enabled: true,
+            lastChime: 0,
+            // per-order throttling
+            lastAlertPerOrder: new Map(),
+            // observe active page
+            currentPage: 'cashier'
+        };
 
-      // restore prefs
-      const prefOn = localStorage.getItem('kitchenAlarm.enabled');
-      if (prefOn !== null) s.enabled = prefOn === 'true';
+        // restore prefs
+        const prefOn = localStorage.getItem('kitchenAlarm.enabled');
+        if (prefOn !== null) s.enabled = prefOn === 'true';
 
-      // DOM refs
-      const audioEl = document.getElementById('alarm-audio');
-      const toolbar = document.getElementById('kitchen-alert-toolbar');
-      const chkEnabled = document.getElementById('alarm-enabled');
-      const vol = document.getElementById('alarm-volume');
-      const testBtn = document.getElementById('alarm-test');
-      const info = document.getElementById('alarm-status');
-      const presetSel = document.getElementById('alarm-preset');
+        // DOM refs
+        const audioEl = document.getElementById('alarm-audio');
+        const toolbar = document.getElementById('kitchen-alert-toolbar');
+        const chkEnabled = document.getElementById('alarm-enabled');
+        const vol = document.getElementById('alarm-volume');
+        const testBtn = document.getElementById('alarm-test');
+        const info = document.getElementById('alarm-status');
+        const presetSel = document.getElementById('alarm-preset');
 
-      // WebAudio (lebih andal daripada <audio> data URI)
-      let audioCtx = null, gainNode = null;
-      function ensureAudio(){
-        try{
-          if(!audioCtx){
-            const Ctx = window.AudioContext || window.webkitAudioContext;
-            if(!Ctx) return false;
-            audioCtx = new Ctx();
-            gainNode = audioCtx.createGain();
-            gainNode.gain.value = parseFloat(vol?.value||'1');
-            gainNode.connect(audioCtx.destination);
-          }
-          if(audioCtx.state === 'suspended'){ audioCtx.resume(); }
-          return true;
-        }catch(e){ return false; }
-      }
+        // WebAudio (lebih andal daripada <audio> data URI)
+        let audioCtx = null, gainNode = null;
+        function ensureAudio(){
+            try{
+                if(!audioCtx){
+                    const Ctx = window.AudioContext || window.webkitAudioContext;
+                    if(!Ctx) return false;
+                    audioCtx = new Ctx();
+                    gainNode = audioCtx.createGain();
+                    gainNode.gain.value = parseFloat(vol?.value||'1');
+                    gainNode.connect(audioCtx.destination);
+                }
+                if(audioCtx.state === 'suspended'){ audioCtx.resume(); }
+                return true;
+            }catch(e){ return false; }
+        }
 
-      // load saved volume
-      const savedVol = parseFloat(localStorage.getItem('kitchenAlarm.volume'));
-      if (!Number.isNaN(savedVol)) vol.value = savedVol;
-      audioEl.volume = parseFloat(vol.value || '1');
-      chkEnabled.checked = s.enabled;
+        // load saved volume
+        const savedVol = parseFloat(localStorage.getItem('kitchenAlarm.volume'));
+        if (!Number.isNaN(savedVol)) vol.value = savedVol;
+        audioEl.volume = parseFloat(vol.value || '1');
+        chkEnabled.checked = s.enabled;
 
-      // load saved preset
-      const savedPreset = localStorage.getItem('kitchenAlarm.preset');
-      if (savedPreset && presetSel) presetSel.value = savedPreset;
+        // load saved preset
+        const savedPreset = localStorage.getItem('kitchenAlarm.preset');
+        if (savedPreset && presetSel) presetSel.value = savedPreset;
 
-      // simple chime with repeats (prioritas WebAudio). Fallback ke <audio> jika perlu
-      async function chime(times=1){
-        if(!s.enabled) return;
+        // simple chime with repeats (prioritas WebAudio). Fallback ke <audio> jika perlu
+        async function chime(times=1){
+            if(!s.enabled) return;
 
-        const preset = (presetSel?.value)||'ding';
+            const preset = (presetSel?.value)||'ding';
 
-        // ===== WebAudio preferred =====
-        if(ensureAudio()){
-          try{
-            for(let i=0;i<times;i++){
-              if (preset==='ding'){
-                await playTone(480, 980, 980, 'square');
-              } else if (preset==='siren'){
-                await playSiren(1800); // naik turun 1.8s
-              } else if (preset==='long'){
-                await playTone(1500, 850, 850, 'sawtooth'); // 1.5s manteng
-              } else if (preset==='triple'){
-                for(let k=0;k<3;k++){ await playTone(300, 1000, 1000, 'square'); await sleep(180); }
-              } else if (preset==='bell3'){
-                await playBell3();
-              }
-              await sleep(220);
+            // ===== WebAudio preferred =====
+            if(ensureAudio()){
+                try{
+                    for(let i=0;i<times;i++){
+                        if (preset==='ding'){
+                            await playTone(480, 980, 980, 'square');
+                        } else if (preset==='siren'){
+                            await playSiren(1800); // naik turun 1.8s
+                        } else if (preset==='long'){
+                            await playTone(1500, 850, 850, 'sawtooth'); // 1.5s manteng
+                        } else if (preset==='triple'){
+                            for(let k=0;k<3;k++){ await playTone(300, 1000, 1000, 'square'); await sleep(180); }
+                        } else if (preset==='bell3'){
+                            await playBell3();
+                        }
+                        await sleep(220);
+                    }
+                    return;
+                }catch(e){ /* fallback handled below */ }
             }
-            return;
-          }catch(e){ /* fallback handled below */ }
-        }
 
-        // ===== Fallback <audio> simple ding =====
-        try{
-          audioEl.muted = false;
-          for(let i=0;i<times;i++){
-            audioEl.pause();
-            audioEl.currentTime = 0;
-            await audioEl.play();
-            await sleep(800);
-          }
-        }catch(e){
-          info.textContent = 'Audio diblokir. Klik tombol ini sekali lalu pastikan tab tidak dimute.';
-        }
-      }
-
-      // helpers
-      function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
-
-      async function playTone(durationMs, fStart, fEnd, type='sine'){
-        const osc = audioCtx.createOscillator();
-        const g = audioCtx.createGain();
-        osc.type = type;
-        osc.connect(g); g.connect(gainNode);
-        const now = audioCtx.currentTime;
-        const v = (parseFloat(vol?.value||'1')) * 0.7;
-        g.gain.setValueAtTime(Math.max(0.0001, v), now);
-        if (fStart===fEnd){ osc.frequency.setValueAtTime(fStart, now); }
-        else { osc.frequency.setValueAtTime(fStart, now); osc.frequency.linearRampToValueAtTime(fEnd, now + durationMs/1000); }
-        osc.start(now);
-        g.gain.exponentialRampToValueAtTime(0.001, now + durationMs/1000);
-        osc.stop(now + durationMs/1000 + 0.02);
-        await sleep(durationMs+30);
-      }
-
-      async function playSiren(totalMs){
-        const seg = 300; // naik/turun 300ms
-        let t = 0;
-        while (t < totalMs){
-          await playTone(seg, 700, 1300, 'square'); t+=seg;
-          if (t>=totalMs) break;
-          await playTone(seg, 1300, 700, 'square'); t+=seg;
-        }
-      }
-
-      async function playBell3(){
-        // serangan cepat lalu ekor panjang dengan overtone lembut
-        const base = audioCtx.createOscillator();
-        const harm = audioCtx.createOscillator();
-        const g = audioCtx.createGain();
-        const now = audioCtx.currentTime;
-        const v = (parseFloat(vol?.value||'1'));
-        base.type='triangle'; base.frequency.value=880; // A5
-        harm.type='sine';     harm.frequency.value=1320; // +5th
-        base.connect(g); harm.connect(g); g.connect(gainNode);
-        g.gain.setValueAtTime(Math.max(0.0001, v), now);
-        g.gain.exponentialRampToValueAtTime(0.001, now + 3.0);
-        base.start(now); harm.start(now);
-        base.stop(now+3.02); harm.stop(now+3.02);
-        await sleep(3050);
-      }
-
-      // page detection helper (assumes your existing nav sets .page.active)
-      function onPageChange(){
-        const active = document.querySelector('.page.active');
-        if(!active){ toolbar.classList.add('hidden'); return; }
-        if (active.id === 'kitchen-page'){
-          s.currentPage = 'kitchen';
-          toolbar.classList.remove('hidden');
-        } else {
-          s.currentPage = active.id.replace('-page','');
-          toolbar.classList.add('hidden');
-        }
-      }
-
-      // Observe class changes to detect page tab switch
-      const pageRoot = document.querySelector('.container');
-      if (pageRoot){
-        const mo = new MutationObserver(onPageChange);
-        mo.observe(pageRoot,{ attributes:true, subtree:true, attributeFilter:['class'] });
-        // initial
-        onPageChange();
-      }
-
-      // UI events
-      testBtn?.addEventListener('click', ()=> chime(1));
-      presetSel?.addEventListener('change', (e)=>{
-        localStorage.setItem('kitchenAlarm.preset', e.target.value);
-      });
-      chkEnabled?.addEventListener('change', (e)=>{
-        s.enabled = !!e.target.checked; localStorage.setItem('kitchenAlarm.enabled', String(s.enabled));
-      });
-      vol?.addEventListener('input', (e)=>{
-        const v = parseFloat(e.target.value||'1'); audioEl.volume = v; localStorage.setItem('kitchenAlarm.volume', String(v));
-        if (gainNode) gainNode.gain.value = v;
-      });
-
-      // ===== HOOKS you can CALL from your main script =====
-      // Call this from your onSnapshot for 'orders' when a new doc is ADDED
-      window.__kitchenNewOrderAlert = function(order){
-        if(s.currentPage==='kitchen') chime(CFG.newOrderChimeRepeats);
-        // also flash title when tab hidden
-        if (document.hidden) flashTitle('🍳 Pesanan baru!');
-        
-        // Coba kirim Desktop Notification juga
-        if ('Notification' in window && Notification.permission === 'granted'){
-            const title = '☕ Pesanan Baru!';
-            const options = {
-                body: `Meja ${order.table} (${order.customer}) baru saja memesan.`,
-                icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAAAAAC/9NrAAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAEqSURBVDjL7ZJNKsNAAEW/CStY5MGCbYOKoOAvYJGTW/sOdhFEsA+h7gl2F/wBgbTqgO3FYTdB/A6SGVmOdsN84O65uYlJbs/C6eM4MYYJbDAw8P/3gwzYwMgA3v83kO9hUIUoYl0YQnw69A+wN1oFIHiyYmMgvQoA8TjFyQx4ZOFMFgTzWWuBPAhBvUoAIODgBAE4gIgN5PBYF8YhAOKB1GB+KkB5EfqYwT6E0sI3sEaigB/BIfA/Dyk+wFziMhwQOKB/gBw+sEB+Cn2B8A/Eg5gP1KcwP5I8YD7E8UDAoU4gP1AcQDBApwH/CfxCwTsI/gQgXoI/gngfIQ/AfifYv0f4F8B/LcA/hXwXwL+S/A/wX8N/Bf9H/Bf+3+Af/0P4B/4P4B/8P8A//g/wH/4P8B/+D/Af/g/wH/4P4B/+D/Af/g/wH/4P8B/+D/Af/g/wH/4P8B/+D/Af/g/wH/4P8B/+D/Af/g/wH/4P8B/+D/Af/g/wH/4P8B/+D/Af/g/wH/4P8B/+D/Af/g/wH/4P8B/+D/Af/g/wH/4P8B/+D/Af/g/wH/4P8B/+D/Af/g/wH/4P8B/+D/Af/g/wH/4P8B/+D/Af/g/wH/I+BwBj0g8GvB8hgYAAz/P0B2P0D4A0wMGrE/wUAAAAASUVORK5CYII=',
-                vibrate: [200, 100, 200],
-                tag: 'new-order' // Mencegah spam notifikasi
-            };
-            new Notification(title, options);
-        }
-      };
-
-      // Call this periodically with the latest active orders array
-      window.__kitchenOverdueScan = function(orders){
-        if(!Array.isArray(orders)) return;
-        const now = Date.now();
-
-        // reset UI flags first
-        document.querySelectorAll('#kitchen-orders .order-item.overdue').forEach(e=>e.classList.remove('overdue'));
-
-        orders.forEach(o=>{
-          if(!o || !o.status) return;
-          // [MODIFIKASI] Gunakan preparingAt jika ada, lalu createdAt
-          const tSec = (o.status === 'preparing' ? o.preparingAt?.seconds : o.createdAt?.seconds) || o.createdAt?.seconds || Math.floor(now/1000);
-          const ageMin = (now - (tSec*1000)) / 60000;
-          let isOver = false;
-          if (o.status==='pending' && ageMin >= CFG.pendingOverMin) isOver = true;
-          if (o.status==='preparing' && ageMin >= CFG.preparingOverMin) isOver = true;
-
-          // mark UI card as overdue
-          if (isOver){
-            const card = document.querySelector(`#kitchen-orders .order-item [data-order-id="${o.id}"]`)?.closest('.order-item')
-                         || Array.from(document.querySelectorAll('#kitchen-orders .order-item')).find(div=> div.textContent.includes(`Meja ${o.table}`) && div.textContent.includes(o.customer));
-            if (card) card.classList.add('overdue');
-
-            // throttle per order alerts
-            const last = s.lastAlertPerOrder.get(o.id) || 0;
-            if (now - last > CFG.reAlertMinGap*60000){
-              if (s.currentPage==='kitchen') chime(1);
-              s.lastAlertPerOrder.set(o.id, now);
+            // ===== Fallback <audio> simple ding =====
+            try{
+                audioEl.muted = false;
+                for(let i=0;i<times;i++){
+                    audioEl.pause();
+                    audioEl.currentTime = 0;
+                    await audioEl.play();
+                    await sleep(800);
+                }
+            }catch(e){
+                info.textContent = 'Audio diblokir. Klik tombol ini sekali lalu pastikan tab tidak dimute.';
             }
-          }
+        }
+
+        // helpers
+        function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
+
+        async function playTone(durationMs, fStart, fEnd, type='sine'){
+            const osc = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            osc.type = type;
+            osc.connect(g); g.connect(gainNode);
+            const now = audioCtx.currentTime;
+            const v = (parseFloat(vol?.value||'1')) * 0.7;
+            gainNode.gain.value = v; // Perbarui volume dari gainNode utama
+            g.gain.setValueAtTime(Math.max(0.0001, 1.0), now); // Mulai gain osc di 1.0 (dikontrol oleh gainNode)
+            if (fStart===fEnd){ osc.frequency.setValueAtTime(fStart, now); }
+            else { osc.frequency.setValueAtTime(fStart, now); osc.frequency.linearRampToValueAtTime(fEnd, now + durationMs/1000); }
+            osc.start(now);
+            g.gain.exponentialRampToValueAtTime(0.001, now + durationMs/1000);
+            osc.stop(now + durationMs/1000 + 0.02);
+            await sleep(durationMs+30);
+        }
+
+        async function playSiren(totalMs){
+            const seg = 300; // naik/turun 300ms
+            let t = 0;
+            while (t < totalMs){
+                await playTone(seg, 700, 1300, 'square'); t+=seg;
+                if (t>=totalMs) break;
+                await playTone(seg, 1300, 700, 'square'); t+=seg;
+            }
+        }
+
+        async function playBell3(){
+            // serangan cepat lalu ekor panjang dengan overtone lembut
+            const base = audioCtx.createOscillator();
+            const harm = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            const now = audioCtx.currentTime;
+            const v = (parseFloat(vol?.value||'1'));
+            gainNode.gain.value = v; // Perbarui volume dari gainNode utama
+            base.type='triangle'; base.frequency.value=880; // A5
+            harm.type='sine';     harm.frequency.value=1320; // +5th
+            base.connect(g); harm.connect(g); g.connect(gainNode);
+            g.gain.setValueAtTime(Math.max(0.0001, 1.0), now);
+            g.gain.exponentialRampToValueAtTime(0.001, now + 3.0);
+            base.start(now); harm.start(now);
+            base.stop(now+3.02); harm.stop(now+3.02);
+            await sleep(3050);
+        }
+
+        // page detection helper (assumes your existing nav sets .page.active)
+        function onPageChange(){
+            // Perbaikan: Cari .page.active di dalam .container
+            const active = document.querySelector('.container .page.active');
+            if(!active){ toolbar.classList.add('hidden'); return; }
+            if (active.id === 'kitchen-page'){
+                s.currentPage = 'kitchen';
+                toolbar.classList.remove('hidden');
+            } else {
+                s.currentPage = active.id.replace('-page','');
+                toolbar.classList.add('hidden');
+            }
+        }
+
+        // Observe class changes to detect page tab switch
+        // Perbaikan: Amati .container, tempat class .active berubah
+        const pageRoot = document.querySelector('.container');
+        if (pageRoot){
+            const mo = new MutationObserver(onPageChange);
+            // Amati perubahan atribut pada .container dan anak-anaknya (.page)
+            mo.observe(pageRoot,{ attributes:true, subtree:true, attributeFilter:['class'] });
+            // initial
+            onPageChange();
+        }
+
+        // UI events
+        testBtn?.addEventListener('click', ()=> chime(1));
+        presetSel?.addEventListener('change', (e)=>{
+            localStorage.setItem('kitchenAlarm.preset', e.target.value);
         });
-      };
+        chkEnabled?.addEventListener('change', (e)=>{
+            s.enabled = !!e.target.checked; localStorage.setItem('kitchenAlarm.enabled', String(s.enabled));
+        });
+        vol?.addEventListener('input', (e)=>{
+            const v = parseFloat(e.target.value||'1'); 
+            audioEl.volume = v; 
+            if(gainNode) gainNode.gain.value = v; // Update WebAudio volume
+            localStorage.setItem('kitchenAlarm.volume', String(v));
+        });
 
-      // title flasher when tab hidden
-      let flashTimer=null, origTitle=document.title;
-      function flashTitle(msg){
-        clearInterval(flashTimer); let on=false; let count=0; document.title = origTitle;
-        flashTimer = setInterval(()=>{
-          on=!on; document.title = on? (`${msg} · Payboss`): origTitle; if(++count>10){clearInterval(flashTimer); document.title=origTitle;}
-        }, 800);
-      }
-      
-      // Izin notifikasi dan audio saat klik pertama
-      window.addEventListener('click', ()=>{
-        ensureAudio(); // Buka kunci audio
-        if('Notification' in window && Notification.permission==='default'){
-          Notification.requestPermission().catch(()=>{});
+        // ===== HOOKS you can CALL from your main script =====
+        // Call this from your onSnapshot for 'orders' when a new doc is ADDED
+        window.__kitchenNewOrderAlert = function(order){
+            if(s.currentPage==='kitchen') chime(CFG.newOrderChimeRepeats);
+            // also flash title when tab hidden
+            if (document.hidden) flashTitle('🍳 Pesanan baru!');
+        };
+
+        // Call this periodically with the latest active orders array
+        window.__kitchenOverdueScan = function(orders){
+            if(!Array.isArray(orders)) return;
+            const now = Date.now();
+
+            // reset UI flags first
+            document.querySelectorAll('#kitchen-orders .order-item.overdue').forEach(e=>e.classList.remove('overdue'));
+
+            orders.forEach(o=>{
+                if(!o || !o.status) return;
+                // Gunakan updatedAt jika ada (untuk status 'preparing'), jika tidak, gunakan createdAt (untuk 'pending')
+                const tSec = (o.status === 'preparing' ? (o.updatedAt?.seconds || o.createdAt?.seconds) : (o.createdAt?.seconds)) || Math.floor(now/1000);
+                const ageMin = (now - (tSec*1000)) / 60000;
+                let isOver = false;
+                if (o.status==='pending' && ageMin >= CFG.pendingOverMin) isOver = true;
+                if (o.status==='preparing' && ageMin >= CFG.preparingOverMin) isOver = true;
+
+                // mark UI card as overdue
+                if (isOver){
+                    // Selector diperbarui untuk mencari data-order-id di .order-item itu sendiri
+                    const card = document.querySelector(`#kitchen-orders .order-item[data-order-id="${o.id}"]`);
+                    if (card) card.classList.add('overdue');
+
+                    // throttle per order alerts
+                    const last = s.lastAlertPerOrder.get(o.id) || 0;
+                    if (now - last > CFG.reAlertMinGap*60000){
+                        if (s.currentPage==='kitchen') chime(1);
+                        s.lastAlertPerOrder.set(o.id, now);
+                    }
+                }
+            });
+        };
+
+        // title flasher when tab hidden
+        let flashTimer=null, origTitle=document.title;
+        function flashTitle(msg){
+            clearInterval(flashTimer); let on=false; let count=0; document.title = origTitle;
+            flashTimer = setInterval(()=>{
+                on=!on; document.title = on? (`${msg} · Payboss`): origTitle; if(++count>10){clearInterval(flashTimer); document.title=origTitle;}
+            }, 800);
         }
-      }, { once:true });
 
-      // Periodic runner (in case main app forgets to call scan)
-      setInterval(()=>{
-        try{
-          const list = window.__latestActiveOrdersForKitchen || [];
-          window.__kitchenOverdueScan(list);
-        }catch(e){}
-      }, 30000);
+        // OPTIONAL: desktop notification permission (trigger once after user interaction)
+        window.addEventListener('click', ()=>{
+            if('Notification' in window && Notification.permission==='default'){
+                Notification.requestPermission().catch(()=>{});
+            }
+        }, { once:true });
+
+        // Periodic runner (in case main app forgets to call scan)
+        setInterval(()=>{
+            try{
+                const list = window.__latestActiveOrdersForKitchen || [];
+                window.__kitchenOverdueScan(list);
+            }catch(e){}
+        }, 30000);
     })();
     </script>
-    
-    <!-- [--- AKHIR KODE ADD-ON ---] -->
+    <!-- ====== [AKHIR INTEGRASI NOTIFIKASI SUARA] ====== -->
 
 
     <script type="module">
@@ -721,7 +708,7 @@
         import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, serverTimestamp, query, where, getDocs, getDoc, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-        // [--- HOOK 1: Tambahkan variabel global ---]
+        // [NOTIFIKASI HOOK 1]
         let __activeOrdersShadow = []; // keep last active list
 
         // Konfigurasi Firebase Anda
@@ -739,10 +726,6 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
         
-        // [--- MODIFIKASI: Hapus variabel reminderInterval ---]
-        let activeOrders = [];
-        let completedToday = [];
-
         const loginPage = document.getElementById('login-page');
         const appContainer = document.getElementById('app-container');
         const loginForm = document.getElementById('login-form');
@@ -794,15 +777,11 @@
                 if (unsubscribeCompleted) { unsubscribeCompleted(); unsubscribeCompleted = null; }
                 if (unsubscribeMenu) { unsubscribeMenu(); unsubscribeMenu = null; } // <-- Hentikan listener menu
                 if (unsubscribeVoided) { unsubscribeVoided(); unsubscribeVoided = null; } // [--- TAMBAHAN BARU ---]
-                
-                // [--- MODIFIKASI: Hapus logika interval lama ---]
             }
         });
 
         loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            // [--- MODIFIKASI: Hapus panggil unlockAudio (ditangani add-on) ---]
-            
             const email = loginForm.email.value;
             const password = loginForm.password.value;
             loginError.classList.add('hidden');
@@ -833,42 +812,40 @@
                     document.querySelector('.nav-link[data-page="cashier"]').classList.add('active');
                 }
             }
+            // Tab "Kelola Menu" (data-page="menu") akan otomatis terlihat untuk semua role (staff & manager)
+            // karena tidak kita sembunyikan secara spesifik.
         }
 
-        // [--- MODIFIKASI: Hapus fungsi unlockAudio() lama ---]
-        // [--- MODIFIKASI: Hapus fungsi checkOldOrders() lama ---]
-
-
         function initializeAppLogic() {
-            if (!unsubscribeOrders) {
-                // [--- MODIFIKASI: Terapkan Hook 2 ---]
-                unsubscribeOrders = onSnapshot(collection(db, 'orders'), (snapshot) => {
-                    
-                    activeOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            let activeOrders = [];
+            let completedToday = [];
 
-                    // [--- HOOK 2: Mulai ---]
-                    // keep for reminder scanner
+            if (!unsubscribeOrders) {
+                // [NOTIFIKASI HOOK 2 & 3] Modifikasi listener 'orders'
+                unsubscribeOrders = onSnapshot(collection(db, 'orders'), (snapshot) => {
+                    activeOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    
+                    // [NOTIFIKASI HOOK 2.A] keep for reminder scanner
                     __activeOrdersShadow = activeOrders;
                     window.__latestActiveOrdersForKitchen = activeOrders; // expose to add-on
 
-                    // detect new docs
+                    // [NOTIFIKASI HOOK 2.B] detect new docs
                     snapshot.docChanges().forEach(ch => {
-                      if (ch.type === 'added') {
-                        const orderData = ch.doc.data();
-                        if (orderData.status === 'pending') { // Hanya picu untuk pesanan baru
-                            try{ window.__kitchenNewOrderAlert && window.__kitchenNewOrderAlert({ id: ch.doc.id, ...orderData }); }catch(e){}
+                        if (ch.type === 'added') {
+                            // Beri notifikasi hanya jika pesanan baru (status pending)
+                            const orderData = ch.doc.data();
+                            if (orderData.status === 'pending') {
+                                try{ window.__kitchenNewOrderAlert && window.__kitchenNewOrderAlert({ id: ch.doc.id, ...orderData }); }catch(e){}
+                            }
                         }
-                      }
                     });
-                    // [--- HOOK 2: Selesai ---]
 
-                    // Logika render asli
                     renderStaffOrders(activeOrders);
-                    updateAllDashboards(activeOrders, completedToday);
-
-                    // [--- HOOK 3: Panggil scan setelah render ---]
+                    
+                    // [NOTIFIKASI HOOK 3] Call scan after render
                     try{ window.__kitchenOverdueScan && window.__kitchenOverdueScan(activeOrders); }catch(e){}
 
+                    updateAllDashboards(activeOrders, completedToday);
                 });
             }
 
@@ -880,31 +857,35 @@
                 });
             }
 
+            // --- LISTENER BARU UNTUK MENU ---
+            // PERBAIKAN: Mengganti 'menuItems' ke 'menu' agar sesuai dengan database Anda
             if (!unsubscribeMenu) {
                 unsubscribeMenu = onSnapshot(collection(db, 'menu'), (snapshot) => {
                     const menuItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     renderMenuManagement(menuItems);
                 });
             }
+            // --- AKHIR LISTENER BARU ---
 
+            // [--- TAMBAHAN BARU UNTUK VOID LOG ---]
             if (!unsubscribeVoided) {
                 const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
                 const q = query(collection(db, "voidedOrders"), where("voidedAt", ">=", todayStart));
                 
                 unsubscribeVoided = onSnapshot(q, (snapshot) => {
                     const voidedToday = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    // Sortir berdasarkan yang terbaru
                     voidedToday.sort((a, b) => (b.voidedAt?.seconds || 0) - (a.voidedAt?.seconds || 0));
-                    renderVoidedOrders(voidedToday);
+                    renderVoidedOrders(voidedToday); // Panggil fungsi render baru
                 });
             }
+            // [--- AKHIR TAMBAHAN ---]
 
             setupNavigation();
             setupOrderActionListeners();
-            setupMenuActionListeners();
+            setupMenuActionListeners(); // <-- Panggil fungsi listener baru
             setupReportDownloader();
-            setupVoidModalListeners();
-
-            // [--- MODIFIKASI: Hapus interval lama (ditangani add-on) ---]
+            setupVoidModalListeners(); // [--- TAMBAHAN BARU ---]
         }
 
         function renderStaffOrders(orders) {
@@ -922,7 +903,8 @@
         function createOrderElement(order, type) {
             const div = document.createElement('div');
             div.className = 'order-item';
-            // [--- MODIFIKASI: Hapus cek flashing-warning lama ---]
+            // [NOTIFIKASI HOOK 5] Tambahkan marker ID untuk scanner
+            div.dataset.orderId = order.id;
 
             const statusMap = {
                 pending: { text: 'Menunggu', class: 'status-pending' },
@@ -933,37 +915,40 @@
             if (type === 'cashier') {
                 if (order.status === 'pending') {
                     buttons = `<button class="action-btn" data-id="${order.id}" data-action="confirm">Konfirmasi</button>`;
+                    // [--- TAMBAHAN TOMBOL BATAL ---]
                     buttons += ` <button class="action-btn danger" data-id="${order.id}" data-action="void-request">Batalkan</button>`;
                 } else if (order.status === 'ready') {
                     buttons = `<button class="action-btn success" data-id="${order.id}" data-action="complete">Selesaikan</button>`;
                 } else if (order.status === 'preparing') {
+                    // [--- TAMBAHAN TOMBOL BATAL ---]
+                    // Juga izinkan batal saat sedang dimasak (jika pelanggan tiba2 batal)
                     buttons += ` <button class="action-btn danger" data-id="${order.id}" data-action="void-request">Batalkan</button>`;
                 }
+                
+                // [--- TAMBAHAN UNTUK CETAK ---]
+                // Selalu tambahkan tombol cetak untuk kasir, terlepas dari statusnya
                 buttons += ` <button class="action-btn print" data-id="${order.id}" data-action="print">Cetak</button>`;
+                // [--- AKHIR TAMBAHAN ---]
 
             } else if (type === 'kitchen') {
                 if (order.status === 'pending') buttons = `<button class="action-btn" disabled>Tunggu Konfirmasi</button>`;
                 if (order.status === 'preparing') buttons = `<button class="action-btn success" data-id="${order.id}" data-action="finish">Selesai Masak</button>`;
             }
-
+            // MODIFIKASI: Tambahkan logika untuk menampilkan varian jika ada
             const items = order.items.map(i => 
                 `${i.name}${i.variant ? ` (${i.variant})` : ''} x${i.qty}`
             ).join(', ');
-            
-            let timeString = '';
-            if (order.preparingAt?.seconds) {
-                timeString = ` | <strong>Mulai Masak:</strong> ${new Date(order.preparingAt.seconds * 1000).toLocaleTimeString('id-ID')}`;
-            } else if (order.createdAt?.seconds) {
-                timeString = ` | <strong>Waktu Pesan:</strong> ${new Date(order.createdAt.seconds * 1000).toLocaleTimeString('id-ID')}`;
-            }
+            const time = order.createdAt?.seconds ? new Date(order.createdAt.seconds * 1000).toLocaleTimeString('id-ID') : '...';
 
             let detailsHtml;
-            detailsHtml = `<strong>Total:</strong> Rp ${order.total.toLocaleString('id-ID')}${timeString}`;
+            // [--- REVISI PAJAK DIHILANGKAN ---]
+            // Kita sekarang selalu hanya menampilkan Total, karena subtotal dan pajak sudah di-nol-kan dari aplikasi pelanggan.
+            detailsHtml = `<strong>Total:</strong> Rp ${order.total.toLocaleString('id-ID')} | <strong>Waktu:</strong> ${time}`;
+            // [--- AKHIR REVISI ---]
 
             div.innerHTML = `
                 <div class="order-header">
-                    <!-- [--- HOOK 5: Tambahkan data-order-id di sini ---] -->
-                    <span class="order-id" data-order-id="${order.id}">Meja ${order.table} - ${order.customer}</span>
+                    <span class="order-id">Meja ${order.table} - ${order.customer}</span>
                     <span class="order-status ${statusMap[order.status].class}">${statusMap[order.status].text}</span>
                 </div>
                 <div class="order-details">
@@ -975,10 +960,12 @@
             return div;
         }
         
+        // --- FUNGSI BARU UNTUK RENDER KELOLA MENU ---
         function renderMenuManagement(menuItems) {
             const container = document.getElementById('menu-management-list');
             if (!container) return;
             
+            // Urutkan berdasarkan kategori, lalu nama
             menuItems.sort((a, b) => {
                 const categoryA = a.category || 'lainnya';
                 const categoryB = b.category || 'lainnya';
@@ -994,6 +981,7 @@
             let currentCategory = "";
             menuItems.forEach(item => {
                 const itemCategory = item.category || 'lainnya';
+                // Tambahkan header kategori jika berbeda
                 if (itemCategory !== currentCategory) {
                     currentCategory = itemCategory;
                     const categoryHeader = document.createElement('h4');
@@ -1005,6 +993,7 @@
                 const div = document.createElement('div');
                 div.className = 'menu-item-manage';
                 
+                // Cek status ketersediaan. Default 'true' (tersedia) jika field-nya tidak ada
                 const isAvailable = item.isAvailable !== false; 
                 const availabilityClass = isAvailable ? 'available' : 'unavailable';
                 const availabilityText = isAvailable ? 'Tersedia' : 'Habis';
@@ -1026,9 +1015,10 @@
             });
         }
         
+        // [--- FUNGSI BARU UNTUK RENDER VOID LOG ---]
         function renderVoidedOrders(orders) {
             const container = document.getElementById('voided-orders-list');
-            if (!container) return; 
+            if (!container) return; // Jangan lakukan apa-apa jika elemen tidak ada
 
             if (orders.length === 0) {
                 container.innerHTML = '<p>Belum ada pesanan yang dibatalkan hari ini.</p>';
@@ -1038,7 +1028,7 @@
             container.innerHTML = ''; // Kosongkan daftar
             orders.forEach(order => {
                 const div = document.createElement('div');
-                div.className = 'order-item voided';
+                div.className = 'order-item voided'; // Pakai style .order-item + .voided
                 
                 const items = order.items.map(i => 
                     `${i.name}${i.variant ? ` (${i.variant})` : ''} x${i.qty}`
@@ -1065,7 +1055,9 @@
                 container.appendChild(div);
             });
         }
+        // [--- AKHIR FUNGSI BARU ---]
         
+        // [--- TAMBAHAN FUNGSI YANG HILANG ---]
         function updateAllDashboards(activeOrders, completedOrders) {
             const totalSales = completedOrders.reduce((sum, order) => sum + order.total, 0);
             const updateElementText = (id, text) => {
@@ -1096,6 +1088,7 @@
             const sales = {};
             completedOrders.forEach(order => {
                 order.items.forEach(item => {
+                    // MODIFIKASI: Gunakan nama + varian sebagai kunci unik
                     const itemName = `${item.name}${item.variant ? ` (${item.variant})` : ''}`;
                     if (!sales[itemName]) sales[itemName] = { qty: 0, revenue: 0 };
                     sales[itemName].qty += item.qty;
@@ -1111,6 +1104,7 @@
                 </div>
             `).join('');
         }
+        // [--- AKHIR TAMBAHAN ---]
         
         function setupOrderActionListeners() {
             if (document.body.dataset.actionListenerAttached) return;
@@ -1124,21 +1118,9 @@
                 const action = actionBtn.dataset.action;
                 const orderRef = doc(db, 'orders', orderId);
                 try {
-                    // [--- HOOK 4: Tambahkan updatedAt dan preparingAt ---]
-                    if (action === 'confirm') {
-                        await updateDoc(orderRef, { 
-                            status: 'preparing',
-                            preparingAt: serverTimestamp(), // Waktu mulai masak
-                            updatedAt: serverTimestamp() // Waktu status berubah
-                        });
-                    }
-                    else if (action === 'finish') {
-                        await updateDoc(orderRef, { 
-                            status: 'ready',
-                            updatedAt: serverTimestamp() // Waktu status berubah
-                        });
-                    }
-                    // [--- AKHIR HOOK 4 ---]
+                    // [NOTIFIKASI HOOK 4] Tambahkan serverTimestamp
+                    if (action === 'confirm') await updateDoc(orderRef, { status: 'preparing', updatedAt: serverTimestamp() });
+                    else if (action === 'finish') await updateDoc(orderRef, { status: 'ready', updatedAt: serverTimestamp() });
                     else if (action === 'complete') {
                         const orderDoc = await getDoc(orderRef);
                         if (orderDoc.exists()){
@@ -1147,18 +1129,28 @@
                             await deleteDoc(orderRef);
                             showNotification('Pesanan selesai.');
                         }
+                    // [--- TAMBAHAN LOGIKA UNTUK MODAL BATAL ---]
                     } else if (action === 'void-request') {
+                        // Tampilkan modal dan simpan ID pesanan
                         orderToVoidId = orderId;
-                        voidReasonInput.value = '';
-                        confirmVoidBtn.disabled = true;
+                        voidReasonInput.value = ''; // Kosongkan alasan
+                        confirmVoidBtn.disabled = true; // Matikan tombol submit
                         voidModal.classList.remove('hidden');
                         voidReasonInput.focus();
+                    // [--- AKHIR TAMBAHAN MODAL ---]
+
+                    // [--- TAMBAHAN UNTUK CETAK ---]
                     } else if (action === 'print') {
+                        // Saat tombol cetak diklik, ambil data terbaru dari pesanan itu
                         const orderToPrintDoc = await getDoc(orderRef);
                         if (orderToPrintDoc.exists()) {
                             const orderData = { id: orderToPrintDoc.id, ...orderToPrintDoc.data() };
+                            // Panggil fungsi cetak baru
                             printReceipt(orderData);
                         } else {
+                            // Cek juga di completedOrders, siapa tahu sudah selesai tapi mau dicetak ulang
+                            // PERBAIKAN: Logika ini mungkin tidak akan berjalan karena tombol hilang setelah order selesai.
+                            // Tapi kita biarkan sebagai fallback jika Anda mengubah alur render.
                             const completedOrderRef = doc(db, 'completedOrders', orderId);
                             const completedOrderDoc = await getDoc(completedOrderRef);
                             if (completedOrderDoc.exists()) {
@@ -1169,21 +1161,26 @@
                             }
                         }
                     }
+                    // [--- AKHIR TAMBAHAN ---]
                 } catch (error) { console.error(error); showNotification('Gagal memproses aksi!', true); }
             });
         }
 
 
+        // [--- FUNGSI BARU UNTUK MODAL PEMBATALAN ---]
         function setupVoidModalListeners() {
+            // Aktifkan tombol submit HANYA jika ada alasan
             voidReasonInput.addEventListener('input', () => {
                 confirmVoidBtn.disabled = !voidReasonInput.value.trim();
             });
 
+            // Tombol "Tutup"
             cancelVoidBtn.addEventListener('click', () => {
                 voidModal.classList.add('hidden');
                 orderToVoidId = null;
             });
 
+            // Tombol "Konfirmasi Batal" (Submit form)
             voidForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 if (!orderToVoidId || !voidReasonInput.value.trim()) return;
@@ -1200,6 +1197,7 @@
                     if (orderDoc.exists()) {
                         const orderData = orderDoc.data();
                         
+                        // 1. Simpan ke koleksi 'voidedOrders' (log untuk manajer)
                         await addDoc(collection(db, 'voidedOrders'), {
                             ...orderData,
                             voidedAt: serverTimestamp(),
@@ -1208,6 +1206,7 @@
                             originalOrderId: orderToVoidId
                         });
 
+                        // 2. Hapus dari koleksi 'orders' (menghilangkan dari antrian)
                         await deleteDoc(orderRef);
 
                         showNotification('Pesanan berhasil dibatalkan.');
@@ -1225,32 +1224,54 @@
                 }
             });
         }
+        // [--- AKHIR FUNGSI BARU ---]
 
+
+        // [--- FUNGSI BARU UNTUK MEMBUAT STRUK DAN MENCETAK ---]
+
+        // [--- PERUBAHAN UNTUK RAWBT V2 ---]
+        // Kita HAPUS fungsi toBase64(str) karena tidak diperlukan lagi.
+
+        // [--- FUNGSI DIPERBARUI ---]
         function printReceipt(order) {
+            // Helper function untuk padding teks agar rata kanan/kiri
+            // 32 karakter adalah lebar standar untuk kertas thermal 58mm
             const receiptWidth = 32; 
             const pad = (str, len, char = ' ') => String(str).padEnd(len, char);
             const padLeft = (str, len, char = ' ') => String(str).padStart(len, char);
             
             let receiptText = '';
 
+            // --- Header Struk (BARU) ---
+            // (14 char) -> (32-14)/2 = 9 spasi
             receiptText += "         PAY BOSS CAFE\n";
+            // (30 char) -> (32-30)/2 = 1 spasi
             receiptText += " Jl. Tanjung Permai No 2 RT 07\n";
+            // (23 char) -> (32-23)/2 = 4.5 -> 4 spasi
             receiptText += "    Pembataan.Murung Pudak.\n";
+            // (8 char) -> (32-8)/2 = 12 spasi
             receiptText += "            Tabalong\n";
+            // (24 char) -> (32-24)/2 = 4 spasi
             receiptText += "    Reservasi: 0811-5194-456\n";
             receiptText += "--------------------------------\n";
             
+            // --- Info Pesanan (Lama) ---
+            // Ini kita biarkan rata kiri
             receiptText += `Meja: ${order.table}\n`;
             receiptText += `Pelanggan: ${order.customer}\n`;
             
+            // Tentukan waktu cetak (jika sudah selesai, pakai completedAt, jika belum, pakai createdAt)
             const orderTime = order.completedAt?.seconds ? order.completedAt.seconds : (order.createdAt?.seconds || Date.now() / 1000);
             const time = new Date(orderTime * 1000);
             receiptText += `Waktu: ${time.toLocaleDateString('id-ID')} ${time.toLocaleTimeString('id-ID')}\n`;
             receiptText += "--------------------------------\n";
 
+            // --- Daftar Item (Lama) ---
             order.items.forEach(item => {
+                // Baris 1: Nama Item (bisa 2 baris jika panjang)
                 let itemName = `${item.qty}x ${item.name}${item.variant ? ` (${item.variant})` : ''}`;
                 
+                // Potong nama item jika terlalu panjang
                 if (itemName.length > receiptWidth) {
                     receiptText += pad(itemName.substring(0, receiptWidth), receiptWidth) + "\n";
                     receiptText += pad("  " + itemName.substring(receiptWidth), receiptWidth) + "\n";
@@ -1258,59 +1279,93 @@
                     receiptText += pad(itemName, receiptWidth) + "\n";
                 }
                 
+                // Baris 2: Harga (rata kanan)
                 const itemTotal = item.price * item.qty;
                 receiptText += padLeft(`Rp ${itemTotal.toLocaleString('id-ID')}`, receiptWidth) + "\n";
             });
             receiptText += "--------------------------------\n";
 
+            // --- Bagian Total (Lama, sudah benar) ---
+            // (18 karakter untuk label, 14 untuk nilai)
             receiptText += pad("GRAND TOTAL", 18) + padLeft(`Rp ${order.total.toLocaleString('id-ID')}`, 14) + "\n";
             receiptText += "--------------------------------\n";
 
+            // --- Footer Struk (BARU) ---
+            // (20 char) -> (32-20)/2 = 6 spasi
             receiptText += "      Wifi : Pay Boss Cafe\n";
+            // (21 char) -> (32-21)/2 = 5.5 -> 5 spasi
             receiptText += "     Pasword : P4yB0sSC4F3\n";
             receiptText += "--------------------------------\n";
+            // (31 char) -> (32-31)/2 = 0.5 -> 0 spasi, sudah pas
             receiptText += "Terimakasih atas kunjungan anda.\n";
+            // (24 char) -> (32-24)/2 = 4 spasi
             receiptText += "    Instagram: Payboss.cafe\n";
             receiptText += "\n\n\n"; // Feed paper
 
+            // --- Logika untuk Mencetak via RawBT (Lama, tidak diubah) ---
+            
+            // Kita URI-encode teks struk mentah. 
+            // Ini akan mengubah spasi menjadi %20, baris baru menjadi %0A, dll.
             const encodedReceiptText = encodeURIComponent(receiptText);
+
+            // Ini adalah "intent" URL yang akan ditangkap oleh aplikasi RawBT
+            // Kita kirim teks yang sudah di-encode sebagai "path" URL.
             const rawBtUrl = `rawbt:${encodedReceiptText}`;
+
+            // Coba buka di tab baru (atau jendela). 
+            // Di Android, ini akan dicegat oleh RawBT dan memicu cetak.
             const printWindow = window.open(rawBtUrl, '_blank');
             
             if (!printWindow) {
+                // Jika popup diblokir, beri tahu pengguna
                 showNotification("Gagal membuka RawBT. Izinkan popup untuk aplikasi ini.", true);
+                
+                // Sebagai alternatif, coba redirect halaman utama (meskipun ini kurang ideal)
+                // window.location.href = rawBtUrl;
             }
         }
+        // [--- AKHIR FUNGSI BARU & PERUBAHAN RAWBT V2 ---]
 
+        // --- LISTENER BARU UNTUK TOMBOL TOGGLE MENU ---
         function setupMenuActionListeners() {
+            // Cek agar listener tidak terpasang dua kali
             if (document.body.dataset.menuActionListenerAttached) return;
             document.body.dataset.menuActionListenerAttached = 'true';
 
             document.body.addEventListener('click', async function(e) {
+                // Cari tombol toggle yang diklik
                 const toggleBtn = e.target.closest('.toggle-btn[data-action="toggle-availability"]');
                 if (!toggleBtn) return;
 
                 const itemId = toggleBtn.dataset.id;
                 const itemName = toggleBtn.dataset.name;
+                // Ambil status saat ini (string 'true'/'false') dan ubah jadi boolean
                 const currentStatus = toggleBtn.dataset.currentStatus === 'true';
-                const newStatus = !currentStatus;
+                const newStatus = !currentStatus; // Balikkan statusnya
 
+                // PERBAIKAN: Mengganti 'menuItems' ke 'menu' agar sesuai dengan database Anda
                 const itemRef = doc(db, 'menu', itemId);
                 
+                // Matikan tombol sementara proses
                 toggleBtn.disabled = true;
                 toggleBtn.textContent = 'Menyimpan...';
 
                 try {
+                    // Update field 'isAvailable' di Firestore
                     await updateDoc(itemRef, { isAvailable: newStatus });
+                    
+                    // onSnapshot akan otomatis memperbarui tampilan tombol
                     showNotification(`Status ${itemName} diubah ke ${newStatus ? 'Tersedia' : 'Habis'}.`);
                 } catch (error) {
                     console.error("Gagal update status menu:", error);
                     showNotification("Gagal mengubah status.", true);
+                    // Jika gagal, kembalikan tombol ke status semula
                     toggleBtn.disabled = false;
                     toggleBtn.textContent = currentStatus ? 'Tersedia' : 'Habis';
                 }
             });
         }
+        // --- AKHIR LISTENER BARU ---
         
         function setupNavigation() {
              if (document.body.dataset.navListenerAttached) return;
@@ -1320,13 +1375,17 @@
              navLinks.forEach(link => {
                  link.addEventListener('click', function(e) {
                      e.preventDefault();
-                     // [--- MODIFIKASI: Hapus panggil unlockAudio (ditangani add-on) ---]
-                     
                      const target = this.dataset.page;
                      navLinks.forEach(l => l.classList.remove('active'));
                      this.classList.add('active');
                      pages.forEach(p => p.classList.remove('active'));
                      document.getElementById(`${target}-page`).classList.add('active');
+                     
+                     // [NOTIFIKASI] Panggil onPageChange secara manual setelah navigasi
+                     // Kita tambahkan penundaan singkat agar class 'active' sempat diperbarui di DOM
+                     setTimeout(() => {
+                         if (window.onPageChange) window.onPageChange();
+                     }, 50);
                  });
              });
         }
@@ -1377,24 +1436,30 @@
                         return;
                     }
                     
+                    // [--- REVISI PAJAK DIHILANGKAN ---]
                     const headers = ["ID Pesanan", "Tanggal Selesai", "Waktu Selesai", "Nama Pelanggan", "No. Meja", "Item Dipesan", "Total", "Metode Bayar"];
+                    // [--- AKHIR REVISI ---]
                     const csvRows = [headers.join(',')];
                     
                     reportData.sort((a, b) => a.completedAt.seconds - b.completedAt.seconds);
 
                     for (const order of reportData) {
                         const date = new Date(order.completedAt.seconds * 1000);
+                        // Perbaikan: Ambil ID dari 'order.id' yang kita map sebelumnya
                         const orderId = order.id.substring(0, 6); 
                         const formattedDate = date.toLocaleDateString('id-ID', { year: 'numeric', month: '2-digit', day: '2-digit' });
                         const formattedTime = date.toLocaleTimeString('id-ID');
                         const customer = `"${order.customer}"`;
                         const table = order.table;
+                        // MODIFIKASI: Tambahkan varian ke dalam laporan CSV
                         const items = `"${order.items.map(i => 
                             `${i.name}${i.variant ? ` (${i.variant})` : ''} x${i.qty}`
                         ).join('; ')}"`;
+                        // [--- REVISI PAJAK DIHILANGKAN ---]
                         const grandTotal = order.total;
                         const payment = `"${order.paymentMethod}"`;
                         csvRows.push([orderId, formattedDate, formattedTime, customer, table, items, grandTotal, payment].join(','));
+                        // [--- AKHIR REVISI ---]
                     }
 
                     const csvContent = csvRows.join('\n');
@@ -1424,4 +1489,3 @@
     </script>
 </body>
 </html>
-
