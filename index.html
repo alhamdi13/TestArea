@@ -570,6 +570,23 @@
                     });
                 }
             });
+
+            // [--- BARU: Meminta izin Notifikasi saat interaksi pertama ---]
+            // Kita lakukan di sini agar permintaan izin muncul setelah pengguna berinteraksi
+            if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+                console.log("Meminta izin notifikasi...");
+                // Meminta izin kepada pengguna
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        console.log("Izin notifikasi diberikan!");
+                        // Kirim notifikasi tes (opsional)
+                        // new Notification("Notifikasi Diaktifkan!", { body: "Anda akan menerima pesanan baru di sini." });
+                    } else {
+                        console.warn("Izin notifikasi ditolak.");
+                    }
+                });
+            }
+            // [--- AKHIR BARU ---]
         }
         // [--- AKHIR FUNGSI BARU ---]
 
@@ -644,11 +661,31 @@
                     snapshot.docChanges().forEach((change) => {
                         if (change.type === "added") {
                             const orderData = change.doc.data();
-                            // Cek apakah ini pesanan baru (status pending)
-                            // DAN apakah kita sedang di halaman dapur
-                            if (orderData.status === 'pending' && document.getElementById('kitchen-page').classList.contains('active')) {
-                                newOrderDetectedOnKitchen = true;
+                            
+                            // [--- MODIFIKASI: Logika notifikasi baru ---]
+                            if (orderData.status === 'pending') {
+                                // 1. Putar suara jika di halaman dapur
+                                if (document.getElementById('kitchen-page').classList.contains('active')) {
+                                    newOrderDetectedOnKitchen = true;
+                                }
+
+                                // 2. Kirim Notifikasi Pop-up (jika diizinkan)
+                                // Ini akan berjalan di tab mana saja, tidak harus di Dapur
+                                if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+                                    const title = '☕ Pesanan Baru!';
+                                    const options = {
+                                        body: `Meja ${orderData.table} (${orderData.customer}) baru saja memesan.`,
+                                        // Ikon cangkir kopi sederhana (Data URI)
+                                        icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAAAAAC/9NrAAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAEqSURBVDjL7ZJNKsNAAEW/CStY5MGCbYOKoOAvYJGTW/sOdhFEsA+h7gl2F/wBgbTqgO3FYTdB/A6SGVmOdsN84O65uYlJbs/C6eM4MYYJbDAw8P/3gwzYwMgA3v83kO9hUIUoYl0YQnw69A+wN1oFIHiyYmMgvQoA8TjFyQx4ZOFMFgTzWWuBPAhBvUoAIODgBAE4gIgN5PBYF8YhAOKB1GB+KkB5EfqYwT6E0sI3sEaigB/BIfA/Dyk+wFziMhwQOKB/gBw+sEB+Cn2B8A/Eg5gP1KcwP5I8YD7E8UDAoU4gP1AcQDBApwH/CfxCwTsI/gQgXoI/gngfIQ/AfifYv0f4F8B/LcA/hXwXwL+S/A/wX8N/Bf9H/Bf+3+Af/0P4B/4P4B/8P8A//g/wH/4P8B/+D/Af/g/wH/4P4B/+D/Af/g/wH/4P8B/+D/Af/g/wH/4P8B/+D/Af/g/wH/4P8B/+D/Af/g/wH/4P8B/+D/Af/g/wH/4P8B/+D/Af/g/wH/4P8B/+D/Af/g/wH/4P8B/+D/Af/g/wH/4P8B/+D/Af/g/wH/4P8B/+D/Af/g/wH/4P8B/+D/Af/g/wH/4P8B/+D/Af/g/wH/I+BwBj0g8GvB8hgYAAz/P0B2P0D4A0wMGrE/wUAAAAASUVORK5CYII=',
+                                        vibrate: [200, 100, 200], // Getar, jeda, getar
+                                        requireInteraction: true // Minta interaksi (di desktop)
+                                    };
+                                    
+                                    // Tampilkan notifikasi!
+                                    new Notification(title, options);
+                                }
                             }
+                            // [--- AKHIR MODIFIKASI ---]
                         }
                     });
 
@@ -1347,5 +1384,6 @@
     </script>
 </body>
 </html>
+
 
 
