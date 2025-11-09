@@ -969,10 +969,29 @@
                 buttons += ` <button class="action-btn print" data-id="${order.id}" data-action="print">Cetak</button>`;
                 // [--- AKHIR TAMBAHAN ---]
 
+            // ==========================================================
+            // [--- PERUBAHAN 1: Tambah Tombol di Halaman Dapur ---]
+            // ==========================================================
             } else if (type === 'kitchen') {
-                if (order.status === 'pending') buttons = `<button class="action-btn" disabled>Tunggu Konfirmasi</button>`;
-                if (order.status === 'preparing') buttons = `<button class="action-btn success" data-id="${order.id}" data-action="finish">Selesai Masak</button>`;
+                if (order.status === 'pending') {
+                    buttons = `<button class="action-btn" disabled>Tunggu Konfirmasi</button>`;
+                } else if (order.status === 'preparing') {
+                    buttons = `<button class="action-btn success" data-id="${order.id}" data-action="finish">Selesai Masak</button>`;
+                }
+                
+                // [--- TAMBAHAN SESUAI PERMINTAAN ANDA ---]
+                // Tambahkan tombol Cetak (versi dapur) dan Batalkan
+                // Ini akan ditambahkan ke status 'pending' dan 'preparing'
+                // 'print-kitchen' adalah action baru untuk cetak sederhana
+                // 'void-request' adalah action lama untuk pembatalan
+                buttons += ` <button class="action-btn print" data-id="${order.id}" data-action="print-kitchen">Cetak Dapur</button>`;
+                buttons += ` <button class="action-btn danger" data-id="${order.id}" data-action="void-request">Batalkan</button>`;
+                // [--- AKHIR TAMBAHAN ---]
             }
+            // ==========================================================
+            // [--- AKHIR PERUBAHAN 1 ---]
+            // ==========================================================
+
             // MODIFIKASI: Tambahkan logika untuk menampilkan varian jika ada
             const items = order.items.map(i => 
                 `${i.name}${i.variant ? ` (${i.variant})` : ''} x${i.qty}`
@@ -1202,8 +1221,26 @@
                                 showNotification("Data pesanan tidak ditemukan.", true);
                             }
                         }
-                    }
                     // [--- AKHIR TAMBAHAN ---]
+                    
+                    // ==========================================================
+                    // [--- PERUBAHAN 3: Tambah Logika untuk Aksi Cetak Dapur ---]
+                    // ==========================================================
+                    } else if (action === 'print-kitchen') {
+                        // Ambil data terbaru dari pesanan itu
+                        const orderToPrintDoc = await getDoc(orderRef);
+                        if (orderToPrintDoc.exists()) {
+                            const orderData = { id: orderToPrintDoc.id, ...orderToPrintDoc.data() };
+                            // Panggil fungsi cetak versi DAPUR yang baru
+                            printKitchenOrder(orderData);
+                        } else {
+                            showNotification("Data pesanan tidak ditemukan.", true);
+                        }
+                    }
+                    // ==========================================================
+                    // [--- AKHIR PERUBAHAN 3 ---]
+                    // ==========================================================
+
                 } catch (error) { console.error(error); showNotification('Gagal memproses aksi!', true); }
             });
         }
@@ -1367,6 +1404,65 @@
             }
         }
         // [--- AKHIR FUNGSI BARU & PERUBAHAN RAWBT V2 ---]
+
+
+        // ==========================================================
+        // [--- PERUBAHAN 2: Fungsi Baru untuk Cetak Versi Dapur ---]
+        // ==========================================================
+        function printKitchenOrder(order) {
+            const receiptWidth = 32; // Lebar kertas thermal 58mm
+            const pad = (str, len, char = ' ') => String(str).padEnd(len, char);
+            const center = (str) => {
+                const spaces = Math.max(0, (receiptWidth - str.length) / 2);
+                return ' '.repeat(spaces) + str;
+            };
+
+            let receiptText = '';
+
+            // --- Header Sederhana ---
+            receiptText += center("--- PESANAN DAPUR ---\n");
+            
+            // Nomor Antrian (Meja dan Nama)
+            // Ini adalah "no antrian" yang Anda minta
+            const antrian = `${order.table} - ${order.customer}`;
+            receiptText += center(antrian.toUpperCase()) + "\n";
+            
+            // Waktu Pesan
+            const time = order.createdAt?.seconds ? new Date(order.createdAt.seconds * 1000) : new Date();
+            receiptText += center(`${time.toLocaleDateString('id-ID')} ${time.toLocaleTimeString('id-ID')}`) + "\n";
+            receiptText += "--------------------------------\n\n";
+
+            // --- Daftar Item (Sederhana) ---
+            // Ini adalah "menu pesanan" yang Anda minta
+            order.items.forEach(item => {
+                // Hanya Nama Item, Kuantitas, dan Varian
+                let itemName = `${item.qty}x ${item.name}${item.variant ? ` (${item.variant})` : ''}`;
+                
+                // Potong nama item jika terlalu panjang
+                if (itemName.length > receiptWidth) {
+                    receiptText += pad(itemName.substring(0, receiptWidth), receiptWidth) + "\n";
+                    receiptText += pad("  " + itemName.substring(receiptWidth), receiptWidth) + "\n";
+                } else {
+                    receiptText += pad(itemName, receiptWidth) + "\n";
+                }
+            });
+            
+            receiptText += "\n--------------------------------\n";
+            receiptText += "\n\n\n"; // Feed paper
+
+            // --- Logika untuk Mencetak via RawBT ---
+            const encodedReceiptText = encodeURIComponent(receiptText);
+            const rawBtUrl = `rawbt:${encodedReceiptText}`;
+            const printWindow = window.open(rawBtUrl, '_blank');
+            
+            if (!printWindow) {
+                showNotification("Gagal membuka RawBT. Izinkan popup untuk aplikasi ini.", true);
+            }
+        }
+        // ==========================================================
+        // [--- AKHIR PERUBAHAN 2 ---]
+        // ==========================================================
+
 
         // --- LISTENER BARU UNTUK TOMBOL TOGGLE MENU ---
         function setupMenuActionListeners() {
