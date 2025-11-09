@@ -1422,9 +1422,11 @@
             // --- Header Sederhana ---
             receiptText += center("--- PESANAN DAPUR ---\n");
             
-            // Nomor Antrian (Meja dan Nama)
-            // Ini adalah "no antrian" yang Anda minta
-            const antrian = `${order.table} - ${order.customer}`;
+            // Nomor Antrian (Diperbarui dengan No Antrian)
+            const antrian = order.queueNumber 
+                ? `#${order.queueNumber} | ${order.table} - ${order.customer}` 
+                : `${order.table} - ${order.customer}`;
+                
             receiptText += center(antrian.toUpperCase()) + "\n";
             
             // Waktu Pesan
