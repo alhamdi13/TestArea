@@ -422,12 +422,13 @@
     </label>
     <label style="display:flex;align-items:center;gap:6px">
         Nada
+        <!-- [PERUBAHAN] Nilai <option> diubah agar lebih jelas -->
         <select id="alarm-preset" style="padding:6px 8px;border:1px solid #e0e0e0;border-radius:8px">
-        <option value="ding">Ding (singkat)</option>
-        <option value="siren">Sirine (naik–turun)</option>
-        <option value="long">Beep panjang</option>
-        <option value="triple">Tiga beep</option>
-        <option value="bell3">Bell 3 detik</option>
+        <option value="new_order">Pesanan Baru (Ding)</option>
+        <option value="overdue_siren">Overdue (Sirine)</option>
+        <option value="long_beep">Beep Panjang</option>
+        <option value="triple_beep">Tiga Beep</option>
+        <option value-"bell_long">Bell 3 dtk</option>
         </select>
     </label>
     <button id="alarm-test" class="action-btn">Tes Bunyi</button>
@@ -456,9 +457,10 @@
     const CFG = {
         // minutes before an order is considered overdue
         pendingOverMin: 3,      // "Menunggu" terlalu lama
-        preparingOverMin: 10,   // "Dimasak" terlalu lama (SESUAI PERMINTAAN ANDA)
+        // [PERUBAHAN] Diubah dari 10 menjadi 5 sesuai permintaan
+        preparingOverMin: 5,   // "Dimasak" terlalu lama
         reAlertMinGap: 2,       // minimal jeda menit antar bunyi per order
-        newOrderChimeRepeats: 2 // bunyi berapa kali saat pesanan baru masuk
+        newOrderChimeRepeats: 2 // bunyi berapa kali saat pesanan baru masuk (saat dikonfirmasi kasir)
     };
 
     // ===== STATE =====
@@ -511,25 +513,29 @@
     const savedPreset = localStorage.getItem('kitchenAlarm.preset');
     if (savedPreset && presetSel) presetSel.value = savedPreset;
 
-    // simple chime with repeats (prioritas WebAudio). Fallback ke <audio> jika perlu
-    async function chime(times=1){
+    // [PERUBAHAN] Fungsi chime dimodifikasi untuk menerima 'forcePreset'
+    // Ini memungkinkan kita memutar suara tertentu (misal: overdue) tanpa mengubah pilihan dropdown
+    async function chime(times=1, forcePreset = null){
         if(!s.enabled) return;
 
-        const preset = (presetSel?.value)||'ding';
+        // Jika 'forcePreset' diberikan, gunakan itu. Jika tidak, ambil dari dropdown.
+        // Default fallback adalah 'new_order' (ding)
+        const preset = forcePreset || (presetSel?.value) || 'new_order';
 
         // ===== WebAudio preferred =====
         if(ensureAudio()){
             try{
                 for(let i=0;i<times;i++){
-                    if (preset==='ding'){
+                    // [PERUBAHAN] Nilai 'if' disesuaikan dengan <option> baru
+                    if (preset==='new_order'){
                         await playTone(480, 980, 980, 'square');
-                    } else if (preset==='siren'){
+                    } else if (preset==='overdue_siren'){
                         await playSiren(1800); // naik turun 1.8s
-                    } else if (preset==='long'){
+                    } else if (preset==='long_beep'){
                         await playTone(1500, 850, 850, 'sawtooth'); // 1.5s manteng
-                    } else if (preset==='triple'){
+                    } else if (preset==='triple_beep'){
                         for(let k=0;k<3;k++){ await playTone(300, 1000, 1000, 'square'); await sleep(180); }
-                    } else if (preset==='bell3'){
+                    } else if (preset==='bell_long'){
                         await playBell3();
                     }
                     await sleep(220);
@@ -637,12 +643,13 @@
     });
 
     // ===== HOOKS you can CALL from your main script =====
-    // Call this from your onSnapshot for 'orders' when a new doc is ADDED
-    window.__kitchenNewOrderAlert = function(order){
-        if(s.currentPage==='kitchen') chime(CFG.newOrderChimeRepeats);
-        // also flash title when tab hidden
-        if (document.hidden) flashTitle('🍳 Pesanan baru!');
-    };
+    
+    // [PERUBAHAN] Fungsi __kitchenNewOrderAlert DIHAPUS.
+    // Pemicu notifikasi dipindah ke aksi 'confirm' kasir di skrip <module>
+    
+    // [PERUBAHAN] expose 's' dan 'chime' ke window agar bisa diakses skrip module
+    window.__kitchenState = s;
+    window.__kitchenChime = chime;
 
     // Call this periodically with the latest active orders array
     window.__kitchenOverdueScan = function(orders){
@@ -675,7 +682,10 @@
                 // throttle per order alerts
                 const last = s.lastAlertPerOrder.get(o.id) || 0;
                 if (now - last > CFG.reAlertMinGap*60000){
-                    if (s.currentPage==='kitchen') chime(1);
+                    if (s.currentPage==='kitchen') {
+                        // [PERUBAHAN] Paksa putar suara 'overdue_siren'
+                        chime(1, 'overdue_siren');
+                    }
                     s.lastAlertPerOrder.set(o.id, now);
                 }
             }
@@ -684,7 +694,8 @@
 
     // title flasher when tab hidden
     let flashTimer=null, origTitle=document.title;
-    function flashTitle(msg){
+    // [PERUBAHAN] expose flashTitle ke window
+    window.__flashTitle = function(msg){
         clearInterval(flashTimer); let on=false; let count=0; document.title = origTitle;
         flashTimer = setInterval(()=>{
             on=!on; document.title = on? (`${msg} · Payboss`): origTitle; if(++count>10){clearInterval(flashTimer); document.title=origTitle;}
@@ -853,17 +864,9 @@
                     __activeOrdersShadow = activeOrders;
                     window.__latestActiveOrdersForKitchen = activeOrders; // Expose to add-on
 
-                    // Deteksi pesanan BARU (type 'added') untuk bunyi notifikasi
-                    snapshot.docChanges().forEach(ch => {
-                      if (ch.type === 'added') {
-                        try { 
-                            // Panggil fungsi global dari skrip alarm
-                            window.__kitchenNewOrderAlert && window.__kitchenNewOrderAlert({ id: ch.doc.id, ...ch.doc.data() }); 
-                        } catch(e){
-                            console.error("Gagal trigger new order alert:", e);
-                        }
-                      }
-                    });
+                    // [PERUBAHAN] Deteksi 'added' DIHAPUS dari sini.
+                    // Notifikasi dipindah ke aksi 'confirm' kasir.
+                    
                     // --- AKHIR HOOK (2) ---
 
                     // Render UI seperti biasa
@@ -1178,11 +1181,29 @@
                 const orderRef = doc(db, 'orders', orderId);
                 try {
                     // --- HOOK INTEGRASI NOTIFIKASI (4) ---
-                    if (action === 'confirm') await updateDoc(orderRef, { status: 'preparing', updatedAt: serverTimestamp() });
-                    else if (action === 'finish') await updateDoc(orderRef, { status: 'ready', updatedAt: serverTimestamp() });
+                    if (action === 'confirm') {
+                        await updateDoc(orderRef, { status: 'preparing', updatedAt: serverTimestamp() });
+                        
+                        // [PERUBAHAN] Panggil notifikasi DAPUR dari sini
+                        try {
+                            const { __kitchenState, __kitchenChime, __flashTitle } = window;
+                            // Hanya bunyikan jika user ada di halaman dapur
+                            if (__kitchenState && __kitchenState.currentPage === 'kitchen') {
+                                // Paksa putar suara 'new_order'
+                                __kitchenChime && __kitchenChime(CFG.newOrderChimeRepeats, 'new_order');
+                            }
+                            // Selalu flash title jika tab sedang tidak aktif
+                            if (document.hidden) {
+                                __flashTitle && __flashTitle('🍳 Pesanan dikonfirmasi!');
+                            }
+                        } catch(err) { console.error("Gagal panggil hook notifikasi", err); }
+                        // [AKHIR PERUBAHAN]
+
+                    } else if (action === 'finish') {
+                        await updateDoc(orderRef, { status: 'ready', updatedAt: serverTimestamp() });
                     // --- AKHIR HOOK ---
 
-                    else if (action === 'complete') {
+                    } else if (action === 'complete') {
                         const orderDoc = await getDoc(orderRef);
                         if (orderDoc.exists()){
                             const orderData = orderDoc.data();
