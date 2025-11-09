@@ -1422,12 +1422,20 @@
             // --- Header Sederhana ---
             receiptText += center("--- PESANAN DAPUR ---\n");
             
-            // Nomor Antrian (Diperbarui dengan No Antrian)
-            const antrian = order.queueNumber 
-                ? `#${order.queueNumber} | ${order.table} - ${order.customer}` 
-                : `${order.table} - ${order.customer}`;
+            // Nomor Antrian (Lama)
+            // const antrian = order.queueNumber 
+            //     ? `#${order.queueNumber} | ${order.table} - ${order.customer}` 
+            //     : `${order.table} - ${order.customer}`;
                 
-            receiptText += center(antrian.toUpperCase()) + "\n";
+            // receiptText += center(antrian.toUpperCase()) + "\n";
+
+            // [--- PERUBAHAN BARU: Menambahkan No Antrian & No Meja secara eksplisit ---]
+            if (order.queueNumber) {
+                receiptText += center(`NO ANTRIAN: #${order.queueNumber}`) + "\n";
+            }
+            receiptText += center(`NO MEJA: ${order.table.toUpperCase()}`) + "\n";
+            receiptText += center(`PELANGGAN: ${order.customer.toUpperCase()}`) + "\n";
+            // [--- AKHIR PERUBAHAN BARU ---]
             
             // Waktu Pesan
             const time = order.createdAt?.seconds ? new Date(order.createdAt.seconds * 1000) : new Date();
