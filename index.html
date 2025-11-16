@@ -1,81 +1,52 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
-    <title>PayBoss Cafe - Absensi Karyawan</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- Tailwind CSS -->
+    <title>PayBoss Cafe - Sistem Absensi</title>
+
+    <!-- TailwindCSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- React + ReactDOM + Babel (untuk JSX langsung di browser) -->
+    <!-- React & ReactDOM (CDN) -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+    <!-- Babel (untuk JSX di browser) -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Framer Motion UMD -->
+    <script src="https://unpkg.com/framer-motion/dist/framer-motion.umd.js"></script>
   </head>
+
   <body class="bg-stone-100">
     <div id="root"></div>
 
     <script type="text/babel">
       const { useState, useRef, useEffect, useCallback } = React;
 
-      /********************************************************
-       *  KONFIGURASI BACKEND GOOGLE SHEETS (WEB APP URL)
-       ********************************************************/
-      // TODO: GANTI DENGAN WEB APP URL MILIKMU
-      const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbywn5Q46QWi109Q8vIzxz6VgtCQm1u5PbN8l7f6fIAMfYJB0CFvjmixuVb3R-s25jQl0w/exec';
+      // Inisialisasi Framer Motion dari UMD (fallback kalau gagal load)
+      const fm = window.FramerMotion || null;
+      const motion = fm
+        ? fm.motion
+        : {
+            div: (props) => <div {...props} />, 
+            form: (props) => <form {...props} />,
+          };
+      const AnimatePresence = fm ? fm.AnimatePresence : ({ children }) => <>{children}</>;
 
-      /********************************************************
-       *  THEME & KONSTAN
-       ********************************************************/
-      const theme = {
-        colors: {
-          primary: 'bg-stone-700',
-          primaryHover: 'hover:bg-stone-800',
-          secondary: 'bg-amber-800',
-          secondaryHover: 'hover:bg-amber-900',
-          accent: 'bg-green-700',
-          accentHover: 'hover:bg-green-800',
-          background: 'bg-stone-100',
-          card: 'bg-white',
-          textPrimary: 'text-stone-800',
-          textSecondary: 'text-stone-600',
-          textLight: 'text-white',
-          border: 'border-stone-200',
-          danger: 'bg-red-600',
-          success: 'bg-green-600',
-        },
-        rounding: {
-          card: 'rounded-2xl',
-          button: 'rounded-lg',
-          input: 'rounded-lg',
-        },
-      };
-      // Alias biar pemakaian theme.textPrimary tetap jalan
-      theme.textPrimary = theme.colors.textPrimary;
-      theme.textSecondary = theme.colors.textSecondary;
-      theme.textLight = theme.colors.textLight;
-
-      // Lokasi PayBoss Cafe (Target GPS)
-      const TARGET_LOCATION = {
-        latitude: -2.1717657457047723,
-        longitude: 115.4029877085838,
-      };
-      const GPS_RADIUS_METERS = 100;
-
-      // Hardcode tanggal hari ini (sesuai roster demo)
-      const TODAY = '2025-11-16';
-
-      /********************************************************
-       *  IKON SEDERHANA (PENGGANTI lucide-react)
-       ********************************************************/
-      const IconWrapper = ({ children, className = '', size = 24 }) => (
-        <span className={className} style={{ fontSize: size }}>
+      // --- SIMPLE ICON WRAPPER (pengganti lucide-react) ---
+      const IconWrapper = ({ children, className = "", size = 24 }) => (
+        <span
+          className={className}
+          style={{ fontSize: size, display: "inline-flex", alignItems: "center", justifyContent: "center" }}
+        >
           {children}
         </span>
       );
 
       const Home = (props) => <IconWrapper {...props}>🏠</IconWrapper>;
-      const LogIn = (props) => <IconWrapper {...props}>🔓</IconWrapper>;
+      const LogIn = (props) => <IconWrapper {...props}>🔑</IconWrapper>;
       const LogOut = (props) => <IconWrapper {...props}>🚪</IconWrapper>;
       const User = (props) => <IconWrapper {...props}>👤</IconWrapper>;
       const BarChart2 = (props) => <IconWrapper {...props}>📊</IconWrapper>;
@@ -86,7 +57,7 @@
       const XCircle = (props) => <IconWrapper {...props}>❌</IconWrapper>;
       const MapPin = (props) => <IconWrapper {...props}>📍</IconWrapper>;
       const Camera = (props) => <IconWrapper {...props}>📷</IconWrapper>;
-      const ListChecks = (props) => <IconWrapper {...props}>📋</IconWrapper>;
+      const ListChecks = (props) => <IconWrapper {...props}>✅</IconWrapper>;
       const ChevronLeft = (props) => <IconWrapper {...props}>◀️</IconWrapper>;
       const ChevronRight = (props) => <IconWrapper {...props}>▶️</IconWrapper>;
       const Plus = (props) => <IconWrapper {...props}>➕</IconWrapper>;
@@ -97,149 +68,172 @@
       const Coffee = (props) => <IconWrapper {...props}>☕</IconWrapper>;
       const ShieldCheck = (props) => <IconWrapper {...props}>🛡️</IconWrapper>;
       const Moon = (props) => <IconWrapper {...props}>🌙</IconWrapper>;
-      const Sun = (props) => <IconWrapper {...props}>🌞</IconWrapper>;
-      const Sunset = (props) => <IconWrapper {...props}>🌇</IconWrapper>;
+      const Sun = (props) => <IconWrapper {...props}>☀️</IconWrapper>;
+      const Sunset = (props) => <IconWrapper {...props}>🌆</IconWrapper>;
 
-      /********************************************************
-       *  STUB FRAMER-MOTION (SIMPLE NO-ANIMATION)
-       ********************************************************/
-      const AnimatePresence = ({ children }) => <>{children}</>;
+      // --- STYLING & KONFIGURASI ---
 
-      const motion = new Proxy(
-        {},
-        {
-          get(target, tag) {
-            return ({ children, initial, animate, exit, transition, ...rest }) => {
-              const Tag = tag;
-              return <Tag {...rest}>{children}</Tag>;
-            };
-          },
-        }
-      );
+      // Konfigurasi Tema PayBoss Cafe (Earthy Tones)
+      const theme = {
+        colors: {
+          primary: "bg-stone-700", // Coklat tua
+          primaryHover: "hover:bg-stone-800",
+          secondary: "bg-amber-800", // Coklat muda (aksen)
+          secondaryHover: "hover:bg-amber-900",
+          accent: "bg-green-700", // Hijau
+          accentHover: "hover:bg-green-800",
+          background: "bg-stone-100", // Krem
+          card: "bg-white",
+          textPrimary: "text-stone-800",
+          textSecondary: "text-stone-600",
+          textLight: "text-white",
+          border: "border-stone-200",
+          danger: "bg-red-600",
+          success: "bg-green-600",
+        },
+        rounding: {
+          card: "rounded-2xl",
+          button: "rounded-lg",
+          input: "rounded-lg",
+        },
+      };
 
-      /********************************************************
-       *  DATABASE MOCK / TEMPLATE DATA
-       ********************************************************/
+      // Lokasi PayBoss Cafe (Target GPS)
+      const TARGET_LOCATION = {
+        latitude: -2.1717657457047723,
+        longitude: 115.4029877085838,
+      };
+      const GPS_RADIUS_METERS = 100;
+
+      // Hardcode tanggal hari ini untuk demo roster (16 November 2025, Minggu)
+      const TODAY = "2025-11-16";
+
+      // URL Google Apps Script untuk read/write Google Sheet
+      // GANTI dengan URL Web App milik Anda jika berbeda
+      const GOOGLE_SHEET_WEBAPP_URL =
+        "https://script.google.com/macros/s/AKfycbxOHwN1-GyfwWrQLucTf-X0Db_9HefScgxd5g2h35-ntTNyGQZ4NePhZ39OfeZqRvdM/exec";
+
+      // --- DATABASE MOCK (BERDASARKAN FILE UPLOAD) ---
+
       const initialDbKaryawan = [
-        { id: 'PB251101', nama: 'Dayat', posisi: 'Koordinator', password: 'dayat123', fotoInisial: 'D' },
-        { id: 'PB251102', nama: 'Ilham Ali Naufal', posisi: 'Pramusaji', password: 'ilham123', fotoInisial: 'IA' },
-        { id: 'PB251104', nama: 'Renita Aulia Jasmin', posisi: 'Bartender', password: 'renita123', fotoInisial: 'RA' },
-        { id: 'PB251108', nama: 'Fitri Ainur Sabita', posisi: 'Chef', password: 'fitri123', fotoInisial: 'FA' },
-        { id: 'PB251109', nama: 'Shada Amalia', posisi: 'Chef', password: 'shada123', fotoInisial: 'SA' },
-        { id: 'PB251106', nama: 'Ahmad Maulidan', posisi: 'Bartender', password: 'ahmad123', fotoInisial: 'AM' },
-        { id: 'PB251107', nama: 'Rusdhani', posisi: 'Pramusaji', password: 'rusdhani123', fotoInisial: 'R' },
+        { id: "PB251101", nama: "Dayat", posisi: "Koordinator", password: "dayat123", fotoInisial: "D" },
+        { id: "PB251102", nama: "Ilham Ali Naufal", posisi: "Pramusaji", password: "ilham123", fotoInisial: "IA" },
+        { id: "PB251104", nama: "Renita Aulia Jasmin", posisi: "Bartender", password: "renita123", fotoInisial: "RA" },
+        { id: "PB251108", nama: "Fitri Ainur Sabita", posisi: "Chef", password: "fitri123", fotoInisial: "FA" },
+        { id: "PB251109", nama: "Shada Amalia", posisi: "Chef", password: "shada123", fotoInisial: "SA" },
+        { id: "PB251106", nama: "Ahmad Maulidan", posisi: "Bartender", password: "ahmad123", fotoInisial: "AM" },
+        { id: "PB251107", nama: "Rusdhani", posisi: "Pramusaji", password: "rusdhani123", fotoInisial: "R" },
       ];
 
       const jobDeskTemplates = {
         Pramusaji: [
-          'Menyambut tamu dengan ramah (Greeter)',
-          'Mencatat pesanan dengan akurat',
-          'Menyajikan pesanan (Runner)',
-          'Proaktif melayani kebutuhan tamu (table touch)',
-          'Membersihkan meja (Clear-up & Reset)',
-          'Membantu proses pembayaran di kasir',
+          "Menyambut tamu dengan ramah (Greeter)",
+          "Mencatat pesanan dengan akurat",
+          "Menyajikan pesanan (Runner)",
+          "Proaktif melayani kebutuhan tamu (table touch)",
+          "Membersihkan meja (Clear-up & Reset)",
+          "Membantu proses pembayaran di kasir",
         ],
         Bartender: [
-          'Menyiapkan bar station (mise en place)',
-          'Menerima pesanan minuman',
-          'Membuat pesanan minuman (Kopi & Non-Kopi) sesuai SOP',
-          'Menjaga kebersihan dan kerapian area bar',
-          'Melakukan stok opname harian bahan baku bar',
+          "Menyiapkan bar station (mise en place)",
+          "Menerima pesanan minuman",
+          "Membuat pesanan minuman (Kopi & Non-Kopi) sesuai SOP",
+          "Menjaga kebersihan dan kerapian area bar",
+          "Melakukan stok opname harian bahan baku bar",
         ],
         Chef: [
           "Persiapan 'mise en place' bahan baku kitchen",
-          'Memasak pesanan sesuai SOP dan urutan (FIFO)',
-          'Menjaga kualitas rasa dan presentasi hidangan',
-          'Memastikan kebersihan area kitchen (kitchen station)',
-          'Melakukan stok opname harian bahan baku kitchen',
+          "Memasak pesanan sesuai SOP dan urutan (FIFO)",
+          "Menjaga kualitas rasa dan presentasi hidangan",
+          "Memastikan kebersihan area kitchen (kitchen station)",
+          "Melakukan stok opname harian bahan baku kitchen",
         ],
         Koordinator: [
-          'Memimpin briefing pagi tim FOH & BOH',
-          'Memastikan ketersediaan stok (Bar & Kitchen)',
-          'Menangani keluhan atau masukan tamu (service recovery)',
-          'Membuat laporan closing harian',
-          'Memastikan semua tim menjalankan SOP dengan baik',
+          "Memimpin briefing pagi tim FOH & BOH",
+          "Memastikan ketersediaan stok (Bar & Kitchen)",
+          "Menangani keluhan atau masukan tamu (service recovery)",
+          "Membuat laporan closing harian",
+          "Memastikan semua tim menjalankan SOP dengan baik",
         ],
       };
 
       const initialDbRoster = {
         PB251101: {
-          '2025-11-16': 'OFF',
-          '2025-11-17': 1,
-          '2025-11-18': 1,
-          '2025-11-19': 1,
-          '2025-11-20': 1,
-          '2025-11-21': 1,
-          '2025-11-22': 1,
+          "2025-11-16": "OFF",
+          "2025-11-17": 1,
+          "2025-11-18": 1,
+          "2025-11-19": 1,
+          "2025-11-20": 1,
+          "2025-11-21": 1,
+          "2025-11-22": 1,
         },
         PB251102: {
-          '2025-11-16': 2,
-          '2025-11-17': 'OFF',
-          '2025-11-18': 3,
-          '2025-11-19': 3,
-          '2025-11-20': 3,
-          '2025-11-21': 3,
-          '2025-11-22': 3,
+          "2025-11-16": 2,
+          "2025-11-17": "OFF",
+          "2025-11-18": 3,
+          "2025-11-19": 3,
+          "2025-11-20": 3,
+          "2025-11-21": 3,
+          "2025-11-22": 3,
         },
         PB251104: {
-          '2025-11-16': 2,
-          '2025-11-17': 2,
-          '2025-11-18': 'OFF',
-          '2025-11-19': 2,
-          '2025-11-20': 2,
-          '2025-11-21': 2,
-          '2025-11-22': 2,
+          "2025-11-16": 2,
+          "2025-11-17": 2,
+          "2025-11-18": "OFF",
+          "2025-11-19": 2,
+          "2025-11-20": 2,
+          "2025-11-21": 2,
+          "2025-11-22": 2,
         },
         PB251108: {
-          '2025-11-16': 1,
-          '2025-11-17': 1,
-          '2025-11-18': 1,
-          '2025-11-19': 'OFF',
-          '2025-11-20': 2,
-          '2025-11-21': 2,
-          '2025-11-22': 2,
+          "2025-11-16": 1,
+          "2025-11-17": 1,
+          "2025-11-18": 1,
+          "2025-11-19": "OFF",
+          "2025-11-20": 2,
+          "2025-11-21": 2,
+          "2025-11-22": 2,
         },
         PB251109: {
-          '2025-11-16': 1,
-          '2025-11-17': 1,
-          '2025-11-18': 1,
-          '2025-11-19': 1,
-          '2025-11-20': 'OFF',
-          '2025-11-21': 1,
-          '2025-11-22': 'OFF',
+          "2025-11-16": 1,
+          "2025-11-17": 1,
+          "2025-11-18": 1,
+          "2025-11-19": 1,
+          "2025-11-20": "OFF",
+          "2025-11-21": 1,
+          "2025-11-22": "OFF",
         },
         PB251106: {
-          '2025-11-16': 2,
-          '2025-11-17': 2,
-          '2025-11-18': 'OFF',
-          '2025-11-19': 2,
-          '2025-11-20': 2,
-          '2025-11-21': 2,
-          '2025-11-22': 2,
+          "2025-11-16": 2,
+          "2025-11-17": 2,
+          "2025-11-18": "OFF",
+          "2025-11-19": 2,
+          "2025-11-20": 2,
+          "2025-11-21": 2,
+          "2025-11-22": 2,
         },
         PB251107: {
-          '2025-11-16': 2,
-          '2025-11-17': 'OFF',
-          '2025-11-18': 3,
-          '2025-11-19': 3,
-          '2025-11-20': 3,
-          '2025-11-21': 3,
-          '2025-11-22': 3,
+          "2025-11-16": 2,
+          "2025-11-17": "OFF",
+          "2025-11-18": 3,
+          "2025-11-19": 3,
+          "2025-11-20": 3,
+          "2025-11-21": 3,
+          "2025-11-22": 3,
         },
       };
 
       const shiftDetails = {
-        1: { nama: 'Pagi', ikon: Sun, waktu: '08:00 - 16:00', color: 'text-blue-500' },
-        2: { nama: 'Siang', ikon: Sunset, waktu: '16:00 - 23:00', color: 'text-orange-500' },
-        3: { nama: 'Malam', ikon: Moon, waktu: '23:00 - 08:00', color: 'text-indigo-500' },
-        OFF: { nama: 'OFF', ikon: Home, waktu: 'Libur', color: 'text-gray-500' },
+        1: { nama: "Pagi", ikon: Sun, waktu: "08:00 - 16:00", color: "text-blue-500" },
+        2: { nama: "Siang", ikon: Sunset, waktu: "16:00 - 23:00", color: "text-orange-500" },
+        3: { nama: "Malam", ikon: Moon, waktu: "23:00 - 08:00", color: "text-indigo-500" },
+        OFF: { nama: "OFF", ikon: Home, waktu: "Libur", color: "text-gray-500" },
       };
 
-      /********************************************************
-       *  FUNGSI UTILITAS
-       ********************************************************/
+      // --- FUNGSI UTILITAS ---
+
       function getHaversineDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371e3;
+        const R = 6371e3; // meter
         const φ1 = (lat1 * Math.PI) / 180;
         const φ2 = (lat2 * Math.PI) / 180;
         const Δφ = ((lat2 - lat1) * Math.PI) / 180;
@@ -247,14 +241,15 @@
 
         const a =
           Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-          Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+          Math.cos(φ1) * Math.cos(φ2) *
+            Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-        return R * c;
+        return R * c; // dalam meter
       }
 
       function getNext7Days(startDateString) {
-        const startDate = new Date(startDateString + 'T00:00:00');
+        const startDate = new Date(startDateString + "T00:00:00");
         const dates = [];
         for (let i = 0; i < 7; i++) {
           const nextDate = new Date(startDate.getTime());
@@ -265,44 +260,133 @@
       }
 
       function formatDateYYYYMMDD(date) {
-        return date.toISOString().split('T')[0];
+        return date.toISOString().split("T")[0];
       }
 
       function formatShortDate(date) {
-        return date.toLocaleDateString('id-ID', {
-          weekday: 'long',
-          day: 'numeric',
-          month: 'short',
+        return date.toLocaleDateString("id-ID", {
+          weekday: "long",
+          day: "numeric",
+          month: "short",
         });
       }
 
       function formatTime(date) {
-        if (!(date instanceof Date)) {
-          date = new Date(date);
-        }
-        return date.toLocaleTimeString('id-ID', {
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
+        return date.toLocaleTimeString("id-ID", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
         });
       }
 
-      /********************************************************
-       *  KOMPONEN UMUM
-       ********************************************************/
+      // --- FUNGSI KONEKSI GOOGLE SHEET ---
+      // Contoh sederhana: kirim log absensi (check-in / check-out) ke Google Sheet
+      // Google Apps Script (doPost) di sisi server perlu membaca JSON dan append ke Sheet.
+
+      async function kirimAbsensiKeSheet({ user, jenis, data, shiftName }) {
+        try {
+          const payload = {
+            action: "appendAbsensi", // bisa Anda pakai untuk switch-case di Apps Script
+            timestamp: new Date().toISOString(),
+            tanggal: TODAY,
+            jenis, // "checkIn" / "checkOut"
+            idKaryawan: user.id,
+            namaKaryawan: user.nama,
+            posisi: user.posisi,
+            shift: shiftName,
+            waktu: data.waktu.toISOString(),
+            lat: data.lat || "",
+            lng: data.lng || "",
+            jarak: data.jarak || "",
+            alasanLuarArea: data.alasanLuarArea || "",
+          };
+
+          // mode: "no-cors" supaya tidak error di browser saat Apps Script belum mengatur CORS dengan benar.
+          // Di Apps Script, pastikan Web App sudah di-deploy dengan akses "Anyone with the link" dan log payload-nya.
+          await fetch(GOOGLE_SHEET_WEBAPP_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+            mode: "no-cors",
+          });
+        } catch (err) {
+          // Tangani kegagalan jaringan tanpa melempar error ke UI
+          console.error("Gagal mengirim data ke Google Sheet", err);
+        }
+      }
+
+      // Contoh fungsi membaca data absensi dari Google Sheet (opsional)
+      // Apps Script doGet harus mengembalikan JSON: { data: [ ... ] }
+      async function loadAbsensiDariSheet() {
+        try {
+          const res = await fetch(
+            GOOGLE_SHEET_WEBAPP_URL + "?action=getAbsensi"
+          );
+          if (!res.ok) throw new Error("Response tidak OK");
+          const json = await res.json();
+          if (!json || !Array.isArray(json.data)) return null;
+
+          // DI BAWAH INI hanya contoh mapping. Sesuaikan dengan struktur JSON Anda.
+          return json.data.map((row) => ({
+            id: row.id,
+            idKaryawan: row.idKaryawan,
+            namaKaryawan: row.namaKaryawan,
+            posisi: row.posisi,
+            tanggal: row.tanggal,
+            shift: row.shift,
+            checkIn: row.checkIn
+              ? {
+                  waktu: new Date(row.checkIn),
+                  alasanLuarArea: row.alasanLuarArea || null,
+                  lat: row.lat ? Number(row.lat) : null,
+                  lng: row.lng ? Number(row.lng) : null,
+                  jarak: row.jarak ? Number(row.jarak) : null,
+                }
+              : null,
+            checkOut: row.checkOut
+              ? {
+                  waktu: new Date(row.checkOut),
+                }
+              : null,
+            jobDeskProgress: [],
+            status: row.status || "",
+          }));
+        } catch (err) {
+          console.error("Gagal load absensi dari Google Sheet", err);
+          return null;
+        }
+      }
+
+      // --- KOMPONEN UI (SHARED) ---
+
       const Modal = ({ children, onClose, title }) => (
         <AnimatePresence>
           <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 p-4"
             onClick={onClose}
           >
             <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
               className={`relative w-full max-w-lg overflow-hidden ${theme.colors.card} ${theme.rounding.card} shadow-2xl`}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className={`flex items-center justify-between p-5 border-b ${theme.colors.border}`}>
-                <h3 className={`text-xl font-bold ${theme.textPrimary}`}>{title}</h3>
-                <button onClick={onClose} className={`${theme.textSecondary} hover:text-red-500`}>
+              <div
+                className={`flex items-center justify-between p-5 ${theme.colors.border} border-b`}
+              >
+                <h3 className={`text-xl font-bold ${theme.colors.textPrimary}`}>
+                  {title}
+                </h3>
+                <button
+                  onClick={onClose}
+                  className={`${theme.colors.textSecondary || "text-stone-600"} hover:text-red-500`}
+                >
                   <XCircle size={24} />
                 </button>
               </div>
@@ -315,34 +399,42 @@
       const Button = ({
         onClick,
         children,
-        variant = 'primary',
+        variant = "primary",
         disabled = false,
-        className = '',
-        ...rest
+        className = "",
+        type = "button",
       }) => {
         const variants = {
           primary: `${theme.colors.primary} ${theme.colors.textLight} ${theme.colors.primaryHover}`,
           secondary: `${theme.colors.secondary} ${theme.colors.textLight} ${theme.colors.secondaryHover}`,
           accent: `${theme.colors.accent} ${theme.colors.textLight} ${theme.colors.accentHover}`,
           danger: `${theme.colors.danger} ${theme.colors.textLight} hover:bg-red-700`,
-          light: `${theme.colors.background} ${theme.textPrimary} hover:bg-stone-200`,
+          light: `${theme.colors.background} ${theme.colors.textPrimary} hover:bg-stone-200`,
         };
 
         return (
           <button
+            type={type}
             onClick={onClick}
             disabled={disabled}
-            {...rest}
-            className={`flex w-full items-center justify-center gap-2 p-3 font-semibold ${theme.rounding.button} transition-all duration-200 ${
-              variants[variant]
-            } ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
+            className={`flex w-full items-center justify-center gap-2 p-3 font-semibold ${theme.rounding.button} transition-all duration-200 ${variants[variant]} ${
+              disabled ? "opacity-50 cursor-not-allowed" : ""
+            } ${className}`}
           >
             {children}
           </button>
         );
       };
 
-      const Input = ({ type = 'text', placeholder, value, onChange, icon, ...rest }) => (
+      const Input = ({
+        type = "text",
+        placeholder,
+        value,
+        onChange,
+        icon,
+        className = "",
+        ...rest
+      }) => (
         <div className="relative w-full">
           {icon && (
             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400">
@@ -355,101 +447,77 @@
             value={value}
             onChange={onChange}
             {...rest}
-            className={`w-full ${theme.colors.background} ${theme.rounding.input} ${theme.textPrimary} border ${
-              theme.colors.border
-            } p-3 ${icon ? 'pl-10' : ''} focus:outline-none focus:ring-2 focus:ring-amber-800`}
+            className={`w-full ${theme.colors.background} ${theme.rounding.input} ${
+              theme.colors.textPrimary
+            } border ${theme.colors.border} p-3 ${
+              icon ? "pl-10" : ""
+            } focus:outline-none focus:ring-2 focus:ring-amber-800 ${className}`}
           />
         </div>
       );
 
       const Spinner = ({ size = 24 }) => (
-        <div
-          className="animate-spin rounded-full border-4 border-stone-400 border-t-transparent"
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          className="border-t-transparent border-solid rounded-full border-stone-700 border-2"
           style={{ width: size, height: size }}
-        ></div>
+        />
       );
 
       const ProgressBar = ({ value, max }) => {
         const percent = max > 0 ? (value / max) * 100 : 0;
         return (
-          <div className={`w-full ${theme.colors.background} ${theme.rounding.button} overflow-hidden`}>
-            <div className={`${theme.colors.accent} h-2`} style={{ width: `${percent}%` }}></div>
+          <div
+            className={`w-full ${theme.colors.background} ${theme.rounding.button} overflow-hidden`}
+          >
+            <motion.div
+              className={`${theme.colors.accent} h-2`}
+              initial={{ width: 0 }}
+              animate={{ width: `${percent}%` }}
+              transition={{ duration: 0.5, ease: "easeInOut" }}
+            />
           </div>
         );
       };
 
-      /********************************************************
-       *  GOOGLE SHEET: FUNGSI READ/WRITE (Absensi)
-       ********************************************************/
-      async function sendAttendanceToSheet(record) {
-        if (!SCRIPT_URL || SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbywn5Q46QWi109Q8vIzxz6VgtCQm1u5PbN8l7f6fIAMfYJB0CFvjmixuVb3R-s25jQl0w/exec') {
-          console.warn('SCRIPT_URL belum diisi. Data hanya tersimpan di memori aplikasi.');
-          return;
-        }
-        try {
-          const res = await fetch(SCRIPT_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'saveAttendance', record }),
-          });
-          const json = await res.json();
-          if (!json.success) {
-            console.error('Gagal simpan ke Sheet:', json.message);
-          }
-        } catch (err) {
-          console.error('Error kirim ke Sheet:', err);
-        }
-      }
+      // --- KOMPONEN: ALUR ABSENSI (MODAL) ---
 
-      async function loadAbsensiFromSheet(setDbAbsensi) {
-        if (!SCRIPT_URL || SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbywn5Q46QWi109Q8vIzxz6VgtCQm1u5PbN8l7f6fIAMfYJB0CFvjmixuVb3R-s25jQl0w/exec') {
-          return;
-        }
-        try {
-          const res = await fetch(SCRIPT_URL + '?action=readAbsensi');
-          const json = await res.json();
-          if (json.success && Array.isArray(json.data)) {
-            const mapped = json.data.map((a) => ({
-              ...a,
-              checkIn:
-                a.checkIn && a.checkIn.waktu
-                  ? { ...a.checkIn, waktu: new Date(a.checkIn.waktu) }
-                  : null,
-              checkOut:
-                a.checkOut && a.checkOut.waktu
-                  ? { ...a.checkOut, waktu: new Date(a.checkOut.waktu) }
-                  : null,
-            }));
-            setDbAbsensi(mapped);
-          }
-        } catch (err) {
-          console.error('Gagal load dari Sheet:', err);
-        }
-      }
-
-      /********************************************************
-       *  KOMPONEN ATTENDANCE FLOW (SELFIE + GPS)
-       ********************************************************/
       const AttendanceFlow = ({ user, type, onClose, onComplete, todayShift }) => {
-        const [step, setStep] = useState('camera');
+        const [step, setStep] = useState("camera");
         const [selfie, setSelfie] = useState(null);
         const [locationData, setLocationData] = useState(null);
         const [inArea, setInArea] = useState(false);
         const [distance, setDistance] = useState(0);
         const [error, setError] = useState(null);
+        const [cameraSupported, setCameraSupported] = useState(true);
 
-        const [reason, setReason] = useState('');
-        const reasons = ['Sakit', 'Izin', 'Dinas Luar', 'Lainnya'];
+        const [reason, setReason] = useState("");
+        const reasons = ["Sakit", "Izin", "Dinas Luar", "Lainnya"];
 
         const webcamRef = useRef(null);
         const streamRef = useRef(null);
 
         useEffect(() => {
-          if (step === 'camera') {
+          if (step === "camera") {
             const startCamera = async () => {
               try {
+                if (
+                  typeof navigator === "undefined" ||
+                  !navigator.mediaDevices ||
+                  !navigator.mediaDevices.getUserMedia
+                ) {
+                  // Lingkungan (misalnya sandbox / test) tidak mendukung kamera.
+                  setCameraSupported(false);
+                  setError(
+                    "Kamera tidak didukung di browser/lingkungan ini. Anda bisa melanjutkan tanpa selfie."
+                  );
+                  return;
+                }
+
+                setCameraSupported(true);
                 const stream = await navigator.mediaDevices.getUserMedia({
-                  video: { facingMode: 'user' },
+                  video: { facingMode: "user" },
                   audio: false,
                 });
                 if (webcamRef.current) {
@@ -458,8 +526,13 @@
                   streamRef.current = stream;
                 }
               } catch (err) {
-                console.error('Error accessing webcam:', err);
-                setError('Gagal mengakses kamera. Pastikan Anda mengizinkan akses.');
+                // Jangan lempar error ke luar; cukup tampilkan pesan dan lanjutkan flow.
+                console.error("Error accessing webcam:", err);
+                setCameraSupported(false);
+                setError(
+                  "Gagal mengakses kamera. Periksa izin kamera Anda, atau lanjutkan tanpa selfie."
+                );
+                // Kita tidak langsung memaksa pindah step agar user bisa memilih tombol "Lanjut tanpa Selfie".
               }
             };
             startCamera();
@@ -474,44 +547,59 @@
         }, [step]);
 
         const captureSelfie = useCallback(() => {
-          if (!webcamRef.current) {
-            setError('Kamera belum siap.');
+          if (!webcamRef.current || !cameraSupported) {
+            // Kalau kamera tidak tersedia, berikan info jelas.
+            setError(
+              "Kamera belum siap atau tidak didukung. Anda bisa menekan tombol 'Lanjut tanpa Selfie'."
+            );
             return;
           }
 
           const video = webcamRef.current;
-          const canvas = document.createElement('canvas');
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
+          const canvas = document.createElement("canvas");
+          canvas.width = video.videoWidth || 640;
+          canvas.height = video.videoHeight || 480;
 
-          const ctx = canvas.getContext('2d');
+          const ctx = canvas.getContext("2d");
           if (!ctx) {
-            setError('Gagal memproses gambar.');
+            setError("Gagal memproses gambar.");
             return;
           }
 
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-          const imageSrc = canvas.toDataURL('image/jpeg');
+          const imageSrc = canvas.toDataURL("image/jpeg");
 
           if (!imageSrc) {
-            setError('Gagal mengambil foto. Coba lagi.');
+            setError("Gagal mengambil foto. Coba lagi.");
             return;
           }
           setSelfie(imageSrc);
-          setStep('location');
+          setStep("location");
 
           if (streamRef.current) {
             streamRef.current.getTracks().forEach((track) => track.stop());
             streamRef.current = null;
           }
-        }, []);
+        }, [cameraSupported]);
+
+        const continueWithoutSelfie = () => {
+          // Fallback untuk lingkungan tanpa kamera atau ketika user tidak bisa memberi izin.
+          setSelfie(null);
+          setError(null);
+          setStep("location");
+
+          if (streamRef.current) {
+            streamRef.current.getTracks().forEach((track) => track.stop());
+            streamRef.current = null;
+          }
+        };
 
         useEffect(() => {
-          if (step === 'location') {
+          if (step === "location") {
             setError(null);
             if (!navigator.geolocation) {
-              setError('Browser Anda tidak mendukung Geolocation.');
-              setStep('confirm');
+              setError("Browser Anda tidak mendukung Geolocation.");
+              setStep("confirm");
               return;
             }
 
@@ -530,27 +618,28 @@
 
                 if (dist <= GPS_RADIUS_METERS) {
                   setInArea(true);
-                  setStep('confirm');
+                  setStep("confirm");
                 } else {
                   setInArea(false);
-                  setStep('reason');
+                  setStep("reason");
                 }
               },
               (err) => {
-                let errMsg = 'Gagal mendapatkan lokasi. ';
-                if (err.code === 1) errMsg += 'Pastikan Anda mengizinkan akses lokasi.';
-                if (err.code === 2) errMsg += 'Sinyal lokasi tidak tersedia.';
-                if (err.code === 3) errMsg += 'Waktu tunggu habis.';
+                let errMsg = "Gagal mendapatkan lokasi. ";
+                if (err.code === 1)
+                  errMsg += "Pastikan Anda mengizinkan akses lokasi.";
+                if (err.code === 2) errMsg += "Sinyal lokasi tidak tersedia.";
+                if (err.code === 3) errMsg += "Waktu tunggu habis.";
                 setError(errMsg);
-                setStep('confirm');
+                setStep("confirm");
               },
               { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
             );
           }
         }, [step]);
 
-        const handleSubmit = () => {
-          setStep('loading');
+        const handleSubmit = async () => {
+          setStep("loading");
 
           const attendanceData = {
             waktu: new Date(),
@@ -561,49 +650,87 @@
             jarak: distance,
           };
 
-          setTimeout(() => {
-            onComplete(attendanceData);
-            setStep('success');
-          }, 800);
+          try {
+            await kirimAbsensiKeSheet({
+              user,
+              jenis: type,
+              data: attendanceData,
+              shiftName: todayShift?.nama || "",
+            });
+          } catch (e) {
+            // Error dari kirimAbsensiKeSheet sudah ditangani di dalam fungsi tersebut
+            console.error(e);
+          }
+
+          onComplete(attendanceData);
+          setStep("success");
         };
 
-        const title = type === 'checkIn' ? 'Absen Check-in' : 'Absen Check-out';
+        const title = type === "checkIn" ? "Absen Check-in" : "Absen Check-out";
 
         const renderStep = () => {
           switch (step) {
-            case 'camera':
+            case "camera":
               return (
                 <div className="text-center">
-                  <p className={`${theme.textSecondary} mb-4`}>
-                    Posisikan wajah Anda di dalam frame dan ambil selfie untuk verifikasi.
+                  <p className={`${theme.colors.textSecondary} mb-4`}>
+                    Posisikan wajah Anda di dalam frame dan ambil selfie untuk
+                    verifikasi. Jika kamera tidak berfungsi, Anda tetap bisa
+                    lanjut tanpa selfie.
                   </p>
-                  <div
-                    className={`w-full overflow-hidden ${theme.rounding.card} border-2 ${theme.colors.border} shadow-inner bg-black`}
-                  >
-                    <video
-                      ref={webcamRef}
-                      autoPlay
-                      playsInline
-                      muted
-                      className="w-full h-auto"
-                      style={{ transform: 'scaleX(-1)' }}
-                    />
+                  {cameraSupported && (
+                    <div
+                      className={`w-full overflow-hidden ${theme.rounding.card} border-2 ${theme.colors.border} shadow-inner bg-black`}
+                    >
+                      <video
+                        ref={webcamRef}
+                        autoPlay
+                        playsInline
+                        muted
+                        className="w-full h-auto"
+                        style={{ transform: "scaleX(-1)" }}
+                      />
+                    </div>
+                  )}
+                  {error && (
+                    <p className="text-red-500 text-sm mt-2">{error}</p>
+                  )}
+                  <div className="flex flex-col sm:flex-row gap-3 mt-4">
+                    <Button
+                      onClick={captureSelfie}
+                      variant="secondary"
+                      className="sm:flex-1"
+                      disabled={!cameraSupported}
+                    >
+                      <Camera size={20} /> Ambil Foto
+                    </Button>
+                    <Button
+                      onClick={continueWithoutSelfie}
+                      variant="light"
+                      className="sm:flex-1"
+                    >
+                      Lewati Selfie
+                    </Button>
                   </div>
-                  {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-                  <Button onClick={captureSelfie} variant="secondary" className="mt-4">
-                    <Camera size={20} /> Ambil Foto
-                  </Button>
                 </div>
               );
-            case 'location':
+
+            case "location":
               return (
                 <div className="flex flex-col items-center justify-center h-48">
                   <Spinner size={40} />
-                  <p className={`${theme.textPrimary} mt-4 font-semibold`}>Mendeteksi lokasi Anda...</p>
-                  <p className={`${theme.textSecondary} text-sm`}>Pastikan GPS dan izin lokasi aktif.</p>
+                  <p
+                    className={`${theme.colors.textPrimary} mt-4 font-semibold`}
+                  >
+                    Mendeteksi lokasi Anda...
+                  </p>
+                  <p className={`${theme.colors.textSecondary} text-sm`}>
+                    Pastikan GPS dan izin lokasi aktif.
+                  </p>
                 </div>
               );
-            case 'reason':
+
+            case "reason":
               return (
                 <div>
                   <div
@@ -612,20 +739,27 @@
                     <AlertTriangle size={24} />
                     <div>
                       <h4 className="font-bold">Anda Berada di Luar Area!</h4>
-                      <p className="text-sm">Jarak Anda: {distance.toFixed(0)} meter dari PayBoss Cafe.</p>
+                      <p className="text-sm">
+                        Jarak Anda: {distance.toFixed(0)} meter dari PayBoss
+                        Cafe.
+                      </p>
                     </div>
                   </div>
-                  <p className={`${theme.textSecondary} mt-4 mb-3`}>
+                  <p
+                    className={`${theme.colors.textSecondary} mt-4 mb-3`}
+                  >
                     Harap pilih alasan Anda absen di luar area kerja:
                   </p>
                   <div className="space-y-2">
                     {reasons.map((r) => (
                       <label
                         key={r}
-                        className={`flex items-center w-full p-3 ${theme.rounding.input} ${
-                          theme.colors.background
-                        } border ${
-                          reason === r ? 'border-amber-800 ring-2 ring-amber-800' : theme.colors.border
+                        className={`flex items-center w-full p-3 ${
+                          theme.rounding.input
+                        } ${theme.colors.background} border ${
+                          reason === r
+                            ? "border-amber-800 ring-2 ring-amber-800"
+                            : theme.colors.border
                         } cursor-pointer`}
                       >
                         <input
@@ -640,16 +774,22 @@
                       </label>
                     ))}
                   </div>
-                  <Button onClick={() => setStep('confirm')} disabled={!reason} className="mt-4">
+                  <Button
+                    onClick={() => setStep("confirm")}
+                    disabled={!reason}
+                    className="mt-4"
+                  >
                     Lanjutkan
                   </Button>
                 </div>
               );
-            case 'confirm':
+
+            case "confirm":
               return (
                 <div>
-                  <p className={`${theme.textSecondary} mb-4`}>
-                    Harap konfirmasi data {type === 'checkIn' ? 'check-in' : 'check-out'} Anda.
+                  <p className={`${theme.colors.textSecondary} mb-4`}>
+                    Harap konfirmasi data {" "}
+                    {type === "checkIn" ? "check-in" : "check-out"} Anda.
                   </p>
                   <div className="space-y-4">
                     <div className="flex items-center gap-4">
@@ -662,13 +802,22 @@
                       )}
                       <div>
                         <h4 className="font-bold">{user.nama}</h4>
-                        <p className={theme.textSecondary}>{user.posisi}</p>
-                        <p className={theme.textSecondary}>{formatTime(new Date())}</p>
+                        <p className={theme.colors.textSecondary}>{user.posisi}</p>
+                        <p className={theme.colors.textSecondary}>
+                          {formatTime(new Date())}
+                        </p>
                       </div>
                     </div>
-                    <div className={`p-3 ${theme.rounding.input} ${theme.colors.background}`}>
+                    <div
+                      className={`p-3 ${theme.rounding.input} ${theme.colors.background}`}
+                    >
                       <h5 className="font-semibold flex items-center gap-2">
-                        <MapPin size={16} className={inArea ? 'text-green-600' : 'text-red-600'} />
+                        <MapPin
+                          size={16}
+                          className={
+                            inArea ? "text-green-600" : "text-red-600"
+                          }
+                        />
                         Status Lokasi
                       </h5>
                       {locationData ? (
@@ -692,36 +841,56 @@
                         </p>
                       )}
                     </div>
-                    {error && <p className="text-red-500 text-sm -mt-2">{error}</p>}
+                    {error && (
+                      <p className="text-red-500 text-sm -mt-2">{error}</p>
+                    )}
                   </div>
-                  <Button onClick={handleSubmit} variant="accent" className="mt-6">
-                    <CheckCircle size={20} /> Konfirmasi{' '}
-                    {type === 'checkIn' ? 'Check-in' : 'Check-out'}
+                  <Button
+                    onClick={handleSubmit}
+                    variant="accent"
+                    className="mt-6"
+                  >
+                    <CheckCircle size={20} /> Konfirmasi {" "}
+                    {type === "checkIn" ? "Check-in" : "Check-out"}
                   </Button>
                 </div>
               );
-            case 'loading':
+
+            case "loading":
               return (
                 <div className="flex flex-col items-center justify-center h-48">
                   <Spinner size={40} />
-                  <p className={`${theme.textPrimary} mt-4 font-semibold`}>
+                  <p
+                    className={`${theme.colors.textPrimary} mt-4 font-semibold`}
+                  >
                     Menyimpan data absensi...
                   </p>
                 </div>
               );
-            case 'success':
+
+            case "success":
               return (
                 <div className="flex flex-col items-center justify-center h-48 text-center">
-                  <CheckCircle size={60} className="text-green-600" />
+                  <motion.div
+                    initial={{ scale: 0.5 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", damping: 10, stiffness: 150 }}
+                  >
+                    <CheckCircle size={60} className="text-green-600" />
+                  </motion.div>
                   <h3 className="text-2xl font-bold mt-4">Berhasil!</h3>
-                  <p className={theme.textSecondary}>
-                    Absen {type === 'checkIn' ? 'check-in' : 'check-out'} Anda telah dicatat.
+                  <p className={theme.colors.textSecondary}>
+                    Absen {type === "checkIn" ? "check-in" : "check-out"} Anda
+                    telah dicatat.
                   </p>
                   <Button onClick={onClose} className="mt-6 w-32">
                     Selesai
                   </Button>
                 </div>
               );
+
+            default:
+              return null;
           }
         };
 
@@ -732,26 +901,34 @@
         );
       };
 
-      /********************************************************
-       *  DASHBOARD KARYAWAN
-       ********************************************************/
-      const KaryawanHome = ({ user, dbAbsensi, dbRoster, onNavigate, onShowModal }) => {
+      // --- KOMPONEN KARYAWAN ---
+
+      const KaryawanHome = ({
+        user,
+        dbAbsensi,
+        setDbAbsensi,
+        dbRoster,
+        onNavigate,
+        onShowModal,
+      }) => {
         const [todayRecord, setTodayRecord] = useState(null);
         const [todayShift, setTodayShift] = useState(null);
-        const [greeting, setGreeting] = useState('');
+        const [greeting, setGreeting] = useState("");
 
         useEffect(() => {
-          const record = dbAbsensi.find((a) => a.idKaryawan === user.id && a.tanggal === TODAY);
+          const record = dbAbsensi.find(
+            (a) => a.idKaryawan === user.id && a.tanggal === TODAY
+          );
           setTodayRecord(record);
 
           const shiftCode = dbRoster[user.id]?.[TODAY];
-          setTodayShift(shiftDetails[shiftCode] || shiftDetails['OFF']);
+          setTodayShift(shiftDetails[shiftCode] || shiftDetails["OFF"]);
 
           const hour = new Date().getHours();
-          if (hour < 11) setGreeting('Selamat Pagi');
-          else if (hour < 15) setGreeting('Selamat Siang');
-          else if (hour < 19) setGreeting('Selamat Sore');
-          else setGreeting('Selamat Malam');
+          if (hour < 11) setGreeting("Selamat Pagi");
+          else if (hour < 15) setGreeting("Selamat Siang");
+          else if (hour < 19) setGreeting("Selamat Sore");
+          else setGreeting("Selamat Malam");
         }, [dbAbsensi, user.id, user.posisi, dbRoster]);
 
         if (!todayShift) {
@@ -768,13 +945,14 @@
 
         const isCheckedIn = todayRecord && todayRecord.checkIn;
         const isCheckedOut = todayRecord && todayRecord.checkOut;
-        const isOff = todayShift.nama === 'OFF';
+        const isOff = todayShift.nama === "OFF";
 
         let jobProgress = 0;
         let jobTotal = 0;
         if (isCheckedIn) {
           jobTotal = todayRecord.jobDeskProgress.length;
-          jobProgress = todayRecord.jobDeskProgress.filter((t) => t.completed).length;
+          jobProgress = todayRecord.jobDeskProgress.filter((t) => t.completed)
+            .length;
         }
 
         return (
@@ -787,17 +965,25 @@
               <p className="text-stone-300 mt-1">{user.posisi}</p>
             </div>
 
-            <div className={`p-6 ${theme.colors.card} ${theme.rounding.card} shadow-md`}>
-              <h3 className={`text-xl font-bold mb-4 ${theme.textPrimary}`}>Absensi Hari Ini</h3>
-              <p className={`${theme.textSecondary} mb-1`}>
-                {formatShortDate(new Date(TODAY + 'T00:00:00'))}
+            <div
+              className={`p-6 ${theme.colors.card} ${theme.rounding.card} shadow-md`}
+            >
+              <h3
+                className={`text-xl font-bold mb-4 ${theme.colors.textPrimary}`}
+              >
+                Absensi Hari Ini
+              </h3>
+              <p className={`${theme.colors.textSecondary} mb-1`}>
+                {formatShortDate(new Date(TODAY + "T00:00:00"))}
               </p>
 
               {isOff ? (
                 <div className="text-center p-6 bg-stone-100 rounded-lg">
                   <Home size={32} className="mx-auto text-stone-500 mb-2" />
                   <h4 className="text-lg font-bold">Hari Libur</h4>
-                  <p className={theme.textSecondary}>Nikmati waktu istirahat Anda.</p>
+                  <p className={theme.colors.textSecondary}>
+                    Nikmati waktu istirahat Anda.
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -806,7 +992,9 @@
                       <div className="flex items-center gap-3">
                         <CheckCircle size={24} className="text-green-600" />
                         <div>
-                          <span className="font-bold text-green-700">Check-in Berhasil</span>
+                          <span className="font-bold text-green-700">
+                            Check-in Berhasil
+                          </span>
                           <p className="text-sm text-green-600">
                             pukul {formatTime(todayRecord.checkIn.waktu)}
                           </p>
@@ -821,18 +1009,20 @@
                       )}
                     </div>
                   ) : (
-                    <Button onClick={() => handleAttendance('checkIn')} variant="primary">
+                    <Button onClick={() => handleAttendance("checkIn")}>
                       <LogIn size={20} /> Check-in
                     </Button>
                   )}
 
-                  {isCheckedIn &&
-                    (isCheckedOut ? (
+                  {isCheckedIn && (
+                    isCheckedOut ? (
                       <div className="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg">
                         <div className="flex items-center gap-3">
                           <CheckCircle size={24} className="text-blue-600" />
                           <div>
-                            <span className="font-bold text-blue-700">Check-out Berhasil</span>
+                            <span className="font-bold text-blue-700">
+                              Check-out Berhasil
+                            </span>
                             <p className="text-sm text-blue-600">
                               pukul {formatTime(todayRecord.checkOut.waktu)}
                             </p>
@@ -840,21 +1030,28 @@
                         </div>
                       </div>
                     ) : (
-                      <Button onClick={() => handleAttendance('checkOut')} variant="secondary">
+                      <Button
+                        onClick={() => handleAttendance("checkOut")}
+                        variant="secondary"
+                      >
                         <LogOut size={20} /> Check-out
                       </Button>
-                    ))}
+                    )
+                  )}
                 </div>
               )}
             </div>
 
             {!isOff && (
-              <div className={`p-6 ${theme.colors.card} ${theme.rounding.card} shadow-md space-y-4`}>
+              <div
+                className={`p-6 ${theme.colors.card} ${theme.rounding.card} shadow-md space-y-4`}
+              >
                 <div>
                   <h4 className="text-lg font-bold flex items-center gap-2">
-                    <Coffee size={20} className={todayShift.color} /> Shift Anda
+                    <Coffee size={20} className={todayShift.color} /> Shift
+                    Anda
                   </h4>
-                  <p className={`${theme.textSecondary} text-lg`}>
+                  <p className={`${theme.colors.textSecondary} text-lg`}>
                     {todayShift.nama} ({todayShift.waktu})
                   </p>
                 </div>
@@ -862,14 +1059,17 @@
                 {isCheckedIn && (
                   <div>
                     <h4 className="text-lg font-bold flex items-center gap-2 mb-2">
-                      <ListChecks size={20} className="text-stone-700" /> Progres Job Desk
+                      <ListChecks size={20} className="text-stone-700" />
+                      Progres Job Desk
                     </h4>
                     <ProgressBar value={jobProgress} max={jobTotal} />
-                    <p className={`${theme.textSecondary} text-sm mt-2`}>
+                    <p
+                      className={`${theme.colors.textSecondary} text-sm mt-2`}
+                    >
                       {jobProgress} dari {jobTotal} tugas selesai.
                     </p>
                     <Button
-                      onClick={() => onNavigate('jobdesk')}
+                      onClick={() => onNavigate("jobdesk")}
                       variant="light"
                       className="mt-3"
                     >
@@ -889,11 +1089,15 @@
 
         return (
           <div className="p-4">
-            <h2 className={`text-2xl font-bold mb-6 ${theme.textPrimary}`}>Jadwal Kerja 7 Hari</h2>
+            <h2
+              className={`text-2xl font-bold mb-6 ${theme.colors.textPrimary}`}
+            >
+              Jadwal Kerja 7 Hari
+            </h2>
             <div className="space-y-3">
               {scheduleDays.map((day) => {
                 const dayString = formatDateYYYYMMDD(day);
-                const shiftCode = userRoster[dayString] || 'OFF';
+                const shiftCode = userRoster[dayString] || "OFF";
                 const shift = shiftDetails[shiftCode];
                 const isToday = dayString === TODAY;
                 const ShiftIcon = shift.ikon;
@@ -903,24 +1107,30 @@
                     key={dayString}
                     className={`flex items-center p-4 ${theme.colors.card} ${
                       theme.rounding.card
-                    } shadow-sm ${isToday ? 'border-2 border-amber-800' : ''}`}
+                    } shadow-sm ${isToday ? "border-2 border-amber-800" : ""}`}
                   >
                     <div
                       className={`p-3 mr-4 rounded-full ${
-                        shift.nama === 'OFF' ? 'bg-gray-100' : 'bg-green-100'
+                        shift.nama === "OFF" ? "bg-gray-100" : "bg-green-100"
                       }`}
                     >
                       <ShiftIcon size={24} className={shift.color} />
                     </div>
                     <div className="flex-1">
-                      <p className={`font-bold text-lg ${theme.textPrimary}`}>
+                      <p
+                        className={`font-bold text-lg ${theme.colors.textPrimary}`}
+                      >
                         {formatShortDate(day)}
                       </p>
-                      <p className={`${theme.textSecondary} ${shift.color} font-medium`}>
+                      <p
+                        className={`${theme.colors.textSecondary} ${shift.color} font-medium`}
+                      >
                         {shift.nama}
                       </p>
                     </div>
-                    <span className={`font-semibold ${theme.textSecondary}`}>{shift.waktu}</span>
+                    <span className={`font-semibold ${theme.colors.textSecondary}`}>
+                      {shift.waktu}
+                    </span>
                   </div>
                 );
               })}
@@ -937,10 +1147,14 @@
         if (!todayRecord || !todayRecord.checkIn) {
           return (
             <div className="p-4 text-center mt-10">
-              <ListChecks size={48} className={`mx-auto ${theme.textSecondary} opacity-50`} />
+              <ListChecks
+                size={48}
+                className={`mx-auto ${theme.colors.textSecondary} opacity-50`}
+              />
               <h3 className="text-xl font-bold mt-4">Job Desk Harian</h3>
-              <p className={theme.textSecondary}>
-                Silakan check-in terlebih dahulu untuk melihat daftar tugas harian Anda.
+              <p className={theme.colors.textSecondary}>
+                Silakan check-in terlebih dahulu untuk melihat daftar tugas
+                harian Anda.
               </p>
             </div>
           );
@@ -966,15 +1180,25 @@
 
         return (
           <div className="p-4">
-            <h2 className={`text-2xl font-bold mb-2 ${theme.textPrimary}`}>Job Desk Harian</h2>
-            <p className={`${theme.textSecondary} mb-4`}>Tugas Anda sebagai {user.posisi}.</p>
+            <h2
+              className={`text-2xl font-bold mb-2 ${theme.colors.textPrimary}`}
+            >
+              Job Desk Harian
+            </h2>
+            <p className={`${theme.colors.textSecondary} mb-4`}>
+              Tugas Anda sebagai {user.posisi}.
+            </p>
 
             <div className="mb-6">
               <div className="flex justify-between items-center mb-2">
-                <span className={`text-sm font-medium ${theme.textPrimary}`}>
+                <span
+                  className={`text-sm font-medium ${theme.colors.textPrimary}`}
+                >
                   Progres Selesai
                 </span>
-                <span className={`text-sm font-medium ${theme.textPrimary}`}>
+                <span
+                  className={`text-sm font-medium ${theme.colors.textPrimary}`}
+                >
                   {jobProgress}/{jobTotal}
                 </span>
               </div>
@@ -986,7 +1210,9 @@
                 <label
                   key={index}
                   className={`flex items-start p-4 ${theme.rounding.card} shadow-sm cursor-pointer transition-all ${
-                    task.completed ? 'bg-green-50 border-green-200' : theme.colors.card
+                    task.completed
+                      ? "bg-green-50 border-green-200"
+                      : theme.colors.card
                   } border ${theme.colors.border}`}
                 >
                   <input
@@ -996,8 +1222,8 @@
                     className="mt-1 h-5 w-5 text-green-700 rounded border-gray-300 focus:ring-green-700"
                   />
                   <span
-                    className={`ml-3 ${theme.textPrimary} ${
-                      task.completed ? 'line-through text-stone-500' : ''
+                    className={`${theme.colors.textPrimary} ml-3 ${
+                      task.completed ? "line-through text-stone-500" : ""
                     }`}
                   >
                     {task.task}
@@ -1015,18 +1241,19 @@
         dbAbsensi,
         setDbAbsensi,
         dbRoster,
+        setDbRoster,
         dbJobDesk,
       }) => {
-        const [activeTab, setActiveTab] = useState('home');
+        const [activeTab, setActiveTab] = useState("home");
         const [isModalOpen, setIsModalOpen] = useState(false);
-        const [modalType, setModalType] = useState('checkIn');
+        const [modalType, setModalType] = useState("checkIn");
         const [modalShift, setModalShift] = useState(null);
 
         const navItems = [
-          { id: 'home', label: 'Home', icon: Home },
-          { id: 'jadwal', label: 'Jadwal', icon: Calendar },
-          { id: 'jobdesk', label: 'Job Desk', icon: ListChecks },
-          { id: 'logout', label: 'Logout', icon: LogOut },
+          { id: "home", label: "Home", icon: Home },
+          { id: "jadwal", label: "Jadwal", icon: Calendar },
+          { id: "jobdesk", label: "Job Desk", icon: ListChecks },
+          { id: "logout", label: "Logout", icon: LogOut },
         ];
 
         const handleShowModal = (type, shift) => {
@@ -1041,7 +1268,7 @@
               (a) => a.idKaryawan === user.id && a.tanggal === TODAY
             );
 
-            if (modalType === 'checkIn') {
+            if (modalType === "checkIn") {
               const jobTasks = dbJobDesk[user.posisi] || [];
               const newRecord = {
                 id: `att_${user.id}_${TODAY}`,
@@ -1049,16 +1276,27 @@
                 namaKaryawan: user.nama,
                 posisi: user.posisi,
                 tanggal: TODAY,
-                shift: modalShift ? modalShift.nama : '',
+                shift: modalShift.nama,
                 checkIn: data,
                 checkOut: null,
-                jobDeskProgress: jobTasks.map((task) => ({ task, completed: false })),
-                status: data.alasanLuarArea ? 'Luar Area' : 'Tepat Waktu',
+                jobDeskProgress: jobTasks.map((task) => ({
+                  task,
+                  completed: false,
+                })),
+                status: data.alasanLuarArea ? "Luar Area" : "Tepat Waktu",
               };
+
+              // Jika sebelumnya sudah ada record hari ini, ganti; kalau tidak, push.
+              if (existingRecord) {
+                return prevDb.map((r) =>
+                  r.idKaryawan === user.id && r.tanggal === TODAY ? newRecord : r
+                );
+              }
+
               return [...prevDb, newRecord];
             }
 
-            if (modalType === 'checkOut') {
+            if (modalType === "checkOut") {
               return prevDb.map((record) =>
                 record.idKaryawan === user.id && record.tanggal === TODAY
                   ? { ...record, checkOut: data }
@@ -1067,39 +1305,24 @@
             }
             return prevDb;
           });
-
-          // Kirim ke Google Sheet
-          sendAttendanceToSheet({
-            type: modalType,
-            idKaryawan: user.id,
-            namaKaryawan: user.nama,
-            posisi: user.posisi,
-            tanggal: TODAY,
-            shift: modalShift ? modalShift.nama : '',
-            waktu: data.waktu,
-            lat: data.lat,
-            lng: data.lng,
-            jarak: data.jarak,
-            alasanLuarArea: data.alasanLuarArea,
-            fotoBase64: data.fotoBase64,
-          });
         };
 
         const renderContent = () => {
           switch (activeTab) {
-            case 'home':
+            case "home":
               return (
                 <KaryawanHome
                   user={user}
                   dbAbsensi={dbAbsensi}
+                  setDbAbsensi={setDbAbsensi}
                   dbRoster={dbRoster}
                   onNavigate={setActiveTab}
                   onShowModal={handleShowModal}
                 />
               );
-            case 'jadwal':
+            case "jadwal":
               return <KaryawanJadwal user={user} dbRoster={dbRoster} />;
-            case 'jobdesk':
+            case "jobdesk":
               return (
                 <KaryawanJobDesk
                   user={user}
@@ -1112,6 +1335,7 @@
                 <KaryawanHome
                   user={user}
                   dbAbsensi={dbAbsensi}
+                  setDbAbsensi={setDbAbsensi}
                   dbRoster={dbRoster}
                   onNavigate={setActiveTab}
                   onShowModal={handleShowModal}
@@ -1123,10 +1347,19 @@
         return (
           <div
             className={`w-full min-h-screen ${theme.colors.background} flex flex-col`}
-            style={{ paddingBottom: '80px' }}
+            style={{ paddingBottom: "80px" }}
           >
             <AnimatePresence mode="wait">
-              <motion.div className="flex-grow">{renderContent()}</motion.div>
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
+                className="flex-grow"
+              >
+                {renderContent()}
+              </motion.div>
             </AnimatePresence>
 
             {isModalOpen && (
@@ -1139,15 +1372,13 @@
               />
             )}
 
-            <nav
-              className={`fixed bottom-0 left-0 right-0 h-20 bg-white shadow-lg border-t ${theme.colors.border} flex justify-around items-center`}
-            >
+            <nav className="fixed bottom-0 left-0 right-0 h-20 bg-white shadow-lg border-t border-stone-200 flex justify-around items-center">
               {navItems.map((item) => {
                 const isActive = activeTab === item.id;
                 const Icon = item.icon;
 
                 const onClick = () => {
-                  if (item.id === 'logout') {
+                  if (item.id === "logout") {
                     onLogout();
                   } else {
                     setActiveTab(item.id);
@@ -1159,13 +1390,13 @@
                     key={item.id}
                     onClick={onClick}
                     className={`flex flex-col items-center justify-center w-full h-full transition-colors ${
-                      isActive ? 'text-amber-800' : 'text-stone-500'
-                    } ${item.id === 'logout' ? 'text-red-500' : ''}`}
+                      isActive ? "text-amber-800" : "text-stone-500"
+                    } ${item.id === "logout" ? "text-red-500" : ""}`}
                   >
                     <Icon size={24} />
                     <span
                       className={`text-xs font-medium mt-1 ${
-                        isActive ? 'font-bold' : ''
+                        isActive ? "font-bold" : ""
                       }`}
                     >
                       {item.label}
@@ -1178,19 +1409,24 @@
         );
       };
 
-      /********************************************************
-       *  DASHBOARD MANAGER
-       ********************************************************/
+      // --- KOMPONEN MANAGER ---
+
       const StatCard = ({ title, value, icon, color }) => {
         const Icon = icon;
         return (
-          <div className={`flex items-start p-5 ${theme.colors.card} ${theme.rounding.card} shadow-md`}>
+          <div
+            className={`flex items-start p-5 ${theme.colors.card} ${theme.rounding.card} shadow-md`}
+          >
             <div className={`p-3 rounded-full mr-4 ${color.bg} ${color.text}`}>
               <Icon size={24} />
             </div>
             <div>
-              <p className={`${theme.textSecondary} text-sm uppercase`}>{title}</p>
-              <p className={`text-3xl font-bold ${theme.textPrimary}`}>{value}</p>
+              <p className={`${theme.colors.textSecondary} text-sm uppercase`}>
+                {title}
+              </p>
+              <p className={`text-3xl font-bold ${theme.colors.textPrimary}`}>
+                {value}
+              </p>
             </div>
           </div>
         );
@@ -1200,12 +1436,15 @@
         const todayAbsen = dbAbsensi.filter((a) => a.tanggal === TODAY);
         const todayOnShift = Object.keys(dbRoster).filter((id) => {
           const shift = dbRoster[id]?.[TODAY];
-          return shift && shift !== 'OFF';
+          return shift && shift !== "OFF";
         }).length;
 
         const checkedIn = todayAbsen.filter((a) => a.checkIn).length;
-        const luarArea = todayAbsen.filter((a) => a.checkIn?.alasanLuarArea).length;
-        const belumCheckout = todayAbsen.filter((a) => a.checkIn && !a.checkOut).length;
+        const luarArea = todayAbsen.filter((a) => a.checkIn?.alasanLuarArea)
+          .length;
+        const belumCheckout = todayAbsen.filter(
+          (a) => a.checkIn && !a.checkOut
+        ).length;
 
         const notifikasi = todayAbsen
           .filter((a) => a.checkIn?.alasanLuarArea)
@@ -1216,32 +1455,36 @@
 
         return (
           <div className="p-6 space-y-6">
-            <h1 className={`text-3xl font-bold ${theme.textPrimary}`}>Dashboard Manajer</h1>
+            <h1
+              className={`text-3xl font-bold ${theme.colors.textPrimary}`}
+            >
+              Dashboard Manajer
+            </h1>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
               <StatCard
                 title="Karyawan Masuk"
                 value={`${checkedIn} / ${todayOnShift}`}
                 icon={LogIn}
-                color={{ bg: 'bg-green-100', text: 'text-green-700' }}
+                color={{ bg: "bg-green-100", text: "text-green-700" }}
               />
               <StatCard
                 title="Absen Luar Area"
                 value={luarArea}
                 icon={AlertTriangle}
-                color={{ bg: 'bg-yellow-100', text: 'text-yellow-700' }}
+                color={{ bg: "bg-yellow-100", text: "text-yellow-700" }}
               />
               <StatCard
                 title="Belum Check-out"
                 value={belumCheckout}
                 icon={Clock}
-                color={{ bg: 'bg-blue-100', text: 'text-blue-700' }}
+                color={{ bg: "bg-blue-100", text: "text-blue-700" }}
               />
               <StatCard
                 title="Total Karyawan"
                 value={dbKaryawan.length}
                 icon={Users}
-                color={{ bg: 'bg-stone-100', text: 'text-stone-700' }}
+                color={{ bg: "bg-stone-100", text: "text-stone-700" }}
               />
             </div>
 
@@ -1249,28 +1492,45 @@
               <div
                 className={`lg:col-span-2 p-6 ${theme.colors.card} ${theme.rounding.card} shadow-md`}
               >
-                <h3 className={`text-xl font-bold mb-4 ${theme.textPrimary}`}>Notifikasi Hari Ini</h3>
+                <h3
+                  className={`text-xl font-bold mb-4 ${theme.colors.textPrimary}`}
+                >
+                  Notifikasi Hari Ini
+                </h3>
                 <div className="space-y-3 max-h-60 overflow-y-auto">
                   {notifikasi.length === 0 && (
-                    <p className={theme.textSecondary}>Tidak ada notifikasi penting hari ini.</p>
+                    <p className={theme.colors.textSecondary}>
+                      Tidak ada notifikasi penting hari ini.
+                    </p>
                   )}
                   {notifikasi.map((notif, i) => (
-                    <div key={i} className="flex items-start gap-3 p-3 bg-yellow-50 rounded-lg">
+                    <div
+                      key={i}
+                      className="flex items-start gap-3 p-3 bg-yellow-50 rounded-lg"
+                    >
                       <AlertTriangle
                         size={20}
                         className="text-yellow-600 mt-1 flex-shrink-0"
                       />
                       <div>
-                        <p className="font-semibold text-yellow-800">{notif.nama}</p>
-                        <p className="text-sm text-yellow-700">{notif.pesan}</p>
+                        <p className="font-semibold text-yellow-800">
+                          {notif.nama}
+                        </p>
+                        <p className="text-sm text-yellow-700">
+                          {notif.pesan}
+                        </p>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className={`p-6 ${theme.colors.card} ${theme.rounding.card} shadow-md`}>
-                <h3 className={`text-xl font-bold mb-4 ${theme.textPrimary}`}>
+              <div
+                className={`p-6 ${theme.colors.card} ${theme.rounding.card} shadow-md`}
+              >
+                <h3
+                  className={`text-xl font-bold mb-4 ${theme.colors.textPrimary}`}
+                >
                   Ringkasan Shift
                 </h3>
                 <div className="space-y-3">
@@ -1288,8 +1548,14 @@
                       <div key={shiftCode} className="flex items-center gap-3">
                         <ShiftIcon size={24} className={shift.color} />
                         <div className="flex-1">
-                          <p className={`font-semibold ${theme.textPrimary}`}>{shift.nama}</p>
-                          <p className={`text-sm ${theme.textSecondary}`}>{shift.waktu}</p>
+                          <p
+                            className={`font-semibold ${theme.colors.textPrimary}`}
+                          >
+                            {shift.nama}
+                          </p>
+                          <p className={`text-sm ${theme.colors.textSecondary}`}>
+                            {shift.waktu}
+                          </p>
                         </div>
                         <span className="text-lg font-bold">
                           {masuk} / {total}
@@ -1308,11 +1574,11 @@
         const [showModal, setShowModal] = useState(false);
         const [selectedKaryawan, setSelectedKaryawan] = useState(null);
         const [formData, setFormData] = useState({
-          id: '',
-          nama: '',
-          posisi: '',
-          password: '',
-          fotoInisial: '',
+          id: "",
+          nama: "",
+          posisi: "",
+          password: "",
+          fotoInisial: "",
         });
 
         const handleOpenModal = (karyawan = null) => {
@@ -1320,15 +1586,15 @@
             setFormData(karyawan);
             setSelectedKaryawan(karyawan);
           } else {
-            const last = dbKaryawan[dbKaryawan.length - 1];
-            const nextNumber = last ? Number(last.id.replace('PB', '')) + 1 : 251101;
-            const nextId = 'PB' + nextNumber;
+            const lastId = dbKaryawan[dbKaryawan.length - 1]?.id || "PB251100";
+            const nextNumber = Number(lastId.replace("PB", "")) + 1;
+            const nextId = "PB" + nextNumber;
             setFormData({
               id: nextId,
-              nama: '',
-              posisi: '',
-              password: '',
-              fotoInisial: '',
+              nama: "",
+              posisi: "",
+              password: "",
+              fotoInisial: "",
             });
             setSelectedKaryawan(null);
           }
@@ -1358,7 +1624,7 @@
         };
 
         const handleDelete = (id) => {
-          if (window.confirm('Apakah Anda yakin ingin menghapus karyawan ini?')) {
+          if (window.confirm("Apakah Anda yakin ingin menghapus karyawan ini?")) {
             setDbKaryawan(dbKaryawan.filter((k) => k.id !== id));
           }
         };
@@ -1366,33 +1632,43 @@
         return (
           <div className="p-6">
             <div className="flex justify-between items-center mb-6">
-              <h1 className={`text-3xl font-bold ${theme.textPrimary}`}>Manajemen Karyawan</h1>
-              <Button onClick={() => handleOpenModal()} variant="primary" className="w-auto">
+              <h1
+                className={`text-3xl font-bold ${theme.colors.textPrimary}`}
+              >
+                Manajemen Karyawan
+              </h1>
+              <Button
+                onClick={() => handleOpenModal()}
+                variant="primary"
+                className="w-auto"
+              >
                 <Plus size={20} /> Tambah Karyawan
               </Button>
             </div>
 
-            <div className={`overflow-x-auto ${theme.colors.card} ${theme.rounding.card} shadow-md`}>
+            <div
+              className={`overflow-x-auto ${theme.colors.card} ${theme.rounding.card} shadow-md`}
+            >
               <table className="w-full table-auto">
                 <thead className={`border-b ${theme.colors.border}`}>
                   <tr>
                     <th
-                      className={`p-4 text-left text-sm font-semibold ${theme.textSecondary}`}
+                      className={`p-4 text-left text-sm font-semibold ${theme.colors.textSecondary}`}
                     >
                       ID
                     </th>
                     <th
-                      className={`p-4 text-left text-sm font-semibold ${theme.textSecondary}`}
+                      className={`p-4 text-left text-sm font-semibold ${theme.colors.textSecondary}`}
                     >
                       Nama
                     </th>
                     <th
-                      className={`p-4 text-left text-sm font-semibold ${theme.textSecondary}`}
+                      className={`p-4 text-left text-sm font-semibold ${theme.colors.textSecondary}`}
                     >
                       Posisi
                     </th>
                     <th
-                      className={`p-4 text-left text-sm font-semibold ${theme.textSecondary}`}
+                      className={`p-4 text-left text-sm font-semibold ${theme.colors.textSecondary}`}
                     >
                       Aksi
                     </th>
@@ -1403,12 +1679,14 @@
                     <tr
                       key={k.id}
                       className={`border-t ${theme.colors.border} ${
-                        index % 2 === 0 ? 'bg-stone-50' : 'bg-white'
+                        index % 2 === 0 ? "bg-stone-50" : "bg-white"
                       }`}
                     >
                       <td className="p-4 font-mono text-sm">{k.id}</td>
                       <td className="p-4 font-medium">{k.nama}</td>
-                      <td className={`p-4 text-sm ${theme.textSecondary}`}>{k.posisi}</td>
+                      <td className={`p-4 text-sm ${theme.colors.textSecondary}`}>
+                        {k.posisi}
+                      </td>
                       <td className="p-4">
                         <div className="flex gap-2">
                           <button
@@ -1433,7 +1711,7 @@
 
             {showModal && (
               <Modal
-                title={selectedKaryawan ? 'Edit Karyawan' : 'Tambah Karyawan'}
+                title={selectedKaryawan ? "Edit Karyawan" : "Tambah Karyawan"}
                 onClose={handleCloseModal}
               >
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -1489,7 +1767,7 @@
               updatedRoster[karyawanId] = {};
             }
             updatedRoster[karyawanId][dateString] =
-              newShift === 'OFF' ? 'OFF' : parseInt(newShift);
+              newShift === "OFF" ? "OFF" : parseInt(newShift, 10);
             return updatedRoster;
           });
         };
@@ -1503,30 +1781,43 @@
         return (
           <div className="p-6">
             <div className="flex justify-between items-center mb-6">
-              <h1 className={`text-3xl font-bold ${theme.textPrimary}`}>Manajemen Roster</h1>
+              <h1
+                className={`text-3xl font-bold ${theme.colors.textPrimary}`}
+              >
+                Manajemen Roster
+              </h1>
               <div className="flex items-center gap-2">
-                <Button onClick={() => navigateWeek(-1)} variant="light" className="w-auto p-2">
+                <Button
+                  onClick={() => navigateWeek(-1)}
+                  variant="light"
+                  className="w-auto p-2"
+                >
                   <ChevronLeft size={20} />
                 </Button>
                 <span className="font-semibold text-lg w-48 text-center">
-                  {week[0].toLocaleDateString('id-ID', {
-                    day: 'numeric',
-                    month: 'short',
-                  })}{' '}
-                  -{' '}
-                  {week[6].toLocaleDateString('id-ID', {
-                    day: 'numeric',
-                    month: 'short',
+                  {week[0].toLocaleDateString("id-ID", {
+                    day: "numeric",
+                    month: "short",
+                  })}
+                  {" - "}
+                  {week[6].toLocaleDateString("id-ID", {
+                    day: "numeric",
+                    month: "short",
                   })}
                 </span>
-                <Button onClick={() => navigateWeek(1)} variant="light" className="w-auto p-2">
+                <Button
+                  onClick={() => navigateWeek(1)}
+                  variant="light"
+                  className="w-auto p-2"
+                >
                   <ChevronRight size={20} />
                 </Button>
               </div>
             </div>
 
-            <p className={theme.textSecondary}>
-              Roster drag-and-drop belum tersedia. Silakan gunakan form select di bawah.
+            <p className={theme.colors.textSecondary}>
+              Roster drag-and-drop belum tersedia. Silakan gunakan form select di
+              bawah.
             </p>
 
             <div
@@ -1536,16 +1827,18 @@
                 <thead>
                   <tr className={`border-b ${theme.colors.border}`}>
                     <th
-                      className={`p-3 text-left font-semibold ${theme.textSecondary} sticky left-0 bg-white`}
+                      className={`p-3 text-left font-semibold ${theme.colors.textSecondary} sticky left-0 bg-white`}
                     >
                       Karyawan
                     </th>
                     {week.map((day) => (
                       <th
                         key={day.toISOString()}
-                        className={`p-3 text-center font-semibold ${theme.textSecondary}`}
+                        className={`p-3 text-center font-semibold ${theme.colors.textSecondary}`}
                       >
-                        <p>{day.toLocaleDateString('id-ID', { weekday: 'short' })}</p>
+                        <p>
+                          {day.toLocaleDateString("id-ID", { weekday: "short" })}
+                        </p>
                         <p>{day.getDate()}</p>
                       </th>
                     ))}
@@ -1556,38 +1849,46 @@
                     <tr
                       key={k.id}
                       className={`border-t ${theme.colors.border} ${
-                        index % 2 === 0 ? 'bg-stone-50' : 'bg-white'
+                        index % 2 === 0 ? "bg-stone-50" : "bg-white"
                       }`}
                     >
                       <td
                         className={`p-3 font-medium sticky left-0 ${
-                          index % 2 === 0 ? 'bg-stone-50' : 'bg-white'
+                          index % 2 === 0 ? "bg-stone-50" : "bg-white"
                         }`}
                       >
                         <p>{k.nama}</p>
-                        <p className={`text-sm ${theme.textSecondary}`}>{k.posisi}</p>
+                        <p
+                          className={`text-sm ${theme.colors.textSecondary}`}
+                        >
+                          {k.posisi}
+                        </p>
                       </td>
                       {week.map((day) => {
                         const dayString = formatDateYYYYMMDD(day);
-                        const currentShift = dbRoster[k.id]?.[dayString] || 'OFF';
+                        const currentShift = dbRoster[k.id]?.[dayString] || "OFF";
 
                         return (
                           <td key={dayString} className="p-2 text-center">
                             <select
                               value={currentShift}
                               onChange={(e) =>
-                                handleShiftChange(k.id, dayString, e.target.value)
+                                handleShiftChange(
+                                  k.id,
+                                  dayString,
+                                  e.target.value
+                                )
                               }
-                              className={`w-full p-2 ${theme.rounding.input} border ${
-                                theme.colors.border
-                              } font-medium ${
+                              className={`w-full p-2 ${
+                                theme.rounding.input
+                              } border ${theme.colors.border} font-medium ${
                                 currentShift === 1
-                                  ? 'bg-blue-100 text-blue-700'
+                                  ? "bg-blue-100 text-blue-700"
                                   : currentShift === 2
-                                  ? 'bg-orange-100 text-orange-700'
+                                  ? "bg-orange-100 text-orange-700"
                                   : currentShift === 3
-                                  ? 'bg-indigo-100 text-indigo-700'
-                                  : 'bg-gray-100 text-gray-700'
+                                  ? "bg-indigo-100 text-indigo-700"
+                                  : "bg-gray-100 text-gray-700"
                               }`}
                             >
                               <option value="OFF">OFF</option>
@@ -1609,7 +1910,7 @@
 
       const ManagerLaporan = ({ dbAbsensi }) => {
         const [filterTanggal, setFilterTanggal] = useState(TODAY);
-        const [filterKaryawan, setFilterKaryawan] = useState('');
+        const [filterKaryawan, setFilterKaryawan] = useState("");
 
         const filteredData = dbAbsensi.filter((a) => {
           const byTanggal = !filterTanggal || a.tanggal === filterTanggal;
@@ -1618,17 +1919,25 @@
         });
 
         const mockExportCSV = () => {
-          console.log('Mock Export CSV:', filteredData);
+          console.log("Mock Export CSV:", filteredData);
           alert(
-            'Data (mock) diekspor ke console. Di aplikasi nyata, ini bisa dibuat download CSV.'
+            "Data (mock) diekspor ke konsol. Di aplikasi nyata, ini akan men-download file CSV."
           );
         };
 
         return (
           <div className="p-6">
             <div className="flex justify-between items-center mb-6">
-              <h1 className={`text-3xl font-bold ${theme.textPrimary}`}>Laporan Absensi</h1>
-              <Button onClick={mockExportCSV} variant="accent" className="w-auto">
+              <h1
+                className={`text-3xl font-bold ${theme.colors.textPrimary}`}
+              >
+                Laporan Absensi
+              </h1>
+              <Button
+                onClick={mockExportCSV}
+                variant="accent"
+                className="w-auto"
+              >
                 <FileText size={20} /> Ekspor ke CSV
               </Button>
             </div>
@@ -1655,37 +1964,37 @@
                 <thead className={`border-b ${theme.colors.border}`}>
                   <tr>
                     <th
-                      className={`p-3 text-left text-sm font-semibold ${theme.textSecondary}`}
+                      className={`p-3 text-left text-sm font-semibold ${theme.colors.textSecondary}`}
                     >
                       Tanggal
                     </th>
                     <th
-                      className={`p-3 text-left text-sm font-semibold ${theme.textSecondary}`}
+                      className={`p-3 text-left text-sm font-semibold ${theme.colors.textSecondary}`}
                     >
                       Nama
                     </th>
                     <th
-                      className={`p-3 text-left text-sm font-semibold ${theme.textSecondary}`}
+                      className={`p-3 text-left text-sm font-semibold ${theme.colors.textSecondary}`}
                     >
                       Posisi
                     </th>
                     <th
-                      className={`p-3 text-left text-sm font-semibold ${theme.textSecondary}`}
+                      className={`p-3 text-left text-sm font-semibold ${theme.colors.textSecondary}`}
                     >
                       Shift
                     </th>
                     <th
-                      className={`p-3 text-left text-sm font-semibold ${theme.textSecondary}`}
+                      className={`p-3 text-left text-sm font-semibold ${theme.colors.textSecondary}`}
                     >
                       Check-in
                     </th>
                     <th
-                      className={`p-3 text-left text-sm font-semibold ${theme.textSecondary}`}
+                      className={`p-3 text-left text-sm font-semibold ${theme.colors.textSecondary}`}
                     >
                       Check-out
                     </th>
                     <th
-                      className={`p-3 text-left text-sm font-semibold ${theme.textSecondary}`}
+                      className={`p-3 text-left text-sm font-semibold ${theme.colors.textSecondary}`}
                     >
                       Lokasi
                     </th>
@@ -1696,24 +2005,32 @@
                     <tr
                       key={a.id}
                       className={`border-t ${theme.colors.border} ${
-                        index % 2 === 0 ? 'bg-stone-50' : 'bg-white'
+                        index % 2 === 0 ? "bg-stone-50" : "bg-white"
                       }`}
                     >
                       <td className="p-3 text-sm">{a.tanggal}</td>
                       <td className="p-3 font-medium">{a.namaKaryawan}</td>
-                      <td className={`p-3 text-sm ${theme.textSecondary}`}>{a.posisi}</td>
+                      <td
+                        className={`p-3 text-sm ${theme.colors.textSecondary}`}
+                      >
+                        {a.posisi}
+                      </td>
                       <td className="p-3 text-sm">{a.shift}</td>
                       <td className="p-3 text-sm">
-                        {a.checkIn ? formatTime(a.checkIn.waktu) : '-'}
+                        {a.checkIn ? formatTime(a.checkIn.waktu) : "-"}
                       </td>
                       <td className="p-3 text-sm">
-                        {a.checkOut ? formatTime(a.checkOut.waktu) : '-'}
+                        {a.checkOut ? formatTime(a.checkOut.waktu) : "-"}
                       </td>
                       <td className="p-3 text-sm">
                         {a.checkIn?.alasanLuarArea ? (
-                          <span className="font-medium text-yellow-700">Luar Area</span>
+                          <span className="font-medium text-yellow-700">
+                            Luar Area
+                          </span>
                         ) : (
-                          <span className="font-medium text-green-700">Dalam Area</span>
+                          <span className="font-medium text-green-700">
+                            Dalam Area
+                          </span>
                         )}
                       </td>
                     </tr>
@@ -1721,7 +2038,9 @@
                 </tbody>
               </table>
               {filteredData.length === 0 && (
-                <p className={`p-6 text-center ${theme.textSecondary}`}>
+                <p
+                  className={`p-6 text-center ${theme.colors.textSecondary}`}
+                >
                   Tidak ada data absensi yang sesuai dengan filter.
                 </p>
               )}
@@ -1730,58 +2049,28 @@
         );
       };
 
-      const ManagerDashboard = ({
-        onLogout,
-        dbKaryawan,
-        setDbKaryawan,
-        dbRoster,
-        setDbRoster,
-        dbAbsensi,
-      }) => {
-        const [activePage, setActivePage] = useState('home');
+      const ManagerDashboard = ({ onLogout, ...props }) => {
+        const [activePage, setActivePage] = useState("home");
 
         const navItems = [
-          { id: 'home', label: 'Dashboard', icon: BarChart2 },
-          { id: 'karyawan', label: 'Karyawan', icon: Users },
-          { id: 'roster', label: 'Roster', icon: Calendar },
-          { id: 'laporan', label: 'Laporan', icon: FileText },
+          { id: "home", label: "Dashboard", icon: BarChart2 },
+          { id: "karyawan", label: "Karyawan", icon: Users },
+          { id: "roster", label: "Roster", icon: Calendar },
+          { id: "laporan", label: "Laporan", icon: FileText },
         ];
 
         const renderContent = () => {
           switch (activePage) {
-            case 'home':
-              return (
-                <ManagerHome
-                  dbAbsensi={dbAbsensi}
-                  dbKaryawan={dbKaryawan}
-                  dbRoster={dbRoster}
-                />
-              );
-            case 'karyawan':
-              return (
-                <ManagerKaryawan
-                  dbKaryawan={dbKaryawan}
-                  setDbKaryawan={setDbKaryawan}
-                />
-              );
-            case 'roster':
-              return (
-                <ManagerRoster
-                  dbKaryawan={dbKaryawan}
-                  dbRoster={dbRoster}
-                  setDbRoster={setDbRoster}
-                />
-              );
-            case 'laporan':
-              return <ManagerLaporan dbAbsensi={dbAbsensi} />;
+            case "home":
+              return <ManagerHome {...props} />;
+            case "karyawan":
+              return <ManagerKaryawan {...props} />;
+            case "roster":
+              return <ManagerRoster {...props} />;
+            case "laporan":
+              return <ManagerLaporan {...props} />;
             default:
-              return (
-                <ManagerHome
-                  dbAbsensi={dbAbsensi}
-                  dbKaryawan={dbKaryawan}
-                  dbRoster={dbRoster}
-                />
-              );
+              return <ManagerHome {...props} />;
           }
         };
 
@@ -1792,7 +2081,9 @@
             >
               <div className="flex items-center gap-2 mb-10">
                 <Coffee size={32} className="text-amber-800" />
-                <h1 className={`text-2xl font-bold ${theme.textPrimary}`}>
+                <h1
+                  className={`text-2xl font-bold ${theme.colors.textPrimary}`}
+                >
                   PayBoss<span className="text-amber-800">Cafe</span>
                 </h1>
               </div>
@@ -1805,10 +2096,12 @@
                     <button
                       key={item.id}
                       onClick={() => setActivePage(item.id)}
-                      className={`flex w-full items-center gap-3 p-3 ${theme.rounding.button} font-medium transition-colors ${
+                      className={`flex w-full items-center gap-3 p-3 ${
+                        theme.rounding.button
+                      } font-medium transition-colors ${
                         isActive
-                          ? 'bg-amber-800 text-white'
-                          : 'text-stone-600 hover:bg-stone-100'
+                          ? "bg-amber-800 text-white"
+                          : "text-stone-600 hover:bg-stone-100"
                       }`}
                     >
                       <Icon size={20} /> {item.label}
@@ -1824,9 +2117,7 @@
 
             <main className="flex-grow overflow-y-auto">{renderContent()}</main>
 
-            <nav
-              className={`md:hidden fixed bottom-0 left-0 right-0 h-20 bg-white shadow-lg border-t ${theme.colors.border} flex justify-around items-center`}
-            >
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-white shadow-lg border-t border-stone-200 flex justify-around items-center">
               {navItems.map((item) => {
                 const isActive = activePage === item.id;
                 const Icon = item.icon;
@@ -1835,13 +2126,13 @@
                     key={item.id}
                     onClick={() => setActivePage(item.id)}
                     className={`flex flex-col items-center justify-center w-full h-full transition-colors ${
-                      isActive ? 'text-amber-800' : 'text-stone-500'
+                      isActive ? "text-amber-800" : "text-stone-500"
                     }`}
                   >
                     <Icon size={24} />
                     <span
                       className={`text-xs font-medium mt-1 ${
-                        isActive ? 'font-bold' : ''
+                        isActive ? "font-bold" : ""
                       }`}
                     >
                       {item.label}
@@ -1861,17 +2152,16 @@
         );
       };
 
-      /********************************************************
-       *  LOGIN PAGE
-       ********************************************************/
+      // --- LOGIN PAGE ---
+
       const LoginPage = ({ onEmployeeLogin, onManagerLogin }) => {
-        const [activeTab, setActiveTab] = useState('karyawan');
+        const [activeTab, setActiveTab] = useState("karyawan");
 
-        const [idKaryawan, setIdKaryawan] = useState('PB251102');
-        const [passKaryawan, setPassKaryawan] = useState('ilham123');
+        const [idKaryawan, setIdKaryawan] = useState("PB251102");
+        const [passKaryawan, setPassKaryawan] = useState("ilham123");
 
-        const [idManager, setIdManager] = useState('admin');
-        const [passManager, setPassManager] = useState('payboss123');
+        const [idManager, setIdManager] = useState("admin");
+        const [passManager, setPassManager] = useState("payboss123");
 
         const [error, setError] = useState(null);
 
@@ -1880,7 +2170,7 @@
           setError(null);
           const success = onEmployeeLogin(idKaryawan, passKaryawan);
           if (!success) {
-            setError('ID Karyawan atau Password salah.');
+            setError("ID Karyawan atau Password salah.");
           }
         };
 
@@ -1889,12 +2179,19 @@
           setError(null);
           const success = onManagerLogin(idManager, passManager);
           if (!success) {
-            setError('Username atau Password Manajer salah.');
+            setError("Username atau Password Manajer salah.");
           }
         };
 
         const renderKaryawanLogin = () => (
-          <motion.form onSubmit={handleEmployeeSubmit} className="space-y-4">
+          <motion.form
+            key="karyawan"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            onSubmit={handleEmployeeSubmit}
+            className="space-y-4"
+          >
             <Input
               placeholder="ID Karyawan (cth: PB251101)"
               value={idKaryawan}
@@ -1915,7 +2212,14 @@
         );
 
         const renderManagerLogin = () => (
-          <motion.form onSubmit={handleManagerSubmit} className="space-y-4">
+          <motion.form
+            key="manager"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            onSubmit={handleManagerSubmit}
+            className="space-y-4"
+          >
             <Input
               placeholder="Username Manajer"
               value={idManager}
@@ -1943,7 +2247,13 @@
               className={`w-full max-w-md ${theme.colors.card} ${theme.rounding.card} shadow-2xl overflow-hidden`}
             >
               <div className={`p-8 text-center ${theme.colors.primary} text-white`}>
-                <Coffee size={48} className="mx-auto text-amber-300" />
+                <motion.div
+                  initial={{ scale: 0.5 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.2, type: "spring" }}
+                >
+                  <Coffee size={48} className="mx-auto text-amber-300" />
+                </motion.div>
                 <h1 className="text-3xl font-bold mt-2">PayBoss Cafe</h1>
                 <p className="text-stone-300">Sistem Absensi Karyawan</p>
               </div>
@@ -1951,12 +2261,12 @@
               <div className="flex">
                 <button
                   className={`w-1/2 p-4 font-semibold text-center ${
-                    activeTab === 'karyawan'
-                      ? 'bg-white text-amber-800 border-b-4 border-amber-800'
-                      : 'bg-stone-50 text-stone-600'
+                    activeTab === "karyawan"
+                      ? "bg-white text-amber-800 border-b-4 border-amber-800"
+                      : "bg-stone-50 text-stone-600"
                   }`}
                   onClick={() => {
-                    setActiveTab('karyawan');
+                    setActiveTab("karyawan");
                     setError(null);
                   }}
                 >
@@ -1964,12 +2274,12 @@
                 </button>
                 <button
                   className={`w-1/2 p-4 font-semibold text-center ${
-                    activeTab === 'manager'
-                      ? 'bg-white text-amber-800 border-b-4 border-amber-800'
-                      : 'bg-stone-50 text-stone-600'
+                    activeTab === "manager"
+                      ? "bg-white text-amber-800 border-b-4 border-amber-800"
+                      : "bg-stone-50 text-stone-600"
                   }`}
                   onClick={() => {
-                    setActiveTab('manager');
+                    setActiveTab("manager");
                     setError(null);
                   }}
                 >
@@ -1979,37 +2289,55 @@
 
               <div className="p-8">
                 {error && (
-                  <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-center text-sm">
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-center text-sm"
+                  >
                     {error}
-                  </div>
+                  </motion.div>
                 )}
 
-                {activeTab === 'karyawan' ? renderKaryawanLogin() : renderManagerLogin()}
+                <AnimatePresence mode="wait">
+                  {activeTab === "karyawan"
+                    ? renderKaryawanLogin()
+                    : renderManagerLogin()}
+                </AnimatePresence>
               </div>
             </div>
           </div>
         );
       };
 
-      /********************************************************
-       *  ROOT APP
-       ********************************************************/
+      // --- APP UTAMA ---
+
       function App() {
         const [dbKaryawan, setDbKaryawan] = useState(initialDbKaryawan);
         const [dbRoster, setDbRoster] = useState(initialDbRoster);
         const [dbJobDesk] = useState(jobDeskTemplates);
-        const [dbAbsensi, setDbAbsensi] = useState([]);
+        const [dbAbsensi, setDbAbsensi] = useState([
+          {
+            id: `att_PB251101_${TODAY}`,
+            idKaryawan: "PB251101",
+            namaKaryawan: "Dayat",
+            posisi: "Koordinator",
+            tanggal: TODAY,
+            shift: "OFF",
+            checkIn: null,
+            checkOut: null,
+            jobDeskProgress: [],
+            status: "Libur",
+          },
+        ]);
 
-        const [currentUser, setCurrentUser] = useState(null);
+        const [currentUser, setCurrentUser] = useState(null); // null, 'manager', atau objek karyawan
 
-        const managerCredentials = { username: 'admin', password: 'payboss123' };
-
-        useEffect(() => {
-          loadAbsensiFromSheet(setDbAbsensi);
-        }, []);
+        const managerCredentials = { username: "admin", password: "payboss123" };
 
         const handleEmployeeLogin = (id, password) => {
-          const user = dbKaryawan.find((k) => k.id === id && k.password === password);
+          const user = dbKaryawan.find(
+            (k) => k.id === id && k.password === password
+          );
           if (user) {
             setCurrentUser(user);
             return true;
@@ -2022,7 +2350,7 @@
             username === managerCredentials.username &&
             password === managerCredentials.password
           ) {
-            setCurrentUser('manager');
+            setCurrentUser("manager");
             return true;
           }
           return false;
@@ -2030,6 +2358,37 @@
 
         const handleLogout = () => {
           setCurrentUser(null);
+        };
+
+        // Contoh: Load data absensi dari Google Sheet saat awal (kalau Apps Script sudah siap)
+        useEffect(() => {
+          (async () => {
+            const sheetData = await loadAbsensiDariSheet();
+            if (sheetData && sheetData.length > 0) {
+              setDbAbsensi(sheetData);
+            }
+          })();
+        }, []);
+
+        const managerProps = {
+          dbKaryawan,
+          setDbKaryawan,
+          dbRoster,
+          setDbRoster,
+          dbJobDesk,
+          dbAbsensi,
+          setDbAbsensi,
+          onLogout: handleLogout,
+        };
+
+        const employeeProps = {
+          user: currentUser,
+          dbAbsensi,
+          setDbAbsensi,
+          dbRoster,
+          setDbRoster,
+          dbJobDesk,
+          onLogout: handleLogout,
         };
 
         if (!currentUser) {
@@ -2041,32 +2400,15 @@
           );
         }
 
-        if (currentUser === 'manager') {
-          return (
-            <ManagerDashboard
-              onLogout={handleLogout}
-              dbKaryawan={dbKaryawan}
-              setDbKaryawan={setDbKaryawan}
-              dbRoster={dbRoster}
-              setDbRoster={setDbRoster}
-              dbAbsensi={dbAbsensi}
-            />
-          );
+        if (currentUser === "manager") {
+          return <ManagerDashboard {...managerProps} />;
         }
 
-        return (
-          <EmployeeDashboard
-            user={currentUser}
-            onLogout={handleLogout}
-            dbAbsensi={dbAbsensi}
-            setDbAbsensi={setDbAbsensi}
-            dbRoster={dbRoster}
-            dbJobDesk={dbJobDesk}
-          />
-        );
+        return <EmployeeDashboard {...employeeProps} />;
       }
 
-      const root = ReactDOM.createRoot(document.getElementById('root'));
+      const rootElement = document.getElementById("root");
+      const root = ReactDOM.createRoot(rootElement);
       root.render(<App />);
     </script>
   </body>
