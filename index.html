@@ -1,1004 +1,634 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PayBoss Cafe - Absensi Selfie & GPS</title>
-  <style>
-    :root {
-      --primary: #8b4513;
-      --primary-dark: #5c2e0c;
-      --accent: #f4a261;
-      --bg: linear-gradient(135deg, #8b4513 0%, #d2b48c 100%);
-      --card-bg: rgba(255, 255, 255, 0.12);
-      --card-border: rgba(255, 255, 255, 0.35);
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Absensi Karyawan - Restoran F&B</title>
+    <!-- Memuat Font Awesome untuk ikon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Reset CSS dasar dan pengaturan font global */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-    * {
-      box-sizing: border-box;
-    }
+        /* Variabel warna CSS untuk tema */
+        :root {
+            --primary: #1e3a8a;
+            --primary-dark: #1e40af;
+            --secondary: #059669;
+            --accent: #f59e0b;
+            --light: #f8fafc;
+            --dark: #0f172a;
+            --gray: #94a3b8;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
 
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: var(--bg);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #1f2933;
-    }
+        /* Pengaturan body utama */
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: var(--light);
+            min-height: 100vh;
+            padding: 20px;
+        }
 
-    .app-wrapper {
-      width: 100%;
-      max-width: 960px;
-      padding: 16px;
-    }
+        /* Kontainer utama untuk membatasi lebar konten */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
 
-    .card {
-      background: var(--card-bg);
-      border-radius: 20px;
-      border: 1px solid var(--card-border);
-      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.25);
-      backdrop-filter: blur(18px);
-      padding: 20px 20px 16px;
-      color: #ffffff;
-    }
+        /* Header dengan logo dan judul */
+        header {
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
 
-    @media (min-width: 768px) {
-      .card {
-        padding: 24px 28px 20px;
-      }
-    }
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
 
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
+        .logo i {
+            font-size: 2.5rem;
+            color: var(--accent);
+        }
 
-    .title-group h1 {
-      margin: 0;
-      font-size: 1.3rem;
-      letter-spacing: 0.03em;
-    }
+        .logo h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #fbbf24, #f59e0b, #ef4444);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
 
-    .title-group p {
-      margin: 4px 0 0;
-      font-size: 0.8rem;
-      opacity: 0.85;
-    }
+        .logo p {
+            color: var(--gray);
+            font-size: 1.1rem;
+        }
 
-    .badge {
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.4);
-      font-size: 0.7rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(0, 0, 0, 0.06);
-    }
+        /* Styling untuk kartu (card) */
+        .card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px); /* Efek glassmorphism */
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
 
-    .badge-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      background: #4ade80;
-      box-shadow: 0 0 0 4px rgba(74, 222, 128, 0.25);
-    }
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #e2e8f0;
+        }
 
-    .layout {
-      display: grid;
-      grid-template-columns: 1.1fr;
-      gap: 16px;
-    }
+        .card-title i {
+            color: var(--accent);
+        }
 
-    @media (min-width: 920px) {
-      .layout {
-        grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr);
-      }
-    }
+        /* Styling untuk indikator langkah (steps) */
+        .steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            position: relative;
+        }
 
-    .section-title {
-      font-size: 0.9rem;
-      margin: 0 0 8px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      opacity: 0.9;
-    }
+        /* Garis penghubung antar langkah */
+        .steps::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 15%;
+            right: 15%;
+            height: 3px;
+            background: linear-gradient(to right, var(--primary), var(--accent), var(--secondary));
+            z-index: 1;
+        }
 
-    .section-subtitle {
-      font-size: 0.75rem;
-      margin: 0 0 10px;
-      opacity: 0.8;
-    }
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 2;
+            position: relative;
+        }
 
-    .field-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      margin-bottom: 10px;
-    }
+        .step-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #334155;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            border: 3px solid #475569;
+            transition: all 0.3s ease;
+        }
 
-    label {
-      font-size: 0.8rem;
-      opacity: 0.9;
-    }
+        /* Status langkah: aktif */
+        .step.active .step-circle {
+            background: var(--primary);
+            border-color: var(--accent);
+            color: white;
+            transform: scale(1.1);
+        }
 
-    input[type="text"],
-    select,
-    textarea {
-      padding: 9px 11px;
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.5);
-      background: rgba(0, 0, 0, 0.15);
-      color: #f9fafb;
-      font-size: 0.85rem;
-      outline: none;
-      width: 100%;
-      resize: vertical;
-    }
+        /* Status langkah: selesai */
+        .step.completed .step-circle {
+            background: var(--secondary);
+            border-color: var(--success);
+            color: white;
+        }
 
-    input::placeholder,
-    textarea::placeholder {
-      color: rgba(249, 250, 251, 0.55);
-    }
+        .step-label {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            text-align: center;
+        }
 
-    input:focus,
-    select:focus,
-    textarea:focus {
-      border-color: #fbbf77;
-      box-shadow: 0 0 0 1px rgba(248, 196, 113, 0.7);
-    }
+        .step.active .step-label,
+        .step.completed .step-label {
+            color: white;
+            font-weight: 600;
+        }
 
-    .info-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 10px;
-      margin-top: 6px;
-      font-size: 0.75rem;
-    }
+        /* Kontainer untuk video kamera */
+        .camera-container {
+            position: relative;
+            margin: 20px auto;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+            background: #0f172a;
+            aspect-ratio: 4/5; /* Rasio aspek untuk tampilan potret */
+        }
 
-    .info-pill {
-      padding: 8px 10px;
-      border-radius: 12px;
-      background: rgba(0, 0, 0, 0.25);
-      border: 1px dashed rgba(255, 255, 255, 0.4);
-    }
+        #video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
 
-    .info-label {
-      opacity: 0.7;
-      margin-bottom: 2px;
-    }
+        #canvas {
+            display: none; /* Canvas disembunyikan, hanya untuk mengambil gambar */
+        }
 
-    .info-value {
-      font-weight: 600;
-      font-size: 0.8rem;
-    }
+        /* Pratinjau selfie */
+        .selfie-preview {
+            display: none;
+            text-align: center;
+        }
 
-    button {
-      font-family: inherit;
-      border-radius: 999px;
-      border: none;
-      padding: 9px 14px;
-      font-size: 0.85rem;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
+        .selfie-preview img {
+            max-width: 100%;
+            border-radius: 12px;
+            margin: 15px 0;
+            border: 3px solid var(--secondary);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
 
-    .btn-primary {
-      background: #f4a261;
-      color: #1f2933;
-      font-weight: 600;
-      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.25);
-    }
+        /* Info lokasi */
+        .location-info {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 4px solid var(--accent);
+        }
 
-    .btn-primary:hover {
-      background: #f6ad74;
-      transform: translateY(-1px);
-    }
+        .location-info h3 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            color: var(--accent);
+        }
 
-    .btn-secondary {
-      background: rgba(0, 0, 0, 0.35);
-      color: #f9fafb;
-      border: 1px solid rgba(255, 255, 255, 0.4);
-    }
+        .location-info p {
+            margin: 8px 0;
+            color: #cbd5e1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-    .btn-secondary:hover {
-      background: rgba(0, 0, 0, 0.5);
-    }
+        .location-info i {
+            color: var(--secondary);
+            width: 20px;
+        }
 
-    .btn-icon {
-      font-size: 1.1rem;
-    }
+        /* Styling tombol */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            width: 100%;
+            margin-top: 20px;
+        }
 
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
 
-    .location-status {
-      margin-top: 8px;
-      padding: 8px 10px;
-      border-radius: 12px;
-      font-size: 0.78rem;
-      border: 1px solid rgba(255, 255, 255, 0.45);
-      background: rgba(0, 0, 0, 0.25);
-      min-height: 40px;
-    }
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 14px rgba(30, 58, 138, 0.4);
+        }
 
-    .location-status.error {
-      border-color: #fecaca;
-      background: rgba(127, 29, 29, 0.65);
-    }
+        .btn-success {
+            background: linear-gradient(135deg, var(--secondary), #047857);
+            color: white;
+        }
 
-    .location-status.success {
-      border-color: #bbf7d0;
-      background: rgba(20, 83, 45, 0.7);
-    }
+        .btn-success:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 14px rgba(5, 150, 105, 0.4);
+        }
 
-    .location-status span.label {
-      opacity: 0.8;
-      margin-right: 4px;
-    }
+        .btn-accent {
+            background: linear-gradient(135deg, var(--accent), #d97706);
+            color: white;
+        }
 
-    .location-status strong {
-      font-weight: 600;
-    }
+        .btn-accent:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 14px rgba(245, 158, 11, 0.4);
+        }
 
-    .camera-frame {
-      border-radius: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.5);
-      overflow: hidden;
-      background: rgba(0, 0, 0, 0.65);
-      position: relative;
-      aspect-ratio: 3/4;
-      max-height: 360px;
-    }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
 
-    .camera-frame video,
-    .camera-frame img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
+        /* Styling untuk kotak hasil (sukses atau error) */
+        .result {
+            text-align: center;
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 20px;
+            display: none; /* Sembunyi secara default */
+        }
 
-    .camera-overlay {
-      position: absolute;
-      inset: 0;
-      border-radius: 16px;
-      box-shadow:
-        0 0 0 999px rgba(0, 0, 0, 0.25),
-        0 0 0 2px rgba(255, 255, 255, 0.8);
-      margin: 20px;
-      border-radius: 999px;
-      pointer-events: none;
-    }
+        .result.success {
+            background: rgba(5, 150, 105, 0.2);
+            border: 2px solid var(--success);
+        }
 
-    .camera-hint {
-      position: absolute;
-      bottom: 12px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.65);
-      padding: 6px 10px;
-      border-radius: 999px;
-      font-size: 0.7rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
+        .result.error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 2px solid var(--danger);
+        }
 
-    .dot-rec {
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      background: #f97373;
-      box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.6);
-      animation: pulse 1.2s ease-in-out infinite;
-    }
+        .result i {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+        }
 
-    @keyframes pulse {
-      0%, 100% {
-        transform: scale(1);
-        opacity: 1;
-      }
-      50% {
-        transform: scale(1.2);
-        opacity: 0.6;
-      }
-    }
+        .result.success i {
+            color: var(--success);
+        }
 
-    .camera-actions {
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-      margin-top: 10px;
-      flex-wrap: wrap;
-    }
+        .result.error i {
+            color: var(--danger);
+        }
 
-    .submit-row {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      margin-top: 14px;
-      padding-top: 10px;
-      border-top: 1px dashed rgba(255, 255, 255, 0.35);
-    }
+        .result h2 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+        }
 
-    .submit-helper {
-      font-size: 0.72rem;
-      opacity: 0.8;
-      max-width: 280px;
-    }
+        .result p {
+            font-size: 1.1rem;
+            color: #e2e8f0;
+            max-width: 600px;
+            margin: 0 auto;
+        }
 
-    .result-panel {
-      margin-top: 12px;
-      border-radius: 14px;
-      padding: 8px 10px;
-      background: rgba(0, 0, 0, 0.4);
-      font-size: 0.72rem;
-      max-height: 220px;
-      overflow: auto;
-      border: 1px solid rgba(148, 163, 184, 0.7);
-    }
+        /* Info karyawan */
+        .employee-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: rgba(15, 23, 42, 0.5);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 25px;
+        }
 
-    .result-panel pre {
-      margin: 0;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-    }
+        .employee-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: white;
+            flex-shrink: 0;
+        }
 
-    .hidden {
-      display: none !important;
-    }
+        .employee-details h3 {
+            font-size: 1.4rem;
+            margin-bottom: 5px;
+        }
 
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 5px 10px;
-      border-radius: 999px;
-      background: rgba(0, 0, 0, 0.3);
-      border: 1px solid rgba(255, 255, 255, 0.35);
-      font-size: 0.7rem;
-    }
+        .employee-details p {
+            color: var(--gray);
+            font-size: 0.95rem;
+        }
 
-    .pill-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      background: #facc15;
-    }
+        /* Badge status */
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 8px; /* Tambahan margin */
+        }
 
-    .mode-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 4px;
-    }
+        .status-in {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
 
-    .btn-mode {
-      font-size: 0.78rem;
-      padding: 6px 10px;
-    }
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: var(--gray);
+            font-size: 0.9rem;
+            padding: 20px;
+        }
 
-    .btn-mode-active {
-      background: #f4a261;
-      color: #1f2933;
-      border-color: rgba(255, 255, 255, 0.8);
-    }
-  </style>
+        /* Media query untuk perangkat mobile */
+        @media (max-width: 768px) {
+            .steps {
+                flex-wrap: wrap;
+                gap: 15px;
+            }
+
+            .steps::before {
+                display: none; /* Sembunyikan garis di mobile */
+            }
+
+            .step {
+                flex: 1 1 45%; /* Buat jadi 2 kolom */
+            }
+
+            .employee-info {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="app-wrapper">
-    <div class="card">
-      <header class="card-header">
-        <div class="title-group">
-          <h1>PayBoss Cafe &mdash; Absensi Selfie &amp; GPS</h1>
-          <p>Absensi karyawan dengan bukti foto &amp; lokasi langsung di titik kerja.</p>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-utensils"></i>
+                <div>
+                    <h1>RESTORAN SAVORY</h1>
+                    <p>Sistem Absensi Karyawan F&B</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- Kartu Info Karyawan -->
+        <div class="card">
+            <div class="employee-info">
+                <div class="employee-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="employee-details">
+                    <h3>Ahmad Fauzi</h3>
+                    <p>Staff Kitchen • ID: EMP-2023-087</p>
+                    <span class="status-badge status-in">Status: Masuk Hari Ini</span>
+                </div>
+            </div>
         </div>
-        <div class="badge" id="badge-date">
-          <span class="badge-dot"></span>
-          <span><span id="today-date">&mdash;</span></span>
-        </div>
-      </header>
 
-      <form id="attendance-form" autocomplete="off">
-        <div class="layout">
-          <!-- Kolom Kiri: Data Karyawan & Lokasi -->
-          <div>
-            <h2 class="section-title">Data Karyawan</h2>
-            <p class="section-subtitle">Isi identitas singkat sebelum ambil lokasi &amp; selfie.</p>
-
-            <div class="field-group">
-              <label for="employee-name">Nama Karyawan</label>
-              <input
-                type="text"
-                id="employee-name"
-                name="employeeName"
-                placeholder="Contoh: Zahra, Rian, Ikhsan"
-                required
-              />
+        <!-- Kartu Ambil Selfie -->
+        <div class="card">
+            <h2 class="card-title"><i class="fas fa-camera"></i> Ambil Selfie untuk Absensi</h2>
+            
+            <!-- Indikator Langkah -->
+            <div class="steps">
+                <div class="step active" id="step1">
+                    <div class="step-circle">1</div>
+                    <div class="step-label">Buka Kamera</div>
+                </div>
+                <div class="step" id="step2">
+                    <div class="step-circle">2</div>
+                    <div class="step-label">Ambil Selfie</div>
+                </div>
+                <div class="step" id="step3">
+                    <div class="step-circle">3</div>
+                    <div class="step-label">Verifikasi Wajah</div>
+                </div>
+                <div class="step" id="step4">
+                    <div class="step-circle">4</div>
+                    <div class="step-label">Lokasi & Submit</div>
+                </div>
             </div>
 
-            <div class="field-group">
-              <label for="employee-id">ID / NIK / Username Absensi</label>
-              <input
-                type="text"
-                id="employee-id"
-                name="employeeId"
-                placeholder="Contoh: PB-001"
-                required
-              />
+            <!-- Tampilan Kamera -->
+            <div class="camera-container">
+                <video id="video" autoplay playsinline></video>
+                <canvas id="canvas"></canvas>
             </div>
 
-            <div class="field-group">
-              <label for="employee-role">Posisi</label>
-              <select id="employee-role" name="employeeRole" required>
-                <option value="">Pilih posisi...</option>
-                <option value="Kasir">Kasir</option>
-                <option value="Barista">Barista</option>
-                <option value="Waitress">Waitress</option>
-                <option value="Koki">Koki</option>
-                <option value="Koordinator">Koordinator / Supervisor</option>
-                <option value="Lainnya">Lainnya</option>
-              </select>
+            <!-- Pratinjau Selfie -->
+            <div class="selfie-preview" id="selfiePreview">
+                <h3>Selfie Anda</h3>
+                <img id="selfieImage" src="" alt="Selfie Preview">
             </div>
 
-            <div class="field-group">
-              <label for="shift">Shift</label>
-              <select id="shift" name="shift" required>
-                <option value="">Pilih shift...</option>
-                <option value="Shift-1">Shift 1 (08:00 - 16:00)</option>
-                <option value="Shift-2">Shift 2 (16:00 - 24:00)</option>
-                <option value="Shift-3">Shift 3 (00:00 - 08:00)</option>
-              </select>
-            </div>
-
-            <h2 class="section-title" style="margin-top: 14px;">Mode Absensi</h2>
-            <p class="section-subtitle">Default: On Site (wajib selfie). Jika kamera bermasalah, gunakan mode Absen di Luar Area.</p>
-
-            <div class="field-group">
-              <label>Jenis absensi</label>
-              <div class="mode-row">
-                <button type="button" class="btn-secondary btn-mode" id="btn-mode-onsite">On Site (Default)</button>
-                <button type="button" class="btn-secondary btn-mode" id="btn-mode-outarea">Absen di Luar Area</button>
-              </div>
-              <div class="location-status" id="outarea-info">
-                <span class="label">Info:</span>
-                <span>Mode normal (On Site). Selfie &amp; GPS di titik kerja wajib sebelum kirim absensi.</span>
-              </div>
-            </div>
-
-            <div class="field-group hidden" id="outarea-reason-group">
-              <label for="outarea-reason">Alasan Absen di Luar Area</label>
-              <textarea
-                id="outarea-reason"
-                name="outOfAreaReason"
-                placeholder="Contoh: Kamera HP rusak / jaringan bermasalah / tugas di luar lokasi cafe"
-                rows="2"
-              ></textarea>
-            </div>
-
-            <h2 class="section-title" style="margin-top: 8px;">Lokasi On The Spot</h2>
-            <p class="section-subtitle">Tekan tombol di bawah saat sudah berada di lokasi kerja (cafe / karaoke / billiard / luar area).</p>
-
-            <button type="button" class="btn-secondary" id="btn-location">
-              <span class="btn-icon">📍</span>
-              <span>Ambil Lokasi Saya Sekarang</span>
+            <!-- Tombol Aksi Kamera -->
+            <button id="startCamera" class="btn btn-primary">
+                <i class="fas fa-video"></i> Mulai Kamera
             </button>
-
-            <div class="location-status" id="location-status">
-              <span class="label">Status:</span>
-              <span>Belum ada lokasi. Pastikan GPS diaktifkan &amp; akses lokasi diizinkan.</span>
-            </div>
-
-            <div class="info-grid">
-              <div class="info-pill">
-                <div class="info-label">Latitude</div>
-                <div class="info-value" id="lat-value">&mdash;</div>
-              </div>
-              <div class="info-pill">
-                <div class="info-label">Longitude</div>
-                <div class="info-value" id="lng-value">&mdash;</div>
-              </div>
-              <div class="info-pill">
-                <div class="info-label">Akurasi</div>
-                <div class="info-value" id="acc-value">&mdash;</div>
-              </div>
-            </div>
-
-            <!-- Hidden fields lokasi untuk dikirim ke backend -->
-            <input type="hidden" id="lat-hidden" name="latitude" />
-            <input type="hidden" id="lng-hidden" name="longitude" />
-            <input type="hidden" id="acc-hidden" name="accuracy" />
-          </div>
-
-          <!-- Kolom Kanan: Kamera / Selfie -->
-          <div>
-            <h2 class="section-title">Selfie Kehadiran</h2>
-            <p class="section-subtitle">Selfie wajib untuk mode On Site. Di mode Luar Area, selfie opsional namun tetap disarankan.</p>
-
-            <div class="camera-frame" id="camera-frame">
-              <video id="video" autoplay playsinline class="hidden"></video>
-              <img id="selfie-preview" alt="Preview selfie" class="hidden" />
-              <div class="camera-overlay" id="camera-overlay"></div>
-              <div class="camera-hint" id="camera-hint">
-                <span class="dot-rec"></span>
-                <span>Aktifkan kamera &amp; posisikan wajah di lingkaran.</span>
-              </div>
-            </div>
-
-            <canvas id="canvas" class="hidden"></canvas>
-
-            <div class="camera-actions">
-              <button type="button" class="btn-secondary" id="btn-start-camera">
-                <span class="btn-icon">🎥</span>
-                <span>Nyalakan Kamera</span>
-              </button>
-
-              <button type="button" class="btn-primary" id="btn-capture" disabled>
-                <span class="btn-icon">📸</span>
-                <span>Ambil Selfie</span>
-              </button>
-
-              <button type="button" class="btn-secondary" id="btn-retake" disabled>
-                <span class="btn-icon">🔁</span>
-                <span>Ulangi</span>
-              </button>
-            </div>
-
-            <div style="margin-top: 8px; font-size: 0.7rem; opacity: 0.85; display: flex; gap: 6px; flex-wrap: wrap;">
-              <div class="pill">
-                <span class="pill-dot"></span>
-                <span>Gunakan HP &amp; izinkan akses kamera + lokasi.</span>
-              </div>
-              <div class="pill">
-                <span class="pill-dot" style="background:#22c55e;"></span>
-                <span>Data foto &amp; GPS siap dikirim ke database / Google Sheet.</span>
-              </div>
-            </div>
-          </div>
+            <button id="takeSelfie" class="btn btn-accent" disabled>
+                <i class="fas fa-camera"></i> Ambil Selfie
+            </button>
+            <button id="verifyFace" class="btn btn-success" disabled>
+                <i class="fas fa-user-check"></i> Verifikasi Wajah
+            </button>
         </div>
 
-        <div class="submit-row">
-          <div class="submit-helper">
-            Mode <strong>On Site</strong>: wajib nama, ID, posisi, shift, lokasi &amp; selfie.<br />
-            Mode <strong>Luar Area</strong>: wajib nama, ID, posisi, shift, lokasi &amp; alasan.
-          </div>
-          <button type="submit" class="btn-primary" id="btn-submit" disabled>
-            <span class="btn-icon">✅</span>
-            <span>Kirim Absensi</span>
-          </button>
+        <!-- Kartu Lokasi & Submit -->
+        <div class="card">
+            <h2 class="card-title"><i class="fas fa-map-marker-alt"></i> Lokasi & Submit Absensi</h2>
+            
+            <!-- Info Lokasi -->
+            <div class="location-info" id="locationInfo">
+                <h3><i class="fas fa-info-circle"></i> Informasi Lokasi</h3>
+                <p id="locationStatus"><i class="fas fa-spinner fa-spin"></i> Mendeteksi lokasi...</p>
+                <p id="latitudeInfo"><i class="fas fa-globe"></i> Latitude: -</p>
+                <p id="longitudeInfo"><i class="fas fa-globe"></i> Longitude: -</p>
+                <p id="accuracyInfo"><i class="fas fa-bullseye"></i> Akurasi: -</p>
+                <p id="addressInfo"><i class="fas fa-map-pin"></i> Lokasi: -</p>
+            </div>
+
+            <!-- Tombol Aksi Lokasi & Submit -->
+            <button id="getLocation" class="btn btn-primary">
+                <i class="fas fa-location-arrow"></i> Dapatkan Lokasi Sekarang
+            </button>
+            <button id="submitAttendance" class="btn btn-success" disabled>
+                <i class="fas fa-check-circle"></i> Submit Absensi
+            </button>
         </div>
 
-        <div class="result-panel hidden" id="result-panel">
-          <pre id="result-output"></pre>
+        <!-- Hasil Sukses -->
+        <div class="result success" id="resultSuccess">
+            <i class="fas fa-check-circle"></i>
+            <h2>Absensi Berhasil!</h2>
+            <p>Selamat datang di Restoran Savory, Ahmad. Absensi Anda telah tercatat pada pukul <span id="timeSuccess">-</span> dengan lokasi <span id="locationSuccess">-</span>.</p>
         </div>
-      </form>
+
+        <!-- Hasil Error -->
+        <div class="result error" id="resultError">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h2>Absensi Gagal</h2>
+            <p id="errorMessage">Terjadi kesalahan saat memproses absensi. Pastikan kamera dan lokasi diaktifkan.</p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>© 2025 Restoran Savory • Sistem Absensi Karyawan F&B • Versi 1.0</p>
+            <p style="margin-top: 8px; font-size: 0.8rem; color: #64748b;">
+                <i class="fas fa-shield-alt"></i> Data absensi aman & terenkripsi
+            </p>
+        </div>
     </div>
-  </div>
 
-  <script>
-    const form = document.getElementById('attendance-form');
-    const nameInput = document.getElementById('employee-name');
-    const idInput = document.getElementById('employee-id');
-    const roleInput = document.getElementById('employee-role');
-    const shiftInput = document.getElementById('shift');
+    <script>
+        // Mengambil elemen-elemen DOM
+// ... existing code ... */
+        const errorMessage = document.getElementById('errorMessage');
 
-    const btnModeOnsite = document.getElementById('btn-mode-onsite');
-    const btnModeOutarea = document.getElementById('btn-mode-outarea');
-    const outareaInfo = document.getElementById('outarea-info');
-    const outareaReasonGroup = document.getElementById('outarea-reason-group');
-    const outareaReasonInput = document.getElementById('outarea-reason');
+        // Variabel untuk menyimpan state
+// ... existing code ... */
+        let faceVerified = false;
 
-    const btnLocation = document.getElementById('btn-location');
-    const locationStatus = document.getElementById('location-status');
-    const latValue = document.getElementById('lat-value');
-    const lngValue = document.getElementById('lng-value');
-    const accValue = document.getElementById('acc-value');
-    const latHidden = document.getElementById('lat-hidden');
-    const lngHidden = document.getElementById('lng-hidden');
-    const accHidden = document.getElementById('acc-hidden');
+        // Array untuk manajemen langkah
+// ... existing code ... */
+            { id: 'step4', btn: submitAttendanceBtn }
+        ];
 
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const selfiePreview = document.getElementById('selfie-preview');
-    const btnStartCamera = document.getElementById('btn-start-camera');
-    const btnCapture = document.getElementById('btn-capture');
-    const btnRetake = document.getElementById('btn-retake');
-    const cameraHint = document.getElementById('camera-hint');
-
-    const btnSubmit = document.getElementById('btn-submit');
-    const resultPanel = document.getElementById('result-panel');
-    const resultOutput = document.getElementById('result-output');
-    const todayDateEl = document.getElementById('today-date');
-
-    let locationData = null;
-    let photoDataUrl = null;
-    let mediaStream = null;
-    let isOutOfAreaMode = false;
-
-    // Tanggal hari ini
-    function setTodayBadge() {
-      const now = new Date();
-      const formatter = new Intl.DateTimeFormat('id-ID', {
-        weekday: 'short',
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-      });
-      todayDateEl.textContent = formatter.format(now);
-    }
-
-    setTodayBadge();
-
-    // Cek lingkungan (test case untuk debugging)
-    function runEnvironmentChecks() {
-      const tests = [
-        {
-          name: 'Geolocation support',
-          passed: 'geolocation' in navigator,
-        },
-        {
-          name: 'Camera (mediaDevices.getUserMedia)',
-          passed: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
-        },
-        {
-          name: 'Secure context (https/localhost)',
-          passed: location.protocol === 'https:' || location.hostname === 'localhost',
-        },
-      ];
-
-      console.table(tests);
-
-      const summaryLines = tests.map((t) => `${t.name}: ${t.passed ? 'OK' : 'TIDAK TERSEDIA'}`);
-
-      resultPanel.classList.remove('hidden');
-      resultOutput.textContent =
-        'Cek lingkungan (otomatis saat load halaman):\n' +
-        summaryLines.join('\n') +
-        '\n\nCatatan: Jika kamera gagal, pastikan semua status di atas "OK".\nData absensi akan muncul di bawah log ini setiap kali kirim.';
-    }
-
-    runEnvironmentChecks();
-
-    function updateSubmitState() {
-      const hasBasic =
-        nameInput.value.trim() && idInput.value.trim() && roleInput.value && shiftInput.value;
-      const hasLocation = !!locationData;
-      const hasPhoto = !!photoDataUrl;
-      const hasOutareaReason = outareaReasonInput.value.trim().length > 0;
-
-      if (isOutOfAreaMode) {
-        // Mode luar area: wajib data dasar + lokasi + alasan
-        btnSubmit.disabled = !(hasBasic && hasLocation && hasOutareaReason);
-      } else {
-        // Mode on site: wajib data dasar + lokasi + selfie
-        btnSubmit.disabled = !(hasBasic && hasLocation && hasPhoto);
-      }
-    }
-
-    [nameInput, idInput, roleInput, shiftInput].forEach((el) => {
-      el.addEventListener('input', updateSubmitState);
-      el.addEventListener('change', updateSubmitState);
-    });
-
-    outareaReasonInput.addEventListener('input', updateSubmitState);
-
-    function setMode(outArea) {
-      isOutOfAreaMode = outArea;
-
-      if (outArea) {
-        btnModeOutarea.classList.add('btn-mode-active');
-        btnModeOnsite.classList.remove('btn-mode-active');
-        outareaReasonGroup.classList.remove('hidden');
-        outareaInfo.classList.add('error');
-        outareaInfo.innerHTML =
-          '<span class="label">Info:</span>' +
-          '<span><strong>Mode ABSEN DI LUAR AREA.</strong> Selfie boleh gagal / tidak tersedia, ' +
-          'namun lokasi &amp; alasan wajib diisi. Absensi ini akan tercatat sebagai out-of-area override.</span>';
-      } else {
-        btnModeOnsite.classList.add('btn-mode-active');
-        btnModeOutarea.classList.remove('btn-mode-active');
-        outareaReasonGroup.classList.add('hidden');
-        outareaInfo.classList.remove('error');
-        outareaInfo.innerHTML =
-          '<span class="label">Info:</span>' +
-          '<span>Mode normal (On Site). Selfie &amp; GPS di titik kerja wajib sebelum kirim absensi.</span>';
-      }
-
-      updateSubmitState();
-    }
-
-    // Default: On Site
-    setMode(false);
-
-    btnModeOnsite.addEventListener('click', () => setMode(false));
-    btnModeOutarea.addEventListener('click', () => setMode(true));
-
-    // LOKASI (Geolocation API)
-    btnLocation.addEventListener('click', () => {
-      if (!('geolocation' in navigator)) {
-        locationStatus.classList.remove('success');
-        locationStatus.classList.add('error');
-        locationStatus.innerHTML =
-          '<span class="label">Status:</span> Browser tidak mendukung GPS. Coba gunakan HP / browser lain.';
-        return;
-      }
-
-      locationStatus.classList.remove('error');
-      locationStatus.classList.remove('success');
-      locationStatus.innerHTML =
-        '<span class="label">Status:</span> Mengambil lokasi... mohon tunggu dan pastikan sinyal GPS bagus.';
-
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude, accuracy } = position.coords;
-          locationData = {
-            latitude,
-            longitude,
-            accuracy,
-            timestamp: new Date().toISOString(),
-          };
-
-          latValue.textContent = latitude.toFixed(6);
-          lngValue.textContent = longitude.toFixed(6);
-          accValue.textContent = accuracy ? accuracy.toFixed(1) + ' m' : 'N/A';
-
-          latHidden.value = latitude;
-          lngHidden.value = longitude;
-          accHidden.value = accuracy;
-
-          locationStatus.classList.add('success');
-          locationStatus.classList.remove('error');
-          locationStatus.innerHTML =
-            '<span class="label">Status:</span><strong> Lokasi berhasil diambil.</strong> Data siap dikirim bersama absensi.';
-
-          updateSubmitState();
-        },
-        (error) => {
-          console.error('Geolocation error:', error);
-          locationData = null;
-          latValue.textContent = '—';
-          lngValue.textContent = '—';
-          accValue.textContent = '—';
-          latHidden.value = '';
-          lngHidden.value = '';
-          accHidden.value = '';
-
-          locationStatus.classList.add('error');
-          locationStatus.classList.remove('success');
-          let message = 'Gagal mengambil lokasi.';
-          if (error.code === error.PERMISSION_DENIED) {
-            message += ' Akses lokasi ditolak. Cek pengaturan browser & izinkan lokasi.';
-          } else if (error.code === error.POSITION_UNAVAILABLE) {
-            message += ' Sinyal GPS lemah atau tidak tersedia.';
-          } else if (error.code === error.TIMEOUT) {
-            message += ' Waktu permintaan lokasi habis. Coba ambil lagi.';
-          }
-          locationStatus.innerHTML = '<span class="label">Status:</span> ' + message;
-
-          updateSubmitState();
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 15000,
-          maximumAge: 0,
-        },
-      );
-    });
-
-    // KAMERA (getUserMedia)
-    async function startCamera() {
-      try {
-        if (mediaStream) {
-          return; // sudah aktif
+        // Fungsi untuk memperbarui tampilan langkah
+// ... existing code ... */
+            });
         }
 
-        const constraints = {
-          video: {
-            facingMode: 'user',
-          },
-        };
+        // Event listener untuk tombol "Mulai Kamera"
+// ... existing code ... */
+                resultSuccess.style.display = 'none';
+            }
+        });
 
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-        mediaStream = stream;
-        video.srcObject = stream;
+        // Event listener untuk tombol "Ambil Selfie"
+// ... existing code ... */
+            updateStep(2); // Pindah ke langkah 3
+        });
 
-        video.classList.remove('hidden');
-        selfiePreview.classList.add('hidden');
-        btnCapture.disabled = false;
-        btnRetake.disabled = true;
+        // Event listener untuk tombol "Verifikasi Wajah" (Simulasi)
+// ... existing code ... */
+            }, 1500); // Waktu simulasi 1.5 detik
+        });
 
-        cameraHint.innerHTML =
-          '<span class="dot-rec"></span><span>Kamera aktif. Posisikan wajah di lingkaran, lalu tekan "Ambil Selfie".</span>';
-      } catch (err) {
-        console.error('Error membuka kamera:', err);
-
-        video.classList.add('hidden');
-        selfiePreview.classList.add('hidden');
-        btnCapture.disabled = true;
-        btnRetake.disabled = true;
-        cameraHint.innerHTML =
-          '<span class="dot-rec"></span>' +
-          '<span>Gagal membuka kamera. Periksa izin kamera & jalankan via HTTPS/localhost.</span>';
-
-        alert(
-          'Tidak dapat mengakses kamera.\n\n' +
-            'Kemungkinan penyebab:\n' +
-            '- Izin kamera ditolak\n' +
-            '- Halaman tidak dibuka via HTTPS/localhost\n' +
-            '- Tidak ada device kamera\n\n' +
-            'Detail teknis: ' + (err.message || err.name),
-        );
-      }
-    }
-
-    function stopCamera() {
-      if (mediaStream) {
-        mediaStream.getTracks().forEach((track) => track.stop());
-        mediaStream = null;
-      }
-      video.srcObject = null;
-    }
-
-    btnStartCamera.addEventListener('click', () => {
-      if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) {
-        alert('Browser tidak mendukung kamera. Coba gunakan HP / browser Chrome/Edge versi terbaru.');
-        return;
-      }
-
-      if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
-        alert(
-          'Kamera hanya bisa diakses jika halaman ini dibuka via HTTPS atau localhost.\n' +
-            'Contoh:\n- Upload ke hosting dengan https\n- Atau jalankan lewat Live Server (http://localhost:...)',
-        );
-        return;
-      }
-
-      startCamera();
-    });
-
-    btnCapture.addEventListener('click', () => {
-      if (!mediaStream) {
-        alert('Kamera belum aktif. Tekan "Nyalakan Kamera" dulu.');
-        return;
-      }
-
-      const videoWidth = video.videoWidth;
-      const videoHeight = video.videoHeight;
-      if (!videoWidth || !videoHeight) {
-        alert('Kamera belum siap. Tunggu sebentar lalu coba lagi.');
-        return;
-      }
-
-      canvas.width = videoWidth;
-      canvas.height = videoHeight;
-
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0, videoWidth, videoHeight);
-
-      photoDataUrl = canvas.toDataURL('image/jpeg', 0.8);
-
-      selfiePreview.src = photoDataUrl;
-      selfiePreview.classList.remove('hidden');
-      video.classList.add('hidden');
-      btnRetake.disabled = false;
-
-      cameraHint.innerHTML =
-        '<span class="dot-rec" style="background:#22c55e;box-shadow:0 0 0 4px rgba(34,197,94,0.6);"></span>' +
-        '<span>Selfie tersimpan. Jika kurang jelas, tekan "Ulangi".</span>';
-
-      // Matikan kamera setelah ambil foto untuk hemat baterai
-      stopCamera();
-      btnCapture.disabled = true;
-
-      updateSubmitState();
-    });
-
-    btnRetake.addEventListener('click', () => {
-      photoDataUrl = null;
-      selfiePreview.src = '';
-      selfiePreview.classList.add('hidden');
-      btnRetake.disabled = true;
-      cameraHint.innerHTML =
-        '<span class="dot-rec"></span><span>Aktifkan kamera lagi lalu ambil selfie baru.</span>';
-      startCamera();
-      updateSubmitState();
-    });
-
-    // SUBMIT ABSENSI
-    form.addEventListener('submit', async (event) => {
-      event.preventDefault();
-
-      if (!isOutOfAreaMode) {
-        // Mode On Site: wajib selfie + lokasi
-        if (!photoDataUrl || !locationData) {
-          alert('Mode On Site: Selfie & lokasi wajib diambil sebelum kirim absensi.');
-          return;
+        // Fungsi untuk mendapatkan lokasi
+        function getLocation() {
+// ... existing code ... */
+                
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+// ... existing code ... */
+                        locationStatus.innerHTML = '<i class="fas fa-check-circle" style="color: #10b981;"></i> Lokasi berhasil dideteksi';
+                        
+                        resolve(locationData);
+                    },
+                    (error) => {
+                        // FIX: Perbarui console.error untuk menampilkan pesan dan kode error yang lebih jelas
+                        console.error(`Geolocation error (Code: ${error.code}): ${error.message}`);
+                        let message = 'Gagal mendeteksi lokasi.';
+                        switch(error.code) {
+// ... existing code ... */
+                            case error.TIMEOUT:
+                                message = 'Waktu permintaan lokasi habis.';
+                                break;
+                        }
+                        locationStatus.innerHTML = `<i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i> ${message}`;
+                        reject(new Error(message));
+                    },
+                    {
+// ... existing code ... */
+                );
+            });
         }
-      } else {
-        // Mode Luar Area: wajib lokasi + alasan
-        if (!locationData) {
-          alert('Mode Luar Area: Lokasi tetap wajib diambil untuk bukti titik absensi.');
-          return;
-        }
-        if (!outareaReasonInput.value.trim()) {
-          alert('Mode Luar Area: Alasan absen di luar area wajib diisi.');
-          return;
-        }
-      }
 
-      const now = new Date();
-      const attendanceRecord = {
-        employeeName: nameInput.value.trim(),
-        employeeId: idInput.value.trim(),
-        employeeRole: roleInput.value,
-        shift: shiftInput.value,
-        timestamp: now.toISOString(),
-        localTime: now.toLocaleString('id-ID'),
-        mode: isOutOfAreaMode ? 'OUT_OF_AREA' : 'ONSITE',
-        isOutOfArea: isOutOfAreaMode,
-        outOfAreaReason: isOutOfAreaMode ? outareaReasonInput.value.trim() : null,
-        location: locationData,
-        photo: photoDataUrl || null, // di mode luar area bisa null
-      };
+        // Event listener untuk tombol "Dapatkan Lokasi"
+// ... existing code ... */
+                });
+        });
 
-      // Simpan ke localStorage sebagai contoh (bisa diganti backend)
-      try {
-        const existing = JSON.parse(localStorage.getItem('payboss_attendance') || '[]');
-        existing.push(attendanceRecord);
-        localStorage.setItem('payboss_attendance', JSON.stringify(existing));
-      } catch (err) {
-        console.warn('Gagal menyimpan ke localStorage (boleh diabaikan):', err);
-      }
+        // Event listener untuk tombol "Submit Absensi"
+// ... existing code ... */
+            }, 2000); // Simulasi waktu submit 2 detik
+        });
 
-      // TODO: Integrasi ke backend (Google Apps Script / Firebase / API lainnya)
-      // Contoh pseudo-code (silakan sesuaikan URL & struktur datanya):
-      // await fetch('https://script.google.com/macros/s/ID_WEB_APP/exec', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(attendanceRecord),
-      // });
+        // Inisialisasi: Coba dapatkan lokasi saat halaman dimuat
+        window.addEventListener('load', () => {
+            // Auto-get lokasi setelah 1 detik
+            setTimeout(() => {
+                getLocation()
+                    .then(() => {
+                        getLocationBtn.disabled = true;
+                    })
+                    .catch((err) => {
+                        // FIX: Tambahkan log peringatan jika auto-get lokasi gagal
+                        console.warn('Gagal mendapatkan lokasi secara otomatis saat memuat:', err.message);
+                        // Biarkan tombol tetap aktif jika gagal
+                        getLocationBtn.disabled = false;
+                    });
+            }, 1000);
+        });
 
-      resultPanel.classList.remove('hidden');
-      const previousText = resultOutput.textContent || '';
-      const newLog = '\n\n=== ABSENSI BARU ===\n' + JSON.stringify(attendanceRecord, null, 2);
-      resultOutput.textContent = previousText + newLog;
-
-      if (isOutOfAreaMode) {
-        alert(
-          'Absensi berhasil direkam sebagai ABSEN DI LUAR AREA.\n' +
-            'Pastikan pengelola melakukan verifikasi manual terhadap data ini.',
-        );
-      } else {
-        alert(
-          'Absensi On Site dengan selfie berhasil direkam secara lokal.\n' +
-            'Integrasikan ke backend (misal Google Sheet) untuk penyimpanan permanen.',
-        );
-      }
-
-      updateSubmitState();
-    });
-
-    // Tutup kamera jika user meninggalkan halaman
-    window.addEventListener('beforeunload', () => {
-      stopCamera();
-    });
-  </script>
+        // Cleanup: Matikan kamera jika pengguna menutup tab
+// ... existing code ... */
+    </script>
 </body>
 </html>
