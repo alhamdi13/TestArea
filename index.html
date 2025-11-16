@@ -1,1062 +1,2356 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PayBoss Cafe - Absensi Selfie & GPS</title>
-  <style>
-    :root {
-      --primary: #8b4513;
-      --primary-dark: #5c2e0c;
-      --accent: #f4a261;
-      --bg: linear-gradient(135deg, #8b4513 0%, #d2b48c 100%);
-      --card-bg: rgba(255, 255, 255, 0.12);
-      --card-border: rgba(255, 255, 255, 0.35);
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: var(--bg);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #1f2933;
-    }
-
-    .app-wrapper {
-      width: 100%;
-      max-width: 960px;
-      padding: 16px;
-    }
-
-    .card {
-      background: var(--card-bg);
-      border-radius: 20px;
-      border: 1px solid var(--card-border);
-      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.25);
-      backdrop-filter: blur(18px);
-      padding: 20px 20px 16px;
-      color: #ffffff;
-    }
-
-    @media (min-width: 768px) {
-      .card {
-        padding: 24px 28px 20px;
-      }
-    }
-
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-
-    .title-group h1 {
-      margin: 0;
-      font-size: 1.3rem;
-      letter-spacing: 0.03em;
-    }
-
-    .title-group p {
-      margin: 4px 0 0;
-      font-size: 0.8rem;
-      opacity: 0.85;
-    }
-
-    .badge {
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.4);
-      font-size: 0.7rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(0, 0, 0, 0.06);
-    }
-
-    .badge-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      background: #4ade80;
-      box-shadow: 0 0 0 4px rgba(74, 222, 128, 0.25);
-    }
-
-    .layout {
-      display: grid;
-      grid-template-columns: 1.1fr;
-      gap: 16px;
-    }
-
-    @media (min-width: 920px) {
-      .layout {
-        grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr);
-      }
-    }
-
-    .section-title {
-      font-size: 0.9rem;
-      margin: 0 0 8px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      opacity: 0.9;
-    }
-
-    .section-subtitle {
-      font-size: 0.75rem;
-      margin: 0 0 10px;
-      opacity: 0.8;
-    }
-
-    .field-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      margin-bottom: 10px;
-    }
-
-    label {
-      font-size: 0.8rem;
-      opacity: 0.9;
-    }
-
-    input[type="text"],
-    select,
-    textarea {
-      padding: 9px 11px;
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.5);
-      background: rgba(0, 0, 0, 0.15);
-      color: #f9fafb;
-      font-size: 0.85rem;
-      outline: none;
-      width: 100%;
-      resize: vertical;
-    }
-
-    input::placeholder,
-    textarea::placeholder {
-      color: rgba(249, 250, 251, 0.55);
-    }
-
-    input:focus,
-    select:focus,
-    textarea:focus {
-      border-color: #fbbf77;
-      box-shadow: 0 0 0 1px rgba(248, 196, 113, 0.7);
-    }
-
-    .info-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 10px;
-      margin-top: 6px;
-      font-size: 0.75rem;
-    }
-
-    .info-pill {
-      padding: 8px 10px;
-      border-radius: 12px;
-      background: rgba(0, 0, 0, 0.25);
-      border: 1px dashed rgba(255, 255, 255, 0.4);
-    }
-
-    .info-label {
-      opacity: 0.7;
-      margin-bottom: 2px;
-    }
-
-    .info-value {
-      font-weight: 600;
-      font-size: 0.8rem;
-    }
-
-    button {
-      font-family: inherit;
-      border-radius: 999px;
-      border: none;
-      padding: 9px 14px;
-      font-size: 0.85rem;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .btn-primary {
-      background: #f4a261;
-      color: #1f2933;
-      font-weight: 600;
-      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.25);
-    }
-
-    .btn-primary:hover {
-      background: #f6ad74;
-      transform: translateY(-1px);
-    }
-
-    .btn-secondary {
-      background: rgba(0, 0, 0, 0.35);
-      color: #f9fafb;
-      border: 1px solid rgba(255, 255, 255, 0.4);
-    }
-
-    .btn-secondary:hover {
-      background: rgba(0, 0, 0, 0.5);
-    }
-
-    .btn-icon {
-      font-size: 1.1rem;
-    }
-
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
-
-    .location-status {
-      margin-top: 8px;
-      padding: 8px 10px;
-      border-radius: 12px;
-      font-size: 0.78rem;
-      border: 1px solid rgba(255, 255, 255, 0.45);
-      background: rgba(0, 0, 0, 0.25);
-      min-height: 40px;
-    }
-
-    .location-status.error {
-      border-color: #fecaca;
-      background: rgba(127, 29, 29, 0.65);
-    }
-
-    .location-status.success {
-      border-color: #bbf7d0;
-      background: rgba(20, 83, 45, 0.7);
-    }
-
-    .location-status span.label {
-      opacity: 0.8;
-      margin-right: 4px;
-    }
-
-    .location-status strong {
-      font-weight: 600;
-    }
-
-    .camera-frame {
-      border-radius: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.5);
-      overflow: hidden;
-      background: rgba(0, 0, 0, 0.65);
-      position: relative;
-      aspect-ratio: 3/4;
-      max-height: 360px;
-    }
-
-    .camera-frame video,
-    .camera-frame img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    .camera-overlay {
-      position: absolute;
-      inset: 0;
-      border-radius: 16px;
-      box-shadow:
-        0 0 0 999px rgba(0, 0, 0, 0.25),
-        0 0 0 2px rgba(255, 255, 255, 0.8);
-      margin: 20px;
-      border-radius: 999px;
-      pointer-events: none;
-    }
-
-    .camera-hint {
-      position: absolute;
-      bottom: 12px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.65);
-      padding: 6px 10px;
-      border-radius: 999px;
-      font-size: 0.7rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .dot-rec {
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      background: #f97373;
-      box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.6);
-      animation: pulse 1.2s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% {
-        transform: scale(1);
-        opacity: 1;
-      }
-      50% {
-        transform: scale(1.2);
-        opacity: 0.6;
-      }
-    }
-
-    .camera-actions {
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-      margin-top: 10px;
-      flex-wrap: wrap;
-    }
-
-    .submit-row {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      margin-top: 14px;
-      padding-top: 10px;
-      border-top: 1px dashed rgba(255, 255, 255, 0.35);
-    }
-
-    .submit-helper {
-      font-size: 0.72rem;
-      opacity: 0.8;
-      max-width: 280px;
-    }
-
-    .result-panel {
-      margin-top: 12px;
-      border-radius: 14px;
-      padding: 8px 10px;
-      background: rgba(0, 0, 0, 0.4);
-      font-size: 0.72rem;
-      max-height: 240px;
-      overflow: auto;
-      border: 1px solid rgba(148, 163, 184, 0.7);
-    }
-
-    .result-panel pre {
-      margin: 0;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 5px 10px;
-      border-radius: 999px;
-      background: rgba(0, 0, 0, 0.3);
-      border: 1px solid rgba(255, 255, 255, 0.35);
-      font-size: 0.7rem;
-    }
-
-    .pill-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      background: #facc15;
-    }
-
-    .mode-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 4px;
-    }
-
-    .btn-mode {
-      font-size: 0.78rem;
-      padding: 6px 10px;
-    }
-
-    .btn-mode-active {
-      background: #f4a261;
-      color: #1f2933;
-      border-color: rgba(255, 255, 255, 0.8);
-    }
-  </style>
-</head>
-<body>
-  <div class="app-wrapper">
-    <div class="card">
-      <header class="card-header">
-        <div class="title-group">
-          <h1>PayBoss Cafe &mdash; Absensi Selfie &amp; GPS</h1>
-          <p>Absensi karyawan dengan bukti foto &amp; lokasi langsung di titik kerja.</p>
-        </div>
-        <div class="badge" id="badge-date">
-          <span class="badge-dot"></span>
-          <span><span id="today-date">&mdash;</span></span>
-        </div>
-      </header>
-
-      <form id="attendance-form" autocomplete="off">
-        <div class="layout">
-          <!-- Kolom Kiri: Data Karyawan & Lokasi -->
-          <div>
-            <h2 class="section-title">Data Karyawan</h2>
-            <p class="section-subtitle">Isi identitas singkat sebelum ambil lokasi &amp; selfie.</p>
-
-            <div class="field-group">
-              <label for="employee-name">Nama Karyawan</label>
-              <input
-                type="text"
-                id="employee-name"
-                name="employeeName"
-                placeholder="Contoh: Zahra, Rian, Ikhsan"
-                required
-              />
-            </div>
-
-            <div class="field-group">
-              <label for="employee-id">ID / NIK / Username Absensi</label>
-              <input
-                type="text"
-                id="employee-id"
-                name="employeeId"
-                placeholder="Contoh: PB-001"
-                required
-              />
-            </div>
-
-            <div class="field-group">
-              <label for="employee-role">Posisi</label>
-              <select id="employee-role" name="employeeRole" required>
-                <option value="">Pilih posisi...</option>
-                <option value="Kasir">Kasir</option>
-                <option value="Barista">Barista</option>
-                <option value="Waitress">Waitress</option>
-                <option value="Koki">Koki</option>
-                <option value="Koordinator">Koordinator / Supervisor</option>
-                <option value="Lainnya">Lainnya</option>
-              </select>
-            </div>
-
-            <div class="field-group">
-              <label for="shift">Shift</label>
-              <select id="shift" name="shift" required>
-                <option value="">Pilih shift...</option>
-                <option value="Shift-1">Shift 1 (08:00 - 16:00)</option>
-                <option value="Shift-2">Shift 2 (16:00 - 24:00)</option>
-                <option value="Shift-3">Shift 3 (00:00 - 08:00)</option>
-              </select>
-            </div>
-
-            <h2 class="section-title" style="margin-top: 14px;">Mode Absensi</h2>
-            <p class="section-subtitle">Default: On Site (wajib selfie). Jika kamera bermasalah, gunakan mode Absen di Luar Area.</p>
-
-            <div class="field-group">
-              <label>Jenis absensi</label>
-              <div class="mode-row">
-                <button type="button" class="btn-secondary btn-mode" id="btn-mode-onsite">On Site (Default)</button>
-                <button type="button" class="btn-secondary btn-mode" id="btn-mode-outarea">Absen di Luar Area</button>
-              </div>
-              <div class="location-status" id="outarea-info">
-                <span class="label">Info:</span>
-                <span>Mode normal (On Site). Selfie &amp; GPS di titik kerja wajib sebelum kirim absensi.</span>
-              </div>
-            </div>
-
-            <div class="field-group hidden" id="outarea-reason-group">
-              <label for="outarea-reason">Alasan Absen di Luar Area</label>
-              <textarea
-                id="outarea-reason"
-                name="outOfAreaReason"
-                placeholder="Contoh: Kamera HP rusak / jaringan bermasalah / tugas di luar lokasi cafe"
-                rows="2"
-              ></textarea>
-            </div>
-
-            <h2 class="section-title" style="margin-top: 8px;">Lokasi On The Spot</h2>
-            <p class="section-subtitle">Tekan tombol di bawah saat sudah berada di lokasi kerja (cafe / karaoke / billiard / luar area).</p>
-
-            <button type="button" class="btn-secondary" id="btn-location">
-              <span class="btn-icon">📍</span>
-              <span>Ambil Lokasi Saya Sekarang</span>
-            </button>
-
-            <div class="location-status" id="location-status">
-              <span class="label">Status:</span>
-              <span>Belum ada lokasi. Pastikan GPS diaktifkan &amp; akses lokasi diizinkan.</span>
-            </div>
-
-            <div class="info-grid">
-              <div class="info-pill">
-                <div class="info-label">Latitude</div>
-                <div class="info-value" id="lat-value">&mdash;</div>
-              </div>
-              <div class="info-pill">
-                <div class="info-label">Longitude</div>
-                <div class="info-value" id="lng-value">&mdash;</div>
-              </div>
-              <div class="info-pill">
-                <div class="info-label">Akurasi</div>
-                <div class="info-value" id="acc-value">&mdash;</div>
-              </div>
-              <div class="info-pill">
-                <div class="info-label">Jarak ke Titik</div>
-                <div class="info-value" id="dist-value">&mdash;</div>
-              </div>
-            </div>
-
-            <!-- Hidden fields lokasi untuk dikirim ke backend -->
-            <input type="hidden" id="lat-hidden" name="latitude" />
-            <input type="hidden" id="lng-hidden" name="longitude" />
-            <input type="hidden" id="acc-hidden" name="accuracy" />
-          </div>
-
-          <!-- Kolom Kanan: Kamera / Selfie -->
-          <div>
-            <h2 class="section-title">Selfie Kehadiran</h2>
-            <p class="section-subtitle">Selfie wajib untuk mode On Site. Di mode Luar Area, selfie opsional namun tetap disarankan.</p>
-
-            <div class="camera-frame" id="camera-frame">
-              <video id="video" autoplay playsinline class="hidden"></video>
-              <img id="selfie-preview" alt="Preview selfie" class="hidden" />
-              <div class="camera-overlay" id="camera-overlay"></div>
-              <div class="camera-hint" id="camera-hint">
-                <span class="dot-rec"></span>
-                <span>Aktifkan kamera &amp; posisikan wajah di lingkaran.</span>
-              </div>
-            </div>
-
-            <canvas id="canvas" class="hidden"></canvas>
-
-            <div class="camera-actions">
-              <button type="button" class="btn-secondary" id="btn-start-camera">
-                <span class="btn-icon">🎥</span>
-                <span>Nyalakan Kamera</span>
-              </button>
-
-              <button type="button" class="btn-primary" id="btn-capture" disabled>
-                <span class="btn-icon">📸</span>
-                <span>Ambil Selfie</span>
-              </button>
-
-              <button type="button" class="btn-secondary" id="btn-retake" disabled>
-                <span class="btn-icon">🔁</span>
-                <span>Ulangi</span>
-              </button>
-            </div>
-
-            <div style="margin-top: 8px; font-size: 0.7rem; opacity: 0.85; display: flex; gap: 6px; flex-wrap: wrap;">
-              <div class="pill">
-                <span class="pill-dot"></span>
-                <span>Gunakan HP &amp; izinkan akses kamera + lokasi.</span>
-              </div>
-              <div class="pill">
-                <span class="pill-dot" style="background:#22c55e;"></span>
-                <span>Data foto &amp; GPS siap dikirim ke database / Google Sheet.</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="submit-row">
-          <div class="submit-helper">
-            Mode <strong>On Site</strong>: wajib nama, ID, posisi, shift, lokasi (dalam radius 200 m) &amp; selfie.<br />
-            Mode <strong>Luar Area</strong>: wajib nama, ID, posisi, shift, lokasi &amp; alasan.
-          </div>
-          <button type="submit" class="btn-primary" id="btn-submit" disabled>
-            <span class="btn-icon">✅</span>
-            <span>Kirim Absensi</span>
-          </button>
-        </div>
-
-        <div class="result-panel hidden" id="result-panel">
-          <pre id="result-output"></pre>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <script>
-    // Titik referensi PayBoss Cafe (dari link maps)
-    const BASE_LAT = -2.1717546572371975;
-    const BASE_LNG = 115.40299759147925;
-    const ALLOWED_RADIUS_M = 200; // 200 meter
-
-    // URL Web App Google Apps Script (API ke Google Sheet)
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxOHwN1-GyfwWrQLucTf-X0Db_9HefScgxd5g2h35-ntTNyGQZ4NePhZ39OfeZqRvdM/exec";
-
-    function calculateDistanceMeters(lat1, lon1, lat2, lon2) {
-      const R = 6371000; // radius bumi dalam meter
-      const toRad = (deg) => (deg * Math.PI) / 180;
-      const phi1 = toRad(lat1);
-      const phi2 = toRad(lat2);
-      const dPhi = toRad(lat2 - lat1);
-      const dLambda = toRad(lon2 - lon1);
-
-      const a =
-        Math.sin(dPhi / 2) * Math.sin(dPhi / 2) +
-        Math.cos(phi1) * Math.cos(phi2) *
-        Math.sin(dLambda / 2) * Math.sin(dLambda / 2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      return R * c;
-    }
-
-    const form = document.getElementById("attendance-form");
-    const nameInput = document.getElementById("employee-name");
-    const idInput = document.getElementById("employee-id");
-    const roleInput = document.getElementById("employee-role");
-    const shiftInput = document.getElementById("shift");
-
-    const btnModeOnsite = document.getElementById("btn-mode-onsite");
-    const btnModeOutarea = document.getElementById("btn-mode-outarea");
-    const outareaInfo = document.getElementById("outarea-info");
-    const outareaReasonGroup = document.getElementById("outarea-reason-group");
-    const outareaReasonInput = document.getElementById("outarea-reason");
-
-    const btnLocation = document.getElementById("btn-location");
-    const locationStatus = document.getElementById("location-status");
-    const latValue = document.getElementById("lat-value");
-    const lngValue = document.getElementById("lng-value");
-    const accValue = document.getElementById("acc-value");
-    const distValue = document.getElementById("dist-value");
-    const latHidden = document.getElementById("lat-hidden");
-    const lngHidden = document.getElementById("lng-hidden");
-    const accHidden = document.getElementById("acc-hidden");
-
-    const video = document.getElementById("video");
-    const canvas = document.getElementById("canvas");
-    const selfiePreview = document.getElementById("selfie-preview");
-    const btnStartCamera = document.getElementById("btn-start-camera");
-    const btnCapture = document.getElementById("btn-capture");
-    const btnRetake = document.getElementById("btn-retake");
-    const cameraHint = document.getElementById("camera-hint");
-
-    const btnSubmit = document.getElementById("btn-submit");
-    const resultPanel = document.getElementById("result-panel");
-    const resultOutput = document.getElementById("result-output");
-    const todayDateEl = document.getElementById("today-date");
-
-    let locationData = null;
-    let photoDataUrl = null;
-    let mediaStream = null;
-    let isOutOfAreaMode = false;
-
-    function setTodayBadge() {
-      const now = new Date();
-      const formatter = new Intl.DateTimeFormat("id-ID", {
-        weekday: "short",
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      });
-      todayDateEl.textContent = formatter.format(now);
-    }
-
-    setTodayBadge();
-
-    function runEnvironmentChecks() {
-      const tests = [
-        {
-          name: "Geolocation support",
-          passed: "geolocation" in navigator,
-        },
-        {
-          name: "Camera (mediaDevices.getUserMedia)",
-          passed: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
-        },
-        {
-          name: "Secure context (https/localhost)",
-          passed: location.protocol === "https:" || location.hostname === "localhost",
-        },
-      ];
-
-      console.table(tests);
-
-      const summaryLines = tests.map((t) => `${t.name}: ${t.passed ? "OK" : "TIDAK TERSEDIA"}`);
-
-      resultPanel.classList.remove("hidden");
-      resultOutput.textContent =
-        "Cek lingkungan (otomatis saat load halaman):\n" +
-        summaryLines.join("\n") +
-        "\n\nCatatan: Jika kamera gagal, pastikan semua status di atas \"OK\".\nData absensi akan muncul di bawah log ini setiap kali kirim.";
-    }
-
-    runEnvironmentChecks();
-
-    function updateSubmitState() {
-      const hasBasic =
-        nameInput.value.trim() && idInput.value.trim() && roleInput.value && shiftInput.value;
-      const hasLocation = !!locationData;
-      const hasPhoto = !!photoDataUrl;
-      const hasOutareaReason = outareaReasonInput.value.trim().length > 0;
-      const insideRadiusOk = !!(locationData && locationData.insideRadius);
-
-      if (isOutOfAreaMode) {
-        btnSubmit.disabled = !(hasBasic && hasLocation && hasOutareaReason);
-      } else {
-        btnSubmit.disabled = !(hasBasic && hasLocation && hasPhoto && insideRadiusOk);
-      }
-    }
-
-    [nameInput, idInput, roleInput, shiftInput].forEach((el) => {
-      el.addEventListener("input", updateSubmitState);
-      el.addEventListener("change", updateSubmitState);
-    });
-
-    outareaReasonInput.addEventListener("input", updateSubmitState);
-
-    function setMode(outArea) {
-      isOutOfAreaMode = outArea;
-
-      if (outArea) {
-        btnModeOutarea.classList.add("btn-mode-active");
-        btnModeOnsite.classList.remove("btn-mode-active");
-        outareaReasonGroup.classList.remove("hidden");
-        outareaInfo.classList.add("error");
-        outareaInfo.innerHTML =
-          '<span class="label">Info:</span>' +
-          "<span><strong>Mode ABSEN DI LUAR AREA.</strong> Selfie boleh gagal / tidak tersedia, " +
-          "namun lokasi &amp; alasan wajib diisi. Absensi ini akan tercatat sebagai out-of-area override.</span>";
-      } else {
-        btnModeOnsite.classList.add("btn-mode-active");
-        btnModeOutarea.classList.remove("btn-mode-active");
-        outareaReasonGroup.classList.add("hidden");
-        outareaInfo.classList.remove("error");
-        outareaInfo.innerHTML =
-          '<span class="label">Info:</span>' +
-          "<span>Mode normal (On Site). Selfie &amp; GPS di titik kerja wajib sebelum kirim absensi.</span>";
-      }
-
-      updateSubmitState();
-    }
-
-    setMode(false);
-
-    btnModeOnsite.addEventListener("click", () => setMode(false));
-    btnModeOutarea.addEventListener("click", () => setMode(true));
-
-    btnLocation.addEventListener("click", () => {
-      if (!("geolocation" in navigator)) {
-        locationStatus.classList.remove("success");
-        locationStatus.classList.add("error");
-        locationStatus.innerHTML =
-          '<span class="label">Status:</span> Browser tidak mendukung GPS. Coba gunakan HP / browser lain.';
-        return;
-      }
-
-      locationStatus.classList.remove("error");
-      locationStatus.classList.remove("success");
-      locationStatus.innerHTML =
-        '<span class="label">Status:</span> Mengambil lokasi... mohon tunggu dan pastikan sinyal GPS bagus.';
-
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const latitude = position.coords.latitude;
-          const longitude = position.coords.longitude;
-          const accuracy = position.coords.accuracy;
-          const distance = calculateDistanceMeters(latitude, longitude, BASE_LAT, BASE_LNG);
-
-          locationData = {
-            latitude: latitude,
-            longitude: longitude,
-            accuracy: accuracy,
-            distanceMeters: distance,
-            insideRadius: distance <= ALLOWED_RADIUS_M,
-            timestamp: new Date().toISOString(),
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PayBoss Cafe - Sistem Absensi</title>
+
+    <!-- TailwindCSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- React & ReactDOM (CDN) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+    <!-- Babel (untuk JSX di browser) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Framer Motion UMD -->
+    <script src="https://unpkg.com/framer-motion/dist/framer-motion.umd.js"></script>
+  </head>
+
+  <body class="bg-stone-100">
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const { useState, useRef, useEffect, useCallback } = React;
+
+      // Inisialisasi Framer Motion dari UMD (fallback kalau gagal load)
+      const fm = window.FramerMotion || null;
+      const motion = fm
+        ? fm.motion
+        : {
+            div: (props) => <div {...props} />, 
+            form: (props) => <form {...props} />,
           };
+      const AnimatePresence = fm ? fm.AnimatePresence : ({ children }) => <>{children}</>;
 
-          latValue.textContent = latitude.toFixed(6);
-          lngValue.textContent = longitude.toFixed(6);
-          accValue.textContent = accuracy ? accuracy.toFixed(1) + " m" : "N/A";
-          distValue.textContent = distance ? distance.toFixed(1) + " m" : "N/A";
-
-          latHidden.value = latitude;
-          lngHidden.value = longitude;
-          accHidden.value = accuracy;
-
-          if (locationData.insideRadius) {
-            locationStatus.classList.add("success");
-            locationStatus.classList.remove("error");
-            locationStatus.innerHTML =
-              '<span class="label">Status:</span><strong> Lokasi berhasil diambil.</strong> ' +
-              "Anda berada di dalam radius kerja (≈ " +
-              distance.toFixed(1) +
-              " m dari titik referensi). Absensi On Site diperbolehkan.";
-          } else {
-            locationStatus.classList.add("error");
-            locationStatus.classList.remove("success");
-            locationStatus.innerHTML =
-              '<span class="label">Status:</span><strong> Lokasi berhasil diambil, namun di luar area.</strong> ' +
-              "Jarak dari titik referensi ≈ " +
-              distance.toFixed(1) +
-              " m (&gt; " +
-              ALLOWED_RADIUS_M +
-              " m). Absensi On Site tidak dapat digunakan. " +
-              'Silakan gunakan mode <strong>Absen di Luar Area</strong> dan isi alasan.';
-          }
-
-          updateSubmitState();
-        },
-        (error) => {
-          console.error("Geolocation error:", error);
-          locationData = null;
-          latValue.textContent = "—";
-          lngValue.textContent = "—";
-          accValue.textContent = "—";
-          distValue.textContent = "—";
-          latHidden.value = "";
-          lngHidden.value = "";
-          accHidden.value = "";
-
-          locationStatus.classList.add("error");
-          locationStatus.classList.remove("success");
-          let message = "Gagal mengambil lokasi.";
-          if (error.code === error.PERMISSION_DENIED) {
-            message += " Akses lokasi ditolak. Cek pengaturan browser & izinkan lokasi.";
-          } else if (error.code === error.POSITION_UNAVAILABLE) {
-            message += " Sinyal GPS lemah atau tidak tersedia.";
-          } else if (error.code === error.TIMEOUT) {
-            message += " Waktu permintaan lokasi habis. Coba ambil lagi.";
-          }
-          locationStatus.innerHTML = '<span class="label">Status:</span> ' + message;
-
-          updateSubmitState();
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 15000,
-          maximumAge: 0,
-        }
+      // --- SIMPLE ICON WRAPPER (pengganti lucide-react) ---
+      const IconWrapper = ({ children, className = "", size = 24 }) => (
+        <span
+          className={className}
+          style={{ fontSize: size, display: "inline-flex", alignItems: "center", justifyContent: "center" }}
+        >
+          {children}
+        </span>
       );
-    });
 
-    async function startCamera() {
-      try {
-        if (mediaStream) {
-          return;
-        }
+      const Home = (props) => <IconWrapper {...props}>🏠</IconWrapper>;
+      const LogIn = (props) => <IconWrapper {...props}>🔑</IconWrapper>;
+      const LogOut = (props) => <IconWrapper {...props}>🚪</IconWrapper>;
+      const User = (props) => <IconWrapper {...props}>👤</IconWrapper>;
+      const BarChart2 = (props) => <IconWrapper {...props}>📊</IconWrapper>;
+      const Users = (props) => <IconWrapper {...props}>👥</IconWrapper>;
+      const Calendar = (props) => <IconWrapper {...props}>📅</IconWrapper>;
+      const FileText = (props) => <IconWrapper {...props}>📄</IconWrapper>;
+      const CheckCircle = (props) => <IconWrapper {...props}>✅</IconWrapper>;
+      const XCircle = (props) => <IconWrapper {...props}>❌</IconWrapper>;
+      const MapPin = (props) => <IconWrapper {...props}>📍</IconWrapper>;
+      const Camera = (props) => <IconWrapper {...props}>📷</IconWrapper>;
+      const ListChecks = (props) => <IconWrapper {...props}>✅</IconWrapper>;
+      const ChevronLeft = (props) => <IconWrapper {...props}>◀️</IconWrapper>;
+      const ChevronRight = (props) => <IconWrapper {...props}>▶️</IconWrapper>;
+      const Plus = (props) => <IconWrapper {...props}>➕</IconWrapper>;
+      const Trash2 = (props) => <IconWrapper {...props}>🗑️</IconWrapper>;
+      const Edit = (props) => <IconWrapper {...props}>✏️</IconWrapper>;
+      const Clock = (props) => <IconWrapper {...props}>⏰</IconWrapper>;
+      const AlertTriangle = (props) => <IconWrapper {...props}>⚠️</IconWrapper>;
+      const Coffee = (props) => <IconWrapper {...props}>☕</IconWrapper>;
+      const ShieldCheck = (props) => <IconWrapper {...props}>🛡️</IconWrapper>;
+      const Moon = (props) => <IconWrapper {...props}>🌙</IconWrapper>;
+      const Sun = (props) => <IconWrapper {...props}>☀️</IconWrapper>;
+      const Sunset = (props) => <IconWrapper {...props}>🌆</IconWrapper>;
 
-        const constraints = {
-          video: {
-            facingMode: "user",
-          },
-        };
+      // --- STYLING & KONFIGURASI ---
 
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-        mediaStream = stream;
-        video.srcObject = stream;
-
-        video.classList.remove("hidden");
-        selfiePreview.classList.add("hidden");
-        btnCapture.disabled = false;
-        btnRetake.disabled = true;
-
-        cameraHint.innerHTML =
-          '<span class="dot-rec"></span><span>Kamera aktif. Posisikan wajah di lingkaran, lalu tekan "Ambil Selfie".</span>';
-      } catch (err) {
-        console.error("Error membuka kamera:", err);
-
-        video.classList.add("hidden");
-        selfiePreview.classList.add("hidden");
-        btnCapture.disabled = true;
-        btnRetake.disabled = true;
-        cameraHint.innerHTML =
-          '<span class="dot-rec"></span>' +
-          "<span>Gagal membuka kamera. Periksa izin kamera & jalankan via HTTPS/localhost.</span>";
-
-        alert(
-          "Tidak dapat mengakses kamera.\n\n" +
-          "Kemungkinan penyebab:\n" +
-          "- Izin kamera ditolak\n" +
-          "- Halaman tidak dibuka via HTTPS/localhost\n" +
-          "- Tidak ada device kamera\n\n" +
-          "Detail teknis: " + (err.message || err.name)
-        );
-      }
-    }
-
-    function stopCamera() {
-      if (mediaStream) {
-        mediaStream.getTracks().forEach((track) => track.stop());
-        mediaStream = null;
-      }
-      video.srcObject = null;
-    }
-
-    btnStartCamera.addEventListener("click", () => {
-      if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) {
-        alert("Browser tidak mendukung kamera. Coba gunakan HP / browser Chrome/Edge versi terbaru.");
-        return;
-      }
-
-      if (location.protocol !== "https:" && location.hostname !== "localhost") {
-        alert(
-          "Kamera hanya bisa diakses jika halaman ini dibuka via HTTPS atau localhost.\n" +
-          "Contoh:\n- Upload ke hosting dengan https\n- Atau jalankan lewat Live Server (http://localhost:...)"
-        );
-        return;
-      }
-
-      startCamera();
-    });
-
-    btnCapture.addEventListener("click", () => {
-      if (!mediaStream) {
-        alert('Kamera belum aktif. Tekan "Nyalakan Kamera" dulu.');
-        return;
-      }
-
-      const videoWidth = video.videoWidth;
-      const videoHeight = video.videoHeight;
-      if (!videoWidth || !videoHeight) {
-        alert("Kamera belum siap. Tunggu sebentar lalu coba lagi.");
-        return;
-      }
-
-      canvas.width = videoWidth;
-      canvas.height = videoHeight;
-
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(video, 0, 0, videoWidth, videoHeight);
-
-      photoDataUrl = canvas.toDataURL("image/jpeg", 0.8);
-
-      selfiePreview.src = photoDataUrl;
-      selfiePreview.classList.remove("hidden");
-      video.classList.add("hidden");
-      btnRetake.disabled = false;
-
-      cameraHint.innerHTML =
-        '<span class="dot-rec" style="background:#22c55e;box-shadow:0 0 0 4px rgba(34,197,94,0.6);"></span>' +
-        '<span>Selfie tersimpan. Jika kurang jelas, tekan "Ulangi".</span>';
-
-      stopCamera();
-      btnCapture.disabled = true;
-
-      updateSubmitState();
-    });
-
-    btnRetake.addEventListener("click", () => {
-      photoDataUrl = null;
-      selfiePreview.src = "";
-      selfiePreview.classList.add("hidden");
-      btnRetake.disabled = true;
-      cameraHint.innerHTML =
-        '<span class="dot-rec"></span><span>Aktifkan kamera lagi lalu ambil selfie baru.</span>';
-      startCamera();
-      updateSubmitState();
-    });
-
-    form.addEventListener("submit", async (event) => {
-      event.preventDefault();
-
-      if (!isOutOfAreaMode) {
-        if (!photoDataUrl || !locationData) {
-          alert("Mode On Site: Selfie & lokasi wajib diambil sebelum kirim absensi.");
-          return;
-        }
-        if (!locationData.insideRadius) {
-          alert(
-            "Mode On Site hanya diperbolehkan jika Anda berada di dalam radius " +
-            ALLOWED_RADIUS_M +
-            " meter dari titik PayBoss Cafe.\n" +
-            'Silakan gunakan mode "Absen di Luar Area" jika Anda berada di luar radius.'
-          );
-          return;
-        }
-      } else {
-        if (!locationData) {
-          alert("Mode Luar Area: Lokasi tetap wajib diambil untuk bukti titik absensi.");
-          return;
-        }
-        if (!outareaReasonInput.value.trim()) {
-          alert("Mode Luar Area: Alasan absen di luar area wajib diisi.");
-          return;
-        }
-      }
-
-      const now = new Date();
-      const attendanceRecord = {
-        employeeName: nameInput.value.trim(),
-        employeeId: idInput.value.trim(),
-        employeeRole: roleInput.value,
-        shift: shiftInput.value,
-        timestamp: now.toISOString(),
-        localTime: now.toLocaleString("id-ID"),
-        mode: isOutOfAreaMode ? "OUT_OF_AREA" : "ONSITE",
-        isOutOfArea: isOutOfAreaMode,
-        outOfAreaReason: isOutOfAreaMode ? outareaReasonInput.value.trim() : null,
-        location: locationData,
-        photo: photoDataUrl || null
+      // Konfigurasi Tema PayBoss Cafe (Earthy Tones)
+      const theme = {
+        colors: {
+          primary: "bg-stone-700", // Coklat tua
+          primaryHover: "hover:bg-stone-800",
+          secondary: "bg-amber-800", // Coklat muda (aksen)
+          secondaryHover: "hover:bg-amber-900",
+          accent: "bg-green-700", // Hijau
+          accentHover: "hover:bg-green-800",
+          background: "bg-stone-100", // Krem
+          card: "bg-white",
+          textPrimary: "text-stone-800",
+          textSecondary: "text-stone-600",
+          textLight: "text-white",
+          border: "border-stone-200",
+          danger: "bg-red-600",
+          success: "bg-green-600",
+        },
+        rounding: {
+          card: "rounded-2xl",
+          button: "rounded-lg",
+          input: "rounded-lg",
+        },
       };
 
-      try {
-        const existing = JSON.parse(localStorage.getItem("payboss_attendance") || "[]");
-        existing.push(attendanceRecord);
-        localStorage.setItem("payboss_attendance", JSON.stringify(existing));
-      } catch (err) {
-        console.warn("Gagal menyimpan ke localStorage (boleh diabaikan):", err);
+      // Lokasi PayBoss Cafe (Target GPS)
+      const TARGET_LOCATION = {
+        latitude: -2.1717657457047723,
+        longitude: 115.4029877085838,
+      };
+      const GPS_RADIUS_METERS = 100;
+
+      // Hardcode tanggal hari ini untuk demo roster (16 November 2025, Minggu)
+      const TODAY = "2025-11-16";
+
+      // URL Google Apps Script untuk read/write Google Sheet
+      // GANTI dengan URL Web App milik Anda jika berbeda
+      const GOOGLE_SHEET_WEBAPP_URL =
+        "https://script.google.com/macros/s/AKfycbxOHwN1-GyfwWrQLucTf-X0Db_9HefScgxd5g2h35-ntTNyGQZ4NePhZ39OfeZqRvdM/exec";
+
+      // --- DATABASE MOCK (BERDASARKAN FILE UPLOAD) ---
+
+      const initialDbKaryawan = [
+        { id: "PB251101", nama: "Dayat", posisi: "Koordinator", password: "dayat123", fotoInisial: "D" },
+        { id: "PB251102", nama: "Ilham Ali Naufal", posisi: "Pramusaji", password: "ilham123", fotoInisial: "IA" },
+        { id: "PB251104", nama: "Renita Aulia Jasmin", posisi: "Bartender", password: "renita123", fotoInisial: "RA" },
+        { id: "PB251108", nama: "Fitri Ainur Sabita", posisi: "Chef", password: "fitri123", fotoInisial: "FA" },
+        { id: "PB251109", nama: "Shada Amalia", posisi: "Chef", password: "shada123", fotoInisial: "SA" },
+        { id: "PB251106", nama: "Ahmad Maulidan", posisi: "Bartender", password: "ahmad123", fotoInisial: "AM" },
+        { id: "PB251107", nama: "Rusdhani", posisi: "Pramusaji", password: "rusdhani123", fotoInisial: "R" },
+      ];
+
+      const jobDeskTemplates = {
+        Pramusaji: [
+          "Menyambut tamu dengan ramah (Greeter)",
+          "Mencatat pesanan dengan akurat",
+          "Menyajikan pesanan (Runner)",
+          "Proaktif melayani kebutuhan tamu (table touch)",
+          "Membersihkan meja (Clear-up & Reset)",
+          "Membantu proses pembayaran di kasir",
+        ],
+        Bartender: [
+          "Menyiapkan bar station (mise en place)",
+          "Menerima pesanan minuman",
+          "Membuat pesanan minuman (Kopi & Non-Kopi) sesuai SOP",
+          "Menjaga kebersihan dan kerapian area bar",
+          "Melakukan stok opname harian bahan baku bar",
+        ],
+        Chef: [
+          "Persiapan 'mise en place' bahan baku kitchen",
+          "Memasak pesanan sesuai SOP dan urutan (FIFO)",
+          "Menjaga kualitas rasa dan presentasi hidangan",
+          "Memastikan kebersihan area kitchen (kitchen station)",
+          "Melakukan stok opname harian bahan baku kitchen",
+        ],
+        Koordinator: [
+          "Memimpin briefing pagi tim FOH & BOH",
+          "Memastikan ketersediaan stok (Bar & Kitchen)",
+          "Menangani keluhan atau masukan tamu (service recovery)",
+          "Membuat laporan closing harian",
+          "Memastikan semua tim menjalankan SOP dengan baik",
+        ],
+      };
+
+      const initialDbRoster = {
+        PB251101: {
+          "2025-11-16": "OFF",
+          "2025-11-17": 1,
+          "2025-11-18": 1,
+          "2025-11-19": 1,
+          "2025-11-20": 1,
+          "2025-11-21": 1,
+          "2025-11-22": 1,
+        },
+        PB251102: {
+          "2025-11-16": 2,
+          "2025-11-17": "OFF",
+          "2025-11-18": 3,
+          "2025-11-19": 3,
+          "2025-11-20": 3,
+          "2025-11-21": 3,
+          "2025-11-22": 3,
+        },
+        PB251104: {
+          "2025-11-16": 2,
+          "2025-11-17": 2,
+          "2025-11-18": "OFF",
+          "2025-11-19": 2,
+          "2025-11-20": 2,
+          "2025-11-21": 2,
+          "2025-11-22": 2,
+        },
+        PB251108: {
+          "2025-11-16": 1,
+          "2025-11-17": 1,
+          "2025-11-18": 1,
+          "2025-11-19": "OFF",
+          "2025-11-20": 2,
+          "2025-11-21": 2,
+          "2025-11-22": 2,
+        },
+        PB251109: {
+          "2025-11-16": 1,
+          "2025-11-17": 1,
+          "2025-11-18": 1,
+          "2025-11-19": 1,
+          "2025-11-20": "OFF",
+          "2025-11-21": 1,
+          "2025-11-22": "OFF",
+        },
+        PB251106: {
+          "2025-11-16": 2,
+          "2025-11-17": 2,
+          "2025-11-18": "OFF",
+          "2025-11-19": 2,
+          "2025-11-20": 2,
+          "2025-11-21": 2,
+          "2025-11-22": 2,
+        },
+        PB251107: {
+          "2025-11-16": 2,
+          "2025-11-17": "OFF",
+          "2025-11-18": 3,
+          "2025-11-19": 3,
+          "2025-11-20": 3,
+          "2025-11-21": 3,
+          "2025-11-22": 3,
+        },
+      };
+
+      const shiftDetails = {
+        1: { nama: "Pagi", ikon: Sun, waktu: "08:00 - 16:00", color: "text-blue-500" },
+        2: { nama: "Siang", ikon: Sunset, waktu: "16:00 - 23:00", color: "text-orange-500" },
+        3: { nama: "Malam", ikon: Moon, waktu: "23:00 - 08:00", color: "text-indigo-500" },
+        OFF: { nama: "OFF", ikon: Home, waktu: "Libur", color: "text-gray-500" },
+      };
+
+      // --- FUNGSI UTILITAS ---
+
+      function getHaversineDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371e3; // meter
+        const φ1 = (lat1 * Math.PI) / 180;
+        const φ2 = (lat2 * Math.PI) / 180;
+        const Δφ = ((lat2 - lat1) * Math.PI) / 180;
+        const Δλ = ((lon2 - lon1) * Math.PI) / 180;
+
+        const a =
+          Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+          Math.cos(φ1) * Math.cos(φ2) *
+            Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return R * c; // dalam meter
       }
 
-      try {
-        await fetch(APPS_SCRIPT_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(attendanceRecord),
+      function getNext7Days(startDateString) {
+        const startDate = new Date(startDateString + "T00:00:00");
+        const dates = [];
+        for (let i = 0; i < 7; i++) {
+          const nextDate = new Date(startDate.getTime());
+          nextDate.setDate(startDate.getDate() + i);
+          dates.push(nextDate);
+        }
+        return dates;
+      }
+
+      function formatDateYYYYMMDD(date) {
+        return date.toISOString().split("T")[0];
+      }
+
+      function formatShortDate(date) {
+        return date.toLocaleDateString("id-ID", {
+          weekday: "long",
+          day: "numeric",
+          month: "short",
         });
-        console.log("Data absensi terkirim ke Apps Script");
-      } catch (err) {
-        console.error("Gagal mengirim ke Google Sheet:", err);
       }
 
-      resultPanel.classList.remove("hidden");
-      const previousText = resultOutput.textContent || "";
-      const newLog = "\n\n=== ABSENSI BARU ===\n" + JSON.stringify(attendanceRecord, null, 2);
-      resultOutput.textContent = previousText + newLog;
-
-      if (isOutOfAreaMode) {
-        const distanceInfo =
-          locationData && typeof locationData.distanceMeters === "number"
-            ? "\nJarak dari titik referensi ≈ " + locationData.distanceMeters.toFixed(1) + " m."
-            : "";
-        alert(
-          "Absensi berhasil direkam sebagai ABSEN DI LUAR AREA.\n" +
-          "Pastikan pengelola melakukan verifikasi manual terhadap data ini." +
-          distanceInfo
-        );
-      } else {
-        alert(
-          "Absensi On Site dengan selfie berhasil direkam.\n" +
-          "Data juga dikirim ke Google Sheet melalui Apps Script."
-        );
+      function formatTime(date) {
+        return date.toLocaleTimeString("id-ID", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        });
       }
 
-      updateSubmitState();
-    });
+      // --- FUNGSI KONEKSI GOOGLE SHEET ---
+      // Contoh sederhana: kirim log absensi (check-in / check-out) ke Google Sheet
+      // Google Apps Script (doPost) di sisi server perlu membaca JSON dan append ke Sheet.
 
-    window.addEventListener("beforeunload", () => {
-      stopCamera();
-    });
-  </script>
-</body>
+      async function kirimAbsensiKeSheet({ user, jenis, data, shiftName }) {
+        try {
+          const payload = {
+            action: "appendAbsensi", // bisa Anda pakai untuk switch-case di Apps Script
+            timestamp: new Date().toISOString(),
+            tanggal: TODAY,
+            jenis, // "checkIn" / "checkOut"
+            idKaryawan: user.id,
+            namaKaryawan: user.nama,
+            posisi: user.posisi,
+            shift: shiftName,
+            waktu: data.waktu.toISOString(),
+            lat: data.lat || "",
+            lng: data.lng || "",
+            jarak: data.jarak || "",
+            alasanLuarArea: data.alasanLuarArea || "",
+          };
+
+          await fetch(GOOGLE_SHEET_WEBAPP_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+            // Jika Apps Script Anda belum set CORS, bisa tambahkan mode: "no-cors"
+            // mode: "no-cors",
+          });
+        } catch (err) {
+          console.error("Gagal mengirim data ke Google Sheet", err);
+        }
+      }
+
+      // Contoh fungsi membaca data absensi dari Google Sheet (opsional)
+      // Apps Script doGet harus mengembalikan JSON: { data: [ ... ] }
+      async function loadAbsensiDariSheet() {
+        try {
+          const res = await fetch(
+            GOOGLE_SHEET_WEBAPP_URL + "?action=getAbsensi"
+          );
+          if (!res.ok) throw new Error("Response tidak OK");
+          const json = await res.json();
+          if (!json || !Array.isArray(json.data)) return null;
+
+          // DI BAWAH INI hanya contoh mapping. Sesuaikan dengan struktur JSON Anda.
+          return json.data.map((row) => ({
+            id: row.id,
+            idKaryawan: row.idKaryawan,
+            namaKaryawan: row.namaKaryawan,
+            posisi: row.posisi,
+            tanggal: row.tanggal,
+            shift: row.shift,
+            checkIn: row.checkIn
+              ? {
+                  waktu: new Date(row.checkIn),
+                  alasanLuarArea: row.alasanLuarArea || null,
+                  lat: row.lat ? Number(row.lat) : null,
+                  lng: row.lng ? Number(row.lng) : null,
+                  jarak: row.jarak ? Number(row.jarak) : null,
+                }
+              : null,
+            checkOut: row.checkOut
+              ? {
+                  waktu: new Date(row.checkOut),
+                }
+              : null,
+            jobDeskProgress: [],
+            status: row.status || "",
+          }));
+        } catch (err) {
+          console.error("Gagal load absensi dari Google Sheet", err);
+          return null;
+        }
+      }
+
+      // --- KOMPONEN UI (SHARED) ---
+
+      const Modal = ({ children, onClose, title }) => (
+        <AnimatePresence>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 p-4"
+            onClick={onClose}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className={`relative w-full max-w-lg overflow-hidden ${theme.colors.card} ${theme.rounding.card} shadow-2xl`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div
+                className={`flex items-center justify-between p-5 ${theme.colors.border} border-b`}
+              >
+                <h3 className={`text-xl font-bold ${theme.colors.textPrimary}`}>
+                  {title}
+                </h3>
+                <button
+                  onClick={onClose}
+                  className={`${theme.colors.textSecondary || "text-stone-600"} hover:text-red-500`}
+                >
+                  <XCircle size={24} />
+                </button>
+              </div>
+              <div className="p-6">{children}</div>
+            </motion.div>
+          </motion.div>
+        </AnimatePresence>
+      );
+
+      const Button = ({
+        onClick,
+        children,
+        variant = "primary",
+        disabled = false,
+        className = "",
+        type = "button",
+      }) => {
+        const variants = {
+          primary: `${theme.colors.primary} ${theme.colors.textLight} ${theme.colors.primaryHover}`,
+          secondary: `${theme.colors.secondary} ${theme.colors.textLight} ${theme.colors.secondaryHover}`,
+          accent: `${theme.colors.accent} ${theme.colors.textLight} ${theme.colors.accentHover}`,
+          danger: `${theme.colors.danger} ${theme.colors.textLight} hover:bg-red-700`,
+          light: `${theme.colors.background} ${theme.colors.textPrimary} hover:bg-stone-200`,
+        };
+
+        return (
+          <button
+            type={type}
+            onClick={onClick}
+            disabled={disabled}
+            className={`flex w-full items-center justify-center gap-2 p-3 font-semibold ${theme.rounding.button} transition-all duration-200 ${variants[variant]} ${
+              disabled ? "opacity-50 cursor-not-allowed" : ""
+            } ${className}`}
+          >
+            {children}
+          </button>
+        );
+      };
+
+      const Input = ({
+        type = "text",
+        placeholder,
+        value,
+        onChange,
+        icon,
+        className = "",
+        ...rest
+      }) => (
+        <div className="relative w-full">
+          {icon && (
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400">
+              {icon}
+            </div>
+          )}
+          <input
+            type={type}
+            placeholder={placeholder}
+            value={value}
+            onChange={onChange}
+            {...rest}
+            className={`w-full ${theme.colors.background} ${theme.rounding.input} ${
+              theme.colors.textPrimary
+            } border ${theme.colors.border} p-3 ${
+              icon ? "pl-10" : ""
+            } focus:outline-none focus:ring-2 focus:ring-amber-800 ${className}`}
+          />
+        </div>
+      );
+
+      const Spinner = ({ size = 24 }) => (
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          className="border-t-transparent border-solid rounded-full border-stone-700 border-2"
+          style={{ width: size, height: size }}
+        />
+      );
+
+      const ProgressBar = ({ value, max }) => {
+        const percent = max > 0 ? (value / max) * 100 : 0;
+        return (
+          <div
+            className={`w-full ${theme.colors.background} ${theme.rounding.button} overflow-hidden`}
+          >
+            <motion.div
+              className={`${theme.colors.accent} h-2`}
+              initial={{ width: 0 }}
+              animate={{ width: `${percent}%` }}
+              transition={{ duration: 0.5, ease: "easeInOut" }}
+            />
+          </div>
+        );
+      };
+
+      // --- KOMPONEN: ALUR ABSENSI (MODAL) ---
+
+      const AttendanceFlow = ({ user, type, onClose, onComplete, todayShift }) => {
+        const [step, setStep] = useState("camera");
+        const [selfie, setSelfie] = useState(null);
+        const [locationData, setLocationData] = useState(null);
+        const [inArea, setInArea] = useState(false);
+        const [distance, setDistance] = useState(0);
+        const [error, setError] = useState(null);
+
+        const [reason, setReason] = useState("");
+        const reasons = ["Sakit", "Izin", "Dinas Luar", "Lainnya"];
+
+        const webcamRef = useRef(null);
+        const streamRef = useRef(null);
+
+        useEffect(() => {
+          if (step === "camera") {
+            const startCamera = async () => {
+              try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                  video: { facingMode: "user" },
+                  audio: false,
+                });
+                if (webcamRef.current) {
+                  webcamRef.current.srcObject = stream;
+                  webcamRef.current.play();
+                  streamRef.current = stream;
+                }
+              } catch (err) {
+                console.error("Error accessing webcam:", err);
+                setError("Gagal mengakses kamera. Pastikan Anda mengizinkan akses.");
+              }
+            };
+            startCamera();
+          }
+
+          return () => {
+            if (streamRef.current) {
+              streamRef.current.getTracks().forEach((track) => track.stop());
+              streamRef.current = null;
+            }
+          };
+        }, [step]);
+
+        const captureSelfie = useCallback(() => {
+          if (!webcamRef.current) {
+            setError("Kamera belum siap.");
+            return;
+          }
+
+          const video = webcamRef.current;
+          const canvas = document.createElement("canvas");
+          canvas.width = video.videoWidth || 640;
+          canvas.height = video.videoHeight || 480;
+
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            setError("Gagal memproses gambar.");
+            return;
+          }
+
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const imageSrc = canvas.toDataURL("image/jpeg");
+
+          if (!imageSrc) {
+            setError("Gagal mengambil foto. Coba lagi.");
+            return;
+          }
+          setSelfie(imageSrc);
+          setStep("location");
+
+          if (streamRef.current) {
+            streamRef.current.getTracks().forEach((track) => track.stop());
+            streamRef.current = null;
+          }
+        }, []);
+
+        useEffect(() => {
+          if (step === "location") {
+            setError(null);
+            if (!navigator.geolocation) {
+              setError("Browser Anda tidak mendukung Geolocation.");
+              setStep("confirm");
+              return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+              (position) => {
+                const { latitude, longitude } = position.coords;
+                const dist = getHaversineDistance(
+                  latitude,
+                  longitude,
+                  TARGET_LOCATION.latitude,
+                  TARGET_LOCATION.longitude
+                );
+
+                setLocationData({ latitude, longitude });
+                setDistance(dist);
+
+                if (dist <= GPS_RADIUS_METERS) {
+                  setInArea(true);
+                  setStep("confirm");
+                } else {
+                  setInArea(false);
+                  setStep("reason");
+                }
+              },
+              (err) => {
+                let errMsg = "Gagal mendapatkan lokasi. ";
+                if (err.code === 1)
+                  errMsg += "Pastikan Anda mengizinkan akses lokasi.";
+                if (err.code === 2) errMsg += "Sinyal lokasi tidak tersedia.";
+                if (err.code === 3) errMsg += "Waktu tunggu habis.";
+                setError(errMsg);
+                setStep("confirm");
+              },
+              { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+          }
+        }, [step]);
+
+        const handleSubmit = async () => {
+          setStep("loading");
+
+          const attendanceData = {
+            waktu: new Date(),
+            fotoBase64: selfie,
+            lat: locationData?.latitude,
+            lng: locationData?.longitude,
+            alasanLuarArea: inArea ? null : reason,
+            jarak: distance,
+          };
+
+          try {
+            await kirimAbsensiKeSheet({
+              user,
+              jenis: type,
+              data: attendanceData,
+              shiftName: todayShift?.nama || "",
+            });
+          } catch (e) {
+            console.error(e);
+          }
+
+          onComplete(attendanceData);
+          setStep("success");
+        };
+
+        const title = type === "checkIn" ? "Absen Check-in" : "Absen Check-out";
+
+        const renderStep = () => {
+          switch (step) {
+            case "camera":
+              return (
+                <div className="text-center">
+                  <p className={`${theme.colors.textSecondary} mb-4`}>
+                    Posisikan wajah Anda di dalam frame dan ambil selfie untuk
+                    verifikasi.
+                  </p>
+                  <div
+                    className={`w-full overflow-hidden ${theme.rounding.card} border-2 ${theme.colors.border} shadow-inner bg-black`}
+                  >
+                    <video
+                      ref={webcamRef}
+                      autoPlay
+                      playsInline
+                      muted
+                      className="w-full h-auto"
+                      style={{ transform: "scaleX(-1)" }}
+                    />
+                  </div>
+                  {error && (
+                    <p className="text-red-500 text-sm mt-2">{error}</p>
+                  )}
+                  <Button
+                    onClick={captureSelfie}
+                    variant="secondary"
+                    className="mt-4"
+                  >
+                    <Camera size={20} /> Ambil Foto
+                  </Button>
+                </div>
+              );
+
+            case "location":
+              return (
+                <div className="flex flex-col items-center justify-center h-48">
+                  <Spinner size={40} />
+                  <p
+                    className={`${theme.colors.textPrimary} mt-4 font-semibold`}
+                  >
+                    Mendeteksi lokasi Anda...
+                  </p>
+                  <p className={`${theme.colors.textSecondary} text-sm`}>
+                    Pastikan GPS dan izin lokasi aktif.
+                  </p>
+                </div>
+              );
+
+            case "reason":
+              return (
+                <div>
+                  <div
+                    className={`flex items-center gap-3 p-4 ${theme.rounding.button} bg-yellow-100 border border-yellow-300 text-yellow-800`}
+                  >
+                    <AlertTriangle size={24} />
+                    <div>
+                      <h4 className="font-bold">Anda Berada di Luar Area!</h4>
+                      <p className="text-sm">
+                        Jarak Anda: {distance.toFixed(0)} meter dari PayBoss
+                        Cafe.
+                      </p>
+                    </div>
+                  </div>
+                  <p
+                    className={`${theme.colors.textSecondary} mt-4 mb-3`}
+                  >
+                    Harap pilih alasan Anda absen di luar area kerja:
+                  </p>
+                  <div className="space-y-2">
+                    {reasons.map((r) => (
+                      <label
+                        key={r}
+                        className={`flex items-center w-full p-3 ${
+                          theme.rounding.input
+                        } ${theme.colors.background} border ${
+                          reason === r
+                            ? "border-amber-800 ring-2 ring-amber-800"
+                            : theme.colors.border
+                        } cursor-pointer`}
+                      >
+                        <input
+                          type="radio"
+                          name="reason"
+                          value={r}
+                          checked={reason === r}
+                          onChange={(e) => setReason(e.target.value)}
+                          className="mr-3"
+                        />
+                        {r}
+                      </label>
+                    ))}
+                  </div>
+                  <Button
+                    onClick={() => setStep("confirm")}
+                    disabled={!reason}
+                    className="mt-4"
+                  >
+                    Lanjutkan
+                  </Button>
+                </div>
+              );
+
+            case "confirm":
+              return (
+                <div>
+                  <p className={`${theme.colors.textSecondary} mb-4`}>
+                    Harap konfirmasi data {" "}
+                    {type === "checkIn" ? "check-in" : "check-out"} Anda.
+                  </p>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                      {selfie && (
+                        <img
+                          src={selfie}
+                          alt="Selfie"
+                          className={`w-24 h-24 object-cover ${theme.rounding.card} border-2 ${theme.colors.border}`}
+                        />
+                      )}
+                      <div>
+                        <h4 className="font-bold">{user.nama}</h4>
+                        <p className={theme.colors.textSecondary}>{user.posisi}</p>
+                        <p className={theme.colors.textSecondary}>
+                          {formatTime(new Date())}
+                        </p>
+                      </div>
+                    </div>
+                    <div
+                      className={`p-3 ${theme.rounding.input} ${theme.colors.background}`}
+                    >
+                      <h5 className="font-semibold flex items-center gap-2">
+                        <MapPin
+                          size={16}
+                          className={
+                            inArea ? "text-green-600" : "text-red-600"
+                          }
+                        />
+                        Status Lokasi
+                      </h5>
+                      {locationData ? (
+                        inArea ? (
+                          <p className="text-green-600 text-sm font-medium">
+                            Dalam Area PayBoss Cafe (±{distance.toFixed(0)}m).
+                          </p>
+                        ) : (
+                          <p className="text-red-600 text-sm font-medium">
+                            Di Luar Area PayBoss Cafe (±{distance.toFixed(0)}m).
+                          </p>
+                        )
+                      ) : (
+                        <p className="text-yellow-600 text-sm font-medium">
+                          Gagal mendapatkan data lokasi.
+                        </p>
+                      )}
+                      {reason && (
+                        <p className="text-sm text-yellow-800 mt-1">
+                          <b>Alasan:</b> {reason}
+                        </p>
+                      )}
+                    </div>
+                    {error && (
+                      <p className="text-red-500 text-sm -mt-2">{error}</p>
+                    )}
+                  </div>
+                  <Button
+                    onClick={handleSubmit}
+                    variant="accent"
+                    className="mt-6"
+                  >
+                    <CheckCircle size={20} /> Konfirmasi {" "}
+                    {type === "checkIn" ? "Check-in" : "Check-out"}
+                  </Button>
+                </div>
+              );
+
+            case "loading":
+              return (
+                <div className="flex flex-col items-center justify-center h-48">
+                  <Spinner size={40} />
+                  <p
+                    className={`${theme.colors.textPrimary} mt-4 font-semibold`}
+                  >
+                    Menyimpan data absensi...
+                  </p>
+                </div>
+              );
+
+            case "success":
+              return (
+                <div className="flex flex-col items-center justify-center h-48 text-center">
+                  <motion.div
+                    initial={{ scale: 0.5 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", damping: 10, stiffness: 150 }}
+                  >
+                    <CheckCircle size={60} className="text-green-600" />
+                  </motion.div>
+                  <h3 className="text-2xl font-bold mt-4">Berhasil!</h3>
+                  <p className={theme.colors.textSecondary}>
+                    Absen {type === "checkIn" ? "check-in" : "check-out"} Anda
+                    telah dicatat.
+                  </p>
+                  <Button onClick={onClose} className="mt-6 w-32">
+                    Selesai
+                  </Button>
+                </div>
+              );
+
+            default:
+              return null;
+          }
+        };
+
+        return (
+          <Modal title={title} onClose={onClose}>
+            {renderStep()}
+          </Modal>
+        );
+      };
+
+      // --- KOMPONEN KARYAWAN ---
+
+      const KaryawanHome = ({
+        user,
+        dbAbsensi,
+        setDbAbsensi,
+        dbRoster,
+        onNavigate,
+        onShowModal,
+      }) => {
+        const [todayRecord, setTodayRecord] = useState(null);
+        const [todayShift, setTodayShift] = useState(null);
+        const [greeting, setGreeting] = useState("");
+
+        useEffect(() => {
+          const record = dbAbsensi.find(
+            (a) => a.idKaryawan === user.id && a.tanggal === TODAY
+          );
+          setTodayRecord(record);
+
+          const shiftCode = dbRoster[user.id]?.[TODAY];
+          setTodayShift(shiftDetails[shiftCode] || shiftDetails["OFF"]);
+
+          const hour = new Date().getHours();
+          if (hour < 11) setGreeting("Selamat Pagi");
+          else if (hour < 15) setGreeting("Selamat Siang");
+          else if (hour < 19) setGreeting("Selamat Sore");
+          else setGreeting("Selamat Malam");
+        }, [dbAbsensi, user.id, user.posisi, dbRoster]);
+
+        if (!todayShift) {
+          return (
+            <div className="flex items-center justify-center h-screen">
+              <Spinner size={40} />
+            </div>
+          );
+        }
+
+        const handleAttendance = (type) => {
+          onShowModal(type, todayShift);
+        };
+
+        const isCheckedIn = todayRecord && todayRecord.checkIn;
+        const isCheckedOut = todayRecord && todayRecord.checkOut;
+        const isOff = todayShift.nama === "OFF";
+
+        let jobProgress = 0;
+        let jobTotal = 0;
+        if (isCheckedIn) {
+          jobTotal = todayRecord.jobDeskProgress.length;
+          jobProgress = todayRecord.jobDeskProgress.filter((t) => t.completed)
+            .length;
+        }
+
+        return (
+          <div className="p-4 space-y-6">
+            <div
+              className={`p-6 ${theme.colors.primary} ${theme.rounding.card} shadow-lg text-white`}
+            >
+              <p className="text-lg font-light">{greeting},</p>
+              <h2 className="text-3xl font-bold">{user.nama}</h2>
+              <p className="text-stone-300 mt-1">{user.posisi}</p>
+            </div>
+
+            <div
+              className={`p-6 ${theme.colors.card} ${theme.rounding.card} shadow-md`}
+            >
+              <h3
+                className={`text-xl font-bold mb-4 ${theme.colors.textPrimary}`}
+              >
+                Absensi Hari Ini
+              </h3>
+              <p className={`${theme.colors.textSecondary} mb-1`}>
+                {formatShortDate(new Date(TODAY + "T00:00:00"))}
+              </p>
+
+              {isOff ? (
+                <div className="text-center p-6 bg-stone-100 rounded-lg">
+                  <Home size={32} className="mx-auto text-stone-500 mb-2" />
+                  <h4 className="text-lg font-bold">Hari Libur</h4>
+                  <p className={theme.colors.textSecondary}>
+                    Nikmati waktu istirahat Anda.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {isCheckedIn ? (
+                    <div className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <CheckCircle size={24} className="text-green-600" />
+                        <div>
+                          <span className="font-bold text-green-700">
+                            Check-in Berhasil
+                          </span>
+                          <p className="text-sm text-green-600">
+                            pukul {formatTime(todayRecord.checkIn.waktu)}
+                          </p>
+                        </div>
+                      </div>
+                      {todayRecord.checkIn.alasanLuarArea && (
+                        <AlertTriangle
+                          size={20}
+                          className="text-yellow-500"
+                          title={`Absen di luar area: ${todayRecord.checkIn.alasanLuarArea}`}
+                        />
+                      )}
+                    </div>
+                  ) : (
+                    <Button onClick={() => handleAttendance("checkIn")}>
+                      <LogIn size={20} /> Check-in
+                    </Button>
+                  )}
+
+                  {isCheckedIn && (
+                    isCheckedOut ? (
+                      <div className="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <CheckCircle size={24} className="text-blue-600" />
+                          <div>
+                            <span className="font-bold text-blue-700">
+                              Check-out Berhasil
+                            </span>
+                            <p className="text-sm text-blue-600">
+                              pukul {formatTime(todayRecord.checkOut.waktu)}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <Button
+                        onClick={() => handleAttendance("checkOut")}
+                        variant="secondary"
+                      >
+                        <LogOut size={20} /> Check-out
+                      </Button>
+                    )
+                  )}
+                </div>
+              )}
+            </div>
+
+            {!isOff && (
+              <div
+                className={`p-6 ${theme.colors.card} ${theme.rounding.card} shadow-md space-y-4`}
+              >
+                <div>
+                  <h4 className="text-lg font-bold flex items-center gap-2">
+                    <Coffee size={20} className={todayShift.color} /> Shift
+                    Anda
+                  </h4>
+                  <p className={`${theme.colors.textSecondary} text-lg`}>
+                    {todayShift.nama} ({todayShift.waktu})
+                  </p>
+                </div>
+
+                {isCheckedIn && (
+                  <div>
+                    <h4 className="text-lg font-bold flex items-center gap-2 mb-2">
+                      <ListChecks size={20} className="text-stone-700" />
+                      Progres Job Desk
+                    </h4>
+                    <ProgressBar value={jobProgress} max={jobTotal} />
+                    <p
+                      className={`${theme.colors.textSecondary} text-sm mt-2`}
+                    >
+                      {jobProgress} dari {jobTotal} tugas selesai.
+                    </p>
+                    <Button
+                      onClick={() => onNavigate("jobdesk")}
+                      variant="light"
+                      className="mt-3"
+                    >
+                      Lihat & Kerjakan Tugas
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      };
+
+      const KaryawanJadwal = ({ user, dbRoster }) => {
+        const scheduleDays = getNext7Days(TODAY);
+        const userRoster = dbRoster[user.id] || {};
+
+        return (
+          <div className="p-4">
+            <h2
+              className={`text-2xl font-bold mb-6 ${theme.colors.textPrimary}`}
+            >
+              Jadwal Kerja 7 Hari
+            </h2>
+            <div className="space-y-3">
+              {scheduleDays.map((day) => {
+                const dayString = formatDateYYYYMMDD(day);
+                const shiftCode = userRoster[dayString] || "OFF";
+                const shift = shiftDetails[shiftCode];
+                const isToday = dayString === TODAY;
+                const ShiftIcon = shift.ikon;
+
+                return (
+                  <div
+                    key={dayString}
+                    className={`flex items-center p-4 ${theme.colors.card} ${
+                      theme.rounding.card
+                    } shadow-sm ${isToday ? "border-2 border-amber-800" : ""}`}
+                  >
+                    <div
+                      className={`p-3 mr-4 rounded-full ${
+                        shift.nama === "OFF" ? "bg-gray-100" : "bg-green-100"
+                      }`}
+                    >
+                      <ShiftIcon size={24} className={shift.color} />
+                    </div>
+                    <div className="flex-1">
+                      <p
+                        className={`font-bold text-lg ${theme.colors.textPrimary}`}
+                      >
+                        {formatShortDate(day)}
+                      </p>
+                      <p
+                        className={`${theme.colors.textSecondary} ${shift.color} font-medium`}
+                      >
+                        {shift.nama}
+                      </p>
+                    </div>
+                    <span className={`font-semibold ${theme.colors.textSecondary}`}>
+                      {shift.waktu}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      };
+
+      const KaryawanJobDesk = ({ user, dbAbsensi, setDbAbsensi }) => {
+        const todayRecord = dbAbsensi.find(
+          (a) => a.idKaryawan === user.id && a.tanggal === TODAY
+        );
+
+        if (!todayRecord || !todayRecord.checkIn) {
+          return (
+            <div className="p-4 text-center mt-10">
+              <ListChecks
+                size={48}
+                className={`mx-auto ${theme.colors.textSecondary} opacity-50`}
+              />
+              <h3 className="text-xl font-bold mt-4">Job Desk Harian</h3>
+              <p className={theme.colors.textSecondary}>
+                Silakan check-in terlebih dahulu untuk melihat daftar tugas
+                harian Anda.
+              </p>
+            </div>
+          );
+        }
+
+        const tasks = todayRecord.jobDeskProgress || [];
+
+        const handleToggleTask = (index) => {
+          const updatedAbsensi = dbAbsensi.map((record) => {
+            if (record.idKaryawan === user.id && record.tanggal === TODAY) {
+              const updatedTasks = record.jobDeskProgress.map((task, i) =>
+                i === index ? { ...task, completed: !task.completed } : task
+              );
+              return { ...record, jobDeskProgress: updatedTasks };
+            }
+            return record;
+          });
+          setDbAbsensi(updatedAbsensi);
+        };
+
+        const jobTotal = tasks.length;
+        const jobProgress = tasks.filter((t) => t.completed).length;
+
+        return (
+          <div className="p-4">
+            <h2
+              className={`text-2xl font-bold mb-2 ${theme.colors.textPrimary}`}
+            >
+              Job Desk Harian
+            </h2>
+            <p className={`${theme.colors.textSecondary} mb-4`}>
+              Tugas Anda sebagai {user.posisi}.
+            </p>
+
+            <div className="mb-6">
+              <div className="flex justify-between items-center mb-2">
+                <span
+                  className={`text-sm font-medium ${theme.colors.textPrimary}`}
+                >
+                  Progres Selesai
+                </span>
+                <span
+                  className={`text-sm font-medium ${theme.colors.textPrimary}`}
+                >
+                  {jobProgress}/{jobTotal}
+                </span>
+              </div>
+              <ProgressBar value={jobProgress} max={jobTotal} />
+            </div>
+
+            <div className="space-y-3">
+              {tasks.map((task, index) => (
+                <label
+                  key={index}
+                  className={`flex items-start p-4 ${theme.rounding.card} shadow-sm cursor-pointer transition-all ${
+                    task.completed
+                      ? "bg-green-50 border-green-200"
+                      : theme.colors.card
+                  } border ${theme.colors.border}`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={task.completed}
+                    onChange={() => handleToggleTask(index)}
+                    className="mt-1 h-5 w-5 text-green-700 rounded border-gray-300 focus:ring-green-700"
+                  />
+                  <span
+                    className={`${theme.colors.textPrimary} ml-3 ${
+                      task.completed ? "line-through text-stone-500" : ""
+                    }`}
+                  >
+                    {task.task}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+        );
+      };
+
+      const EmployeeDashboard = ({
+        user,
+        onLogout,
+        dbAbsensi,
+        setDbAbsensi,
+        dbRoster,
+        setDbRoster,
+        dbJobDesk,
+      }) => {
+        const [activeTab, setActiveTab] = useState("home");
+        const [isModalOpen, setIsModalOpen] = useState(false);
+        const [modalType, setModalType] = useState("checkIn");
+        const [modalShift, setModalShift] = useState(null);
+
+        const navItems = [
+          { id: "home", label: "Home", icon: Home },
+          { id: "jadwal", label: "Jadwal", icon: Calendar },
+          { id: "jobdesk", label: "Job Desk", icon: ListChecks },
+          { id: "logout", label: "Logout", icon: LogOut },
+        ];
+
+        const handleShowModal = (type, shift) => {
+          setModalType(type);
+          setModalShift(shift);
+          setIsModalOpen(true);
+        };
+
+        const handleAttendanceComplete = (data) => {
+          setDbAbsensi((prevDb) => {
+            const existingRecord = prevDb.find(
+              (a) => a.idKaryawan === user.id && a.tanggal === TODAY
+            );
+
+            if (modalType === "checkIn") {
+              const jobTasks = dbJobDesk[user.posisi] || [];
+              const newRecord = {
+                id: `att_${user.id}_${TODAY}`,
+                idKaryawan: user.id,
+                namaKaryawan: user.nama,
+                posisi: user.posisi,
+                tanggal: TODAY,
+                shift: modalShift.nama,
+                checkIn: data,
+                checkOut: null,
+                jobDeskProgress: jobTasks.map((task) => ({
+                  task,
+                  completed: false,
+                })),
+                status: data.alasanLuarArea ? "Luar Area" : "Tepat Waktu",
+              };
+              return [...prevDb, newRecord];
+            }
+
+            if (modalType === "checkOut") {
+              return prevDb.map((record) =>
+                record.idKaryawan === user.id && record.tanggal === TODAY
+                  ? { ...record, checkOut: data }
+                  : record
+              );
+            }
+            return prevDb;
+          });
+        };
+
+        const renderContent = () => {
+          switch (activeTab) {
+            case "home":
+              return (
+                <KaryawanHome
+                  user={user}
+                  dbAbsensi={dbAbsensi}
+                  setDbAbsensi={setDbAbsensi}
+                  dbRoster={dbRoster}
+                  onNavigate={setActiveTab}
+                  onShowModal={handleShowModal}
+                />
+              );
+            case "jadwal":
+              return <KaryawanJadwal user={user} dbRoster={dbRoster} />;
+            case "jobdesk":
+              return (
+                <KaryawanJobDesk
+                  user={user}
+                  dbAbsensi={dbAbsensi}
+                  setDbAbsensi={setDbAbsensi}
+                />
+              );
+            default:
+              return (
+                <KaryawanHome
+                  user={user}
+                  dbAbsensi={dbAbsensi}
+                  setDbAbsensi={setDbAbsensi}
+                  dbRoster={dbRoster}
+                  onNavigate={setActiveTab}
+                  onShowModal={handleShowModal}
+                />
+              );
+          }
+        };
+
+        return (
+          <div
+            className={`w-full min-h-screen ${theme.colors.background} flex flex-col`}
+            style={{ paddingBottom: "80px" }}
+          >
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
+                className="flex-grow"
+              >
+                {renderContent()}
+              </motion.div>
+            </AnimatePresence>
+
+            {isModalOpen && (
+              <AttendanceFlow
+                user={user}
+                type={modalType}
+                todayShift={modalShift}
+                onClose={() => setIsModalOpen(false)}
+                onComplete={handleAttendanceComplete}
+              />
+            )}
+
+            <nav className="fixed bottom-0 left-0 right-0 h-20 bg-white shadow-lg border-t border-stone-200 flex justify-around items-center">
+              {navItems.map((item) => {
+                const isActive = activeTab === item.id;
+                const Icon = item.icon;
+
+                const onClick = () => {
+                  if (item.id === "logout") {
+                    onLogout();
+                  } else {
+                    setActiveTab(item.id);
+                  }
+                };
+
+                return (
+                  <button
+                    key={item.id}
+                    onClick={onClick}
+                    className={`flex flex-col items-center justify-center w-full h-full transition-colors ${
+                      isActive ? "text-amber-800" : "text-stone-500"
+                    } ${item.id === "logout" ? "text-red-500" : ""}`}
+                  >
+                    <Icon size={24} />
+                    <span
+                      className={`text-xs font-medium mt-1 ${
+                        isActive ? "font-bold" : ""
+                      }`}
+                    >
+                      {item.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
+        );
+      };
+
+      // --- KOMPONEN MANAGER ---
+
+      const StatCard = ({ title, value, icon, color }) => {
+        const Icon = icon;
+        return (
+          <div
+            className={`flex items-start p-5 ${theme.colors.card} ${theme.rounding.card} shadow-md`}
+          >
+            <div className={`p-3 rounded-full mr-4 ${color.bg} ${color.text}`}>
+              <Icon size={24} />
+            </div>
+            <div>
+              <p className={`${theme.colors.textSecondary} text-sm uppercase`}>
+                {title}
+              </p>
+              <p className={`text-3xl font-bold ${theme.colors.textPrimary}`}>
+                {value}
+              </p>
+            </div>
+          </div>
+        );
+      };
+
+      const ManagerHome = ({ dbAbsensi, dbKaryawan, dbRoster }) => {
+        const todayAbsen = dbAbsensi.filter((a) => a.tanggal === TODAY);
+        const todayOnShift = Object.keys(dbRoster).filter((id) => {
+          const shift = dbRoster[id]?.[TODAY];
+          return shift && shift !== "OFF";
+        }).length;
+
+        const checkedIn = todayAbsen.filter((a) => a.checkIn).length;
+        const luarArea = todayAbsen.filter((a) => a.checkIn?.alasanLuarArea)
+          .length;
+        const belumCheckout = todayAbsen.filter(
+          (a) => a.checkIn && !a.checkOut
+        ).length;
+
+        const notifikasi = todayAbsen
+          .filter((a) => a.checkIn?.alasanLuarArea)
+          .map((a) => ({
+            nama: a.namaKaryawan,
+            pesan: `Check-in di luar area. Alasan: ${a.checkIn.alasanLuarArea}`,
+          }));
+
+        return (
+          <div className="p-6 space-y-6">
+            <h1
+              className={`text-3xl font-bold ${theme.colors.textPrimary}`}
+            >
+              Dashboard Manajer
+            </h1>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+              <StatCard
+                title="Karyawan Masuk"
+                value={`${checkedIn} / ${todayOnShift}`}
+                icon={LogIn}
+                color={{ bg: "bg-green-100", text: "text-green-700" }}
+              />
+              <StatCard
+                title="Absen Luar Area"
+                value={luarArea}
+                icon={AlertTriangle}
+                color={{ bg: "bg-yellow-100", text: "text-yellow-700" }}
+              />
+              <StatCard
+                title="Belum Check-out"
+                value={belumCheckout}
+                icon={Clock}
+                color={{ bg: "bg-blue-100", text: "text-blue-700" }}
+              />
+              <StatCard
+                title="Total Karyawan"
+                value={dbKaryawan.length}
+                icon={Users}
+                color={{ bg: "bg-stone-100", text: "text-stone-700" }}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div
+                className={`lg:col-span-2 p-6 ${theme.colors.card} ${theme.rounding.card} shadow-md`}
+              >
+                <h3
+                  className={`text-xl font-bold mb-4 ${theme.colors.textPrimary}`}
+                >
+                  Notifikasi Hari Ini
+                </h3>
+                <div className="space-y-3 max-h-60 overflow-y-auto">
+                  {notifikasi.length === 0 && (
+                    <p className={theme.colors.textSecondary}>
+                      Tidak ada notifikasi penting hari ini.
+                    </p>
+                  )}
+                  {notifikasi.map((notif, i) => (
+                    <div
+                      key={i}
+                      className="flex items-start gap-3 p-3 bg-yellow-50 rounded-lg"
+                    >
+                      <AlertTriangle
+                        size={20}
+                        className="text-yellow-600 mt-1 flex-shrink-0"
+                      />
+                      <div>
+                        <p className="font-semibold text-yellow-800">
+                          {notif.nama}
+                        </p>
+                        <p className="text-sm text-yellow-700">
+                          {notif.pesan}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div
+                className={`p-6 ${theme.colors.card} ${theme.rounding.card} shadow-md`}
+              >
+                <h3
+                  className={`text-xl font-bold mb-4 ${theme.colors.textPrimary}`}
+                >
+                  Ringkasan Shift
+                </h3>
+                <div className="space-y-3">
+                  {[1, 2, 3].map((shiftCode) => {
+                    const shift = shiftDetails[shiftCode];
+                    const ShiftIcon = shift.ikon;
+                    const total = Object.keys(dbRoster).filter(
+                      (id) => dbRoster[id]?.[TODAY] === shiftCode
+                    ).length;
+                    const masuk = todayAbsen.filter(
+                      (a) => a.shift === shift.nama && a.checkIn
+                    ).length;
+
+                    return (
+                      <div key={shiftCode} className="flex items-center gap-3">
+                        <ShiftIcon size={24} className={shift.color} />
+                        <div className="flex-1">
+                          <p
+                            className={`font-semibold ${theme.colors.textPrimary}`}
+                          >
+                            {shift.nama}
+                          </p>
+                          <p className={`text-sm ${theme.colors.textSecondary}`}>
+                            {shift.waktu}
+                          </p>
+                        </div>
+                        <span className="text-lg font-bold">
+                          {masuk} / {total}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      const ManagerKaryawan = ({ dbKaryawan, setDbKaryawan }) => {
+        const [showModal, setShowModal] = useState(false);
+        const [selectedKaryawan, setSelectedKaryawan] = useState(null);
+        const [formData, setFormData] = useState({
+          id: "",
+          nama: "",
+          posisi: "",
+          password: "",
+          fotoInisial: "",
+        });
+
+        const handleOpenModal = (karyawan = null) => {
+          if (karyawan) {
+            setFormData(karyawan);
+            setSelectedKaryawan(karyawan);
+          } else {
+            const lastId = dbKaryawan[dbKaryawan.length - 1]?.id || "PB251100";
+            const nextNumber = Number(lastId.replace("PB", "")) + 1;
+            const nextId = "PB" + nextNumber;
+            setFormData({
+              id: nextId,
+              nama: "",
+              posisi: "",
+              password: "",
+              fotoInisial: "",
+            });
+            setSelectedKaryawan(null);
+          }
+          setShowModal(true);
+        };
+
+        const handleCloseModal = () => {
+          setShowModal(false);
+          setSelectedKaryawan(null);
+        };
+
+        const handleChange = (e) => {
+          const { name, value } = e.target;
+          setFormData((prev) => ({ ...prev, [name]: value }));
+        };
+
+        const handleSubmit = (e) => {
+          e.preventDefault();
+          if (selectedKaryawan) {
+            setDbKaryawan(
+              dbKaryawan.map((k) => (k.id === selectedKaryawan.id ? formData : k))
+            );
+          } else {
+            setDbKaryawan([...dbKaryawan, formData]);
+          }
+          handleCloseModal();
+        };
+
+        const handleDelete = (id) => {
+          if (window.confirm("Apakah Anda yakin ingin menghapus karyawan ini?")) {
+            setDbKaryawan(dbKaryawan.filter((k) => k.id !== id));
+          }
+        };
+
+        return (
+          <div className="p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h1
+                className={`text-3xl font-bold ${theme.colors.textPrimary}`}
+              >
+                Manajemen Karyawan
+              </h1>
+              <Button
+                onClick={() => handleOpenModal()}
+                variant="primary"
+                className="w-auto"
+              >
+                <Plus size={20} /> Tambah Karyawan
+              </Button>
+            </div>
+
+            <div
+              className={`overflow-x-auto ${theme.colors.card} ${theme.rounding.card} shadow-md`}
+            >
+              <table className="w-full table-auto">
+                <thead className={`border-b ${theme.colors.border}`}>
+                  <tr>
+                    <th
+                      className={`p-4 text-left text-sm font-semibold ${theme.colors.textSecondary}`}
+                    >
+                      ID
+                    </th>
+                    <th
+                      className={`p-4 text-left text-sm font-semibold ${theme.colors.textSecondary}`}
+                    >
+                      Nama
+                    </th>
+                    <th
+                      className={`p-4 text-left text-sm font-semibold ${theme.colors.textSecondary}`}
+                    >
+                      Posisi
+                    </th>
+                    <th
+                      className={`p-4 text-left text-sm font-semibold ${theme.colors.textSecondary}`}
+                    >
+                      Aksi
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dbKaryawan.map((k, index) => (
+                    <tr
+                      key={k.id}
+                      className={`border-t ${theme.colors.border} ${
+                        index % 2 === 0 ? "bg-stone-50" : "bg-white"
+                      }`}
+                    >
+                      <td className="p-4 font-mono text-sm">{k.id}</td>
+                      <td className="p-4 font-medium">{k.nama}</td>
+                      <td className={`p-4 text-sm ${theme.colors.textSecondary}`}>
+                        {k.posisi}
+                      </td>
+                      <td className="p-4">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleOpenModal(k)}
+                            className="text-blue-600 hover:text-blue-800"
+                          >
+                            <Edit size={18} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(k.id)}
+                            className="text-red-600 hover:text-red-800"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {showModal && (
+              <Modal
+                title={selectedKaryawan ? "Edit Karyawan" : "Tambah Karyawan"}
+                onClose={handleCloseModal}
+              >
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <Input
+                    name="id"
+                    placeholder="ID Karyawan"
+                    value={formData.id}
+                    onChange={handleChange}
+                    disabled
+                  />
+                  <Input
+                    name="nama"
+                    placeholder="Nama Lengkap"
+                    value={formData.nama}
+                    onChange={handleChange}
+                  />
+                  <Input
+                    name="posisi"
+                    placeholder="Posisi (ex: Pramusaji, Chef)"
+                    value={formData.posisi}
+                    onChange={handleChange}
+                  />
+                  <Input
+                    name="password"
+                    type="password"
+                    placeholder="Password"
+                    value={formData.password}
+                    onChange={handleChange}
+                  />
+                  <Input
+                    name="fotoInisial"
+                    placeholder="Inisial (ex: JD)"
+                    value={formData.fotoInisial}
+                    onChange={handleChange}
+                  />
+                  <Button type="submit" variant="accent" className="mt-4">
+                    Simpan
+                  </Button>
+                </form>
+              </Modal>
+            )}
+          </div>
+        );
+      };
+
+      const ManagerRoster = ({ dbKaryawan, dbRoster, setDbRoster }) => {
+        const [week, setWeek] = useState(getNext7Days(TODAY));
+
+        const handleShiftChange = (karyawanId, dateString, newShift) => {
+          setDbRoster((prevRoster) => {
+            const updatedRoster = { ...prevRoster };
+            if (!updatedRoster[karyawanId]) {
+              updatedRoster[karyawanId] = {};
+            }
+            updatedRoster[karyawanId][dateString] =
+              newShift === "OFF" ? "OFF" : parseInt(newShift, 10);
+            return updatedRoster;
+          });
+        };
+
+        const navigateWeek = (direction) => {
+          const newStartDate = new Date(week[0].getTime());
+          newStartDate.setDate(newStartDate.getDate() + direction * 7);
+          setWeek(getNext7Days(formatDateYYYYMMDD(newStartDate)));
+        };
+
+        return (
+          <div className="p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h1
+                className={`text-3xl font-bold ${theme.colors.textPrimary}`}
+              >
+                Manajemen Roster
+              </h1>
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={() => navigateWeek(-1)}
+                  variant="light"
+                  className="w-auto p-2"
+                >
+                  <ChevronLeft size={20} />
+                </Button>
+                <span className="font-semibold text-lg w-48 text-center">
+                  {week[0].toLocaleDateString("id-ID", {
+                    day: "numeric",
+                    month: "short",
+                  })}
+                  {" - "}
+                  {week[6].toLocaleDateString("id-ID", {
+                    day: "numeric",
+                    month: "short",
+                  })}
+                </span>
+                <Button
+                  onClick={() => navigateWeek(1)}
+                  variant="light"
+                  className="w-auto p-2"
+                >
+                  <ChevronRight size={20} />
+                </Button>
+              </div>
+            </div>
+
+            <p className={theme.colors.textSecondary}>
+              Roster drag-and-drop belum tersedia. Silakan gunakan form select di
+              bawah.
+            </p>
+
+            <div
+              className={`mt-4 overflow-x-auto ${theme.colors.card} ${theme.rounding.card} shadow-md`}
+            >
+              <table className="w-full min-w-[800px] table-auto">
+                <thead>
+                  <tr className={`border-b ${theme.colors.border}`}>
+                    <th
+                      className={`p-3 text-left font-semibold ${theme.colors.textSecondary} sticky left-0 bg-white`}
+                    >
+                      Karyawan
+                    </th>
+                    {week.map((day) => (
+                      <th
+                        key={day.toISOString()}
+                        className={`p-3 text-center font-semibold ${theme.colors.textSecondary}`}
+                      >
+                        <p>
+                          {day.toLocaleDateString("id-ID", { weekday: "short" })}
+                        </p>
+                        <p>{day.getDate()}</p>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {dbKaryawan.map((k, index) => (
+                    <tr
+                      key={k.id}
+                      className={`border-t ${theme.colors.border} ${
+                        index % 2 === 0 ? "bg-stone-50" : "bg-white"
+                      }`}
+                    >
+                      <td
+                        className={`p-3 font-medium sticky left-0 ${
+                          index % 2 === 0 ? "bg-stone-50" : "bg-white"
+                        }`}
+                      >
+                        <p>{k.nama}</p>
+                        <p
+                          className={`text-sm ${theme.colors.textSecondary}`}
+                        >
+                          {k.posisi}
+                        </p>
+                      </td>
+                      {week.map((day) => {
+                        const dayString = formatDateYYYYMMDD(day);
+                        const currentShift = dbRoster[k.id]?.[dayString] || "OFF";
+
+                        return (
+                          <td key={dayString} className="p-2 text-center">
+                            <select
+                              value={currentShift}
+                              onChange={(e) =>
+                                handleShiftChange(
+                                  k.id,
+                                  dayString,
+                                  e.target.value
+                                )
+                              }
+                              className={`w-full p-2 ${
+                                theme.rounding.input
+                              } border ${theme.colors.border} font-medium ${
+                                currentShift === 1
+                                  ? "bg-blue-100 text-blue-700"
+                                  : currentShift === 2
+                                  ? "bg-orange-100 text-orange-700"
+                                  : currentShift === 3
+                                  ? "bg-indigo-100 text-indigo-700"
+                                  : "bg-gray-100 text-gray-700"
+                              }`}
+                            >
+                              <option value="OFF">OFF</option>
+                              <option value="1">Pagi (1)</option>
+                              <option value="2">Siang (2)</option>
+                              <option value="3">Malam (3)</option>
+                            </select>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+      };
+
+      const ManagerLaporan = ({ dbAbsensi }) => {
+        const [filterTanggal, setFilterTanggal] = useState(TODAY);
+        const [filterKaryawan, setFilterKaryawan] = useState("");
+
+        const filteredData = dbAbsensi.filter((a) => {
+          const byTanggal = !filterTanggal || a.tanggal === filterTanggal;
+          const byKaryawan = !filterKaryawan || a.idKaryawan === filterKaryawan;
+          return byTanggal && byKaryawan;
+        });
+
+        const mockExportCSV = () => {
+          console.log("Mock Export CSV:", filteredData);
+          alert(
+            "Data (mock) diekspor ke konsol. Di aplikasi nyata, ini akan men-download file CSV."
+          );
+        };
+
+        return (
+          <div className="p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h1
+                className={`text-3xl font-bold ${theme.colors.textPrimary}`}
+              >
+                Laporan Absensi
+              </h1>
+              <Button
+                onClick={mockExportCSV}
+                variant="accent"
+                className="w-auto"
+              >
+                <FileText size={20} /> Ekspor ke CSV
+              </Button>
+            </div>
+
+            <div
+              className={`grid grid-cols-1 md:grid-cols-2 gap-4 p-4 mb-6 ${theme.colors.card} ${theme.rounding.card} shadow-sm`}
+            >
+              <Input
+                type="date"
+                value={filterTanggal}
+                onChange={(e) => setFilterTanggal(e.target.value)}
+              />
+              <Input
+                placeholder="Filter by ID Karyawan (cth: PB251101)"
+                value={filterKaryawan}
+                onChange={(e) => setFilterKaryawan(e.target.value)}
+              />
+            </div>
+
+            <div
+              className={`overflow-x-auto ${theme.colors.card} ${theme.rounding.card} shadow-md`}
+            >
+              <table className="w-full min-w-[800px] table-auto">
+                <thead className={`border-b ${theme.colors.border}`}>
+                  <tr>
+                    <th
+                      className={`p-3 text-left text-sm font-semibold ${theme.colors.textSecondary}`}
+                    >
+                      Tanggal
+                    </th>
+                    <th
+                      className={`p-3 text-left text-sm font-semibold ${theme.colors.textSecondary}`}
+                    >
+                      Nama
+                    </th>
+                    <th
+                      className={`p-3 text-left text-sm font-semibold ${theme.colors.textSecondary}`}
+                    >
+                      Posisi
+                    </th>
+                    <th
+                      className={`p-3 text-left text-sm font-semibold ${theme.colors.textSecondary}`}
+                    >
+                      Shift
+                    </th>
+                    <th
+                      className={`p-3 text-left text-sm font-semibold ${theme.colors.textSecondary}`}
+                    >
+                      Check-in
+                    </th>
+                    <th
+                      className={`p-3 text-left text-sm font-semibold ${theme.colors.textSecondary}`}
+                    >
+                      Check-out
+                    </th>
+                    <th
+                      className={`p-3 text-left text-sm font-semibold ${theme.colors.textSecondary}`}
+                    >
+                      Lokasi
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredData.map((a, index) => (
+                    <tr
+                      key={a.id}
+                      className={`border-t ${theme.colors.border} ${
+                        index % 2 === 0 ? "bg-stone-50" : "bg-white"
+                      }`}
+                    >
+                      <td className="p-3 text-sm">{a.tanggal}</td>
+                      <td className="p-3 font-medium">{a.namaKaryawan}</td>
+                      <td
+                        className={`p-3 text-sm ${theme.colors.textSecondary}`}
+                      >
+                        {a.posisi}
+                      </td>
+                      <td className="p-3 text-sm">{a.shift}</td>
+                      <td className="p-3 text-sm">
+                        {a.checkIn ? formatTime(a.checkIn.waktu) : "-"}
+                      </td>
+                      <td className="p-3 text-sm">
+                        {a.checkOut ? formatTime(a.checkOut.waktu) : "-"}
+                      </td>
+                      <td className="p-3 text-sm">
+                        {a.checkIn?.alasanLuarArea ? (
+                          <span className="font-medium text-yellow-700">
+                            Luar Area
+                          </span>
+                        ) : (
+                          <span className="font-medium text-green-700">
+                            Dalam Area
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {filteredData.length === 0 && (
+                <p
+                  className={`p-6 text-center ${theme.colors.textSecondary}`}
+                >
+                  Tidak ada data absensi yang sesuai dengan filter.
+                </p>
+              )}
+            </div>
+          </div>
+        );
+      };
+
+      const ManagerDashboard = ({ onLogout, ...props }) => {
+        const [activePage, setActivePage] = useState("home");
+
+        const navItems = [
+          { id: "home", label: "Dashboard", icon: BarChart2 },
+          { id: "karyawan", label: "Karyawan", icon: Users },
+          { id: "roster", label: "Roster", icon: Calendar },
+          { id: "laporan", label: "Laporan", icon: FileText },
+        ];
+
+        const renderContent = () => {
+          switch (activePage) {
+            case "home":
+              return <ManagerHome {...props} />;
+            case "karyawan":
+              return <ManagerKaryawan {...props} />;
+            case "roster":
+              return <ManagerRoster {...props} />;
+            case "laporan":
+              return <ManagerLaporan {...props} />;
+            default:
+              return <ManagerHome {...props} />;
+          }
+        };
+
+        return (
+          <div className={`flex w-full min-h-screen ${theme.colors.background}`}>
+            <nav
+              className={`hidden md:flex w-64 flex-col ${theme.colors.card} border-r ${theme.colors.border} p-5`}
+            >
+              <div className="flex items-center gap-2 mb-10">
+                <Coffee size={32} className="text-amber-800" />
+                <h1
+                  className={`text-2xl font-bold ${theme.colors.textPrimary}`}
+                >
+                  PayBoss<span className="text-amber-800">Cafe</span>
+                </h1>
+              </div>
+
+              <div className="flex-grow space-y-2">
+                {navItems.map((item) => {
+                  const isActive = activePage === item.id;
+                  const Icon = item.icon;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => setActivePage(item.id)}
+                      className={`flex w-full items-center gap-3 p-3 ${
+                        theme.rounding.button
+                      } font-medium transition-colors ${
+                        isActive
+                          ? "bg-amber-800 text-white"
+                          : "text-stone-600 hover:bg-stone-100"
+                      }`}
+                    >
+                      <Icon size={20} /> {item.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <Button onClick={onLogout} variant="danger" className="w-full">
+                <LogOut size={20} /> Logout Manager
+              </Button>
+            </nav>
+
+            <main className="flex-grow overflow-y-auto">{renderContent()}</main>
+
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-white shadow-lg border-t border-stone-200 flex justify-around items-center">
+              {navItems.map((item) => {
+                const isActive = activePage === item.id;
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => setActivePage(item.id)}
+                    className={`flex flex-col items-center justify-center w-full h-full transition-colors ${
+                      isActive ? "text-amber-800" : "text-stone-500"
+                    }`}
+                  >
+                    <Icon size={24} />
+                    <span
+                      className={`text-xs font-medium mt-1 ${
+                        isActive ? "font-bold" : ""
+                      }`}
+                    >
+                      {item.label}
+                    </span>
+                  </button>
+                );
+              })}
+              <button
+                onClick={onLogout}
+                className="flex flex-col items-center justify-center w-full h-full transition-colors text-red-500"
+              >
+                <LogOut size={24} />
+                <span className="text-xs font-medium mt-1">Logout</span>
+              </button>
+            </nav>
+          </div>
+        );
+      };
+
+      // --- LOGIN PAGE ---
+
+      const LoginPage = ({ onEmployeeLogin, onManagerLogin }) => {
+        const [activeTab, setActiveTab] = useState("karyawan");
+
+        const [idKaryawan, setIdKaryawan] = useState("PB251102");
+        const [passKaryawan, setPassKaryawan] = useState("ilham123");
+
+        const [idManager, setIdManager] = useState("admin");
+        const [passManager, setPassManager] = useState("payboss123");
+
+        const [error, setError] = useState(null);
+
+        const handleEmployeeSubmit = (e) => {
+          e.preventDefault();
+          setError(null);
+          const success = onEmployeeLogin(idKaryawan, passKaryawan);
+          if (!success) {
+            setError("ID Karyawan atau Password salah.");
+          }
+        };
+
+        const handleManagerSubmit = (e) => {
+          e.preventDefault();
+          setError(null);
+          const success = onManagerLogin(idManager, passManager);
+          if (!success) {
+            setError("Username atau Password Manajer salah.");
+          }
+        };
+
+        const renderKaryawanLogin = () => (
+          <motion.form
+            key="karyawan"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            onSubmit={handleEmployeeSubmit}
+            className="space-y-4"
+          >
+            <Input
+              placeholder="ID Karyawan (cth: PB251101)"
+              value={idKaryawan}
+              onChange={(e) => setIdKaryawan(e.target.value)}
+              icon={<User size={18} />}
+            />
+            <Input
+              type="password"
+              placeholder="Password"
+              value={passKaryawan}
+              onChange={(e) => setPassKaryawan(e.target.value)}
+              icon={<ShieldCheck size={18} />}
+            />
+            <Button type="submit" variant="primary" className="mt-4">
+              <LogIn size={20} /> Login Karyawan
+            </Button>
+          </motion.form>
+        );
+
+        const renderManagerLogin = () => (
+          <motion.form
+            key="manager"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            onSubmit={handleManagerSubmit}
+            className="space-y-4"
+          >
+            <Input
+              placeholder="Username Manajer"
+              value={idManager}
+              onChange={(e) => setIdManager(e.target.value)}
+              icon={<User size={18} />}
+            />
+            <Input
+              type="password"
+              placeholder="Password Manajer"
+              value={passManager}
+              onChange={(e) => setPassManager(e.target.value)}
+              icon={<ShieldCheck size={18} />}
+            />
+            <Button type="submit" variant="secondary" className="mt-4">
+              <LogIn size={20} /> Login Manajer
+            </Button>
+          </motion.form>
+        );
+
+        return (
+          <div
+            className={`flex items-center justify-center min-h-screen ${theme.colors.background} p-4`}
+          >
+            <div
+              className={`w-full max-w-md ${theme.colors.card} ${theme.rounding.card} shadow-2xl overflow-hidden`}
+            >
+              <div className={`p-8 text-center ${theme.colors.primary} text-white`}>
+                <motion.div
+                  initial={{ scale: 0.5 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.2, type: "spring" }}
+                >
+                  <Coffee size={48} className="mx-auto text-amber-300" />
+                </motion.div>
+                <h1 className="text-3xl font-bold mt-2">PayBoss Cafe</h1>
+                <p className="text-stone-300">Sistem Absensi Karyawan</p>
+              </div>
+
+              <div className="flex">
+                <button
+                  className={`w-1/2 p-4 font-semibold text-center ${
+                    activeTab === "karyawan"
+                      ? "bg-white text-amber-800 border-b-4 border-amber-800"
+                      : "bg-stone-50 text-stone-600"
+                  }`}
+                  onClick={() => {
+                    setActiveTab("karyawan");
+                    setError(null);
+                  }}
+                >
+                  Karyawan
+                </button>
+                <button
+                  className={`w-1/2 p-4 font-semibold text-center ${
+                    activeTab === "manager"
+                      ? "bg-white text-amber-800 border-b-4 border-amber-800"
+                      : "bg-stone-50 text-stone-600"
+                  }`}
+                  onClick={() => {
+                    setActiveTab("manager");
+                    setError(null);
+                  }}
+                >
+                  Manajer
+                </button>
+              </div>
+
+              <div className="p-8">
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-center text-sm"
+                  >
+                    {error}
+                  </motion.div>
+                )}
+
+                <AnimatePresence mode="wait">
+                  {activeTab === "karyawan"
+                    ? renderKaryawanLogin()
+                    : renderManagerLogin()}
+                </AnimatePresence>
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      // --- APP UTAMA ---
+
+      function App() {
+        const [dbKaryawan, setDbKaryawan] = useState(initialDbKaryawan);
+        const [dbRoster, setDbRoster] = useState(initialDbRoster);
+        const [dbJobDesk] = useState(jobDeskTemplates);
+        const [dbAbsensi, setDbAbsensi] = useState([
+          {
+            id: `att_PB251101_${TODAY}`,
+            idKaryawan: "PB251101",
+            namaKaryawan: "Dayat",
+            posisi: "Koordinator",
+            tanggal: TODAY,
+            shift: "OFF",
+            checkIn: null,
+            checkOut: null,
+            jobDeskProgress: [],
+            status: "Libur",
+          },
+        ]);
+
+        const [currentUser, setCurrentUser] = useState(null); // null, 'manager', atau objek karyawan
+
+        const managerCredentials = { username: "admin", password: "payboss123" };
+
+        const handleEmployeeLogin = (id, password) => {
+          const user = dbKaryawan.find(
+            (k) => k.id === id && k.password === password
+          );
+          if (user) {
+            setCurrentUser(user);
+            return true;
+          }
+          return false;
+        };
+
+        const handleManagerLogin = (username, password) => {
+          if (
+            username === managerCredentials.username &&
+            password === managerCredentials.password
+          ) {
+            setCurrentUser("manager");
+            return true;
+          }
+          return false;
+        };
+
+        const handleLogout = () => {
+          setCurrentUser(null);
+        };
+
+        // Contoh: Load data absensi dari Google Sheet saat awal (kalau Apps Script sudah siap)
+        useEffect(() => {
+          (async () => {
+            const sheetData = await loadAbsensiDariSheet();
+            if (sheetData && sheetData.length > 0) {
+              setDbAbsensi(sheetData);
+            }
+          })();
+        }, []);
+
+        const managerProps = {
+          dbKaryawan,
+          setDbKaryawan,
+          dbRoster,
+          setDbRoster,
+          dbJobDesk,
+          dbAbsensi,
+          setDbAbsensi,
+          onLogout: handleLogout,
+        };
+
+        const employeeProps = {
+          user: currentUser,
+          dbAbsensi,
+          setDbAbsensi,
+          dbRoster,
+          setDbRoster,
+          dbJobDesk,
+          onLogout: handleLogout,
+        };
+
+        if (!currentUser) {
+          return (
+            <LoginPage
+              onEmployeeLogin={handleEmployeeLogin}
+              onManagerLogin={handleManagerLogin}
+            />
+          );
+        }
+
+        if (currentUser === "manager") {
+          return <ManagerDashboard {...managerProps} />;
+        }
+
+        return <EmployeeDashboard {...employeeProps} />;
+      }
+
+      const rootElement = document.getElementById("root");
+      const root = ReactDOM.createRoot(rootElement);
+      root.render(<App />);
+    </script>
+  </body>
 </html>
