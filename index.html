@@ -1,1190 +1,882 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pay Boss Entertainment Manager</title>
-  
-  <!-- SDK Asli tidak digunakan, kita akan gunakan Firebase -->
-  
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- LIBRARY BARU: Untuk membuat file Excel -->
-  <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
-  
-  <style>
-    body {
-      box-sizing: border-box;
-    }
-    
-    @keyframes pulse-glow {
-      0%, 100% { box-shadow: 0 0 20px rgba(251, 191, 36, 0.5); }
-      50% { box-shadow: 0 0 30px rgba(251, 191, 36, 0.8); }
-    }
-    
-    .active-room {
-      animation: pulse-glow 2s infinite;
-    }
-    
-    @keyframes slideIn {
-      from { transform: translateY(-20px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-    
-    .slide-in {
-      animation: slideIn 0.3s ease-out;
-    }
-    
-    @media print {
-      body * { visibility: hidden; }
-      #receipt-print, #receipt-print * { visibility: visible; }
-      #receipt-print { position: absolute; left: 0; top: 0; width: 80mm; }
-    }
-  </style>
-  <style>@view-transition { navigation: auto; }</style>
-</head>
-<body class="min-h-full bg-gray-100"> <!-- WARNA BODY DIGANTI -->
-  <div id="app" class="min-h-full p-4"></div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PayBoss Cafe - Sistem Absensi</title>
 
-  <!--
-    ==========================================
-    MOCK ELEMENT SDK (UNTUK STYLING)
-    ==========================================
-    Ini adalah simulasi untuk elementSdk agar
-    konfigurasi tema (warna, font) tetap berfungsi.
-  -->
-  <script>
-    (function() {
-      // Mock untuk Data SDK DIHAPUS. Kita akan gunakan Firebase.
+    <!-- TailwindCSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
-      // 2. Mock untuk Element SDK
-      let mockConfig = null;
-      let globalConfigChangeHandler = null;
+    <!-- React & ReactDOM (CDN) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
 
-      window.elementSdk = {
-        config: {}, // Akan diisi oleh aplikasi saat init
-        init: (options) => {
-          console.log("Mock Element SDK Initialized");
-          // Ambil konfigurasi default dari aplikasi
-          mockConfig = options.defaultConfig || {};
-          window.elementSdk.config = mockConfig;
-          globalConfigChangeHandler = options.onConfigChange;
-          
-          if (globalConfigChangeHandler) {
-            setTimeout(() => globalConfigChangeHandler(mockConfig), 0);
-          }
-          
-          return {
-            mapToCapabilities: options.mapToCapabilities || (() => ({})),
-            mapToEditPanelValues: options.mapToEditPanelValues || (() => new Map())
+    <!-- Babel (untuk JSX di browser) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Framer Motion UMD -->
+    <script src="https://unpkg.com/framer-motion/dist/framer-motion.umd.js"></script>
+  </head>
+
+  <body class="bg-stone-100">
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const { useState, useRef, useEffect, useCallback } = React;
+
+      // Inisialisasi Framer Motion dari UMD (fallback kalau gagal load)
+      const fm = window.FramerMotion || null;
+      const motion = fm
+        ? fm.motion
+        : {
+            div: (props) => <div {...props} />, 
+            form: (props) => <form {...props} />,
           };
+      const AnimatePresence = fm ? fm.AnimatePresence : ({ children }) => <>{children}</>;
+
+      // --- SIMPLE ICON WRAPPER ---
+      const IconWrapper = ({ children, className = "", size = 24 }) => (
+        <span
+          className={className}
+          style={{ fontSize: size, display: "inline-flex", alignItems: "center", justifyContent: "center" }}
+        >
+          {children}
+        </span>
+      );
+
+      const Home = (props) => <IconWrapper {...props}>🏠</IconWrapper>;
+      const LogIn = (props) => <IconWrapper {...props}>🔑</IconWrapper>;
+      const LogOut = (props) => <IconWrapper {...props}>🚪</IconWrapper>;
+      const User = (props) => <IconWrapper {...props}>👤</IconWrapper>;
+      const BarChart2 = (props) => <IconWrapper {...props}>📊</IconWrapper>;
+      const Users = (props) => <IconWrapper {...props}>👥</IconWrapper>;
+      const Calendar = (props) => <IconWrapper {...props}>📅</IconWrapper>;
+      const FileText = (props) => <IconWrapper {...props}>📄</IconWrapper>;
+      const CheckCircle = (props) => <IconWrapper {...props}>✅</IconWrapper>;
+      const XCircle = (props) => <IconWrapper {...props}>❌</IconWrapper>;
+      const MapPin = (props) => <IconWrapper {...props}>📍</IconWrapper>;
+      const Camera = (props) => <IconWrapper {...props}>📷</IconWrapper>;
+      const ListChecks = (props) => <IconWrapper {...props}>✅</IconWrapper>;
+      const ChevronLeft = (props) => <IconWrapper {...props}>◀️</IconWrapper>;
+      const ChevronRight = (props) => <IconWrapper {...props}>▶️</IconWrapper>;
+      const Plus = (props) => <IconWrapper {...props}>➕</IconWrapper>;
+      const Trash2 = (props) => <IconWrapper {...props}>🗑️</IconWrapper>;
+      const Edit = (props) => <IconWrapper {...props}>✏️</IconWrapper>;
+      const Clock = (props) => <IconWrapper {...props}>⏰</IconWrapper>;
+      const AlertTriangle = (props) => <IconWrapper {...props}>⚠️</IconWrapper>;
+      const Coffee = (props) => <IconWrapper {...props}>☕</IconWrapper>;
+      const ShieldCheck = (props) => <IconWrapper {...props}>🛡️</IconWrapper>;
+      const Moon = (props) => <IconWrapper {...props}>🌙</IconWrapper>;
+      const Sun = (props) => <IconWrapper {...props}>☀️</IconWrapper>;
+      const Sunset = (props) => <IconWrapper {...props}>🌆</IconWrapper>;
+
+      // --- THEME PAYBOSS ---
+      const theme = {
+        colors: {
+          primary: "bg-stone-700",
+          primaryHover: "hover:bg-stone-800",
+          secondary: "bg-amber-800",
+          secondaryHover: "hover:bg-amber-900",
+          accent: "bg-green-700",
+          accentHover: "hover:bg-green-800",
+          background: "bg-stone-100",
+          card: "bg-white",
+          textPrimary: "text-stone-800",
+          textSecondary: "text-stone-600",
+          textLight: "text-white",
+          border: "border-stone-200",
+          danger: "bg-red-600",
+          success: "bg-green-600",
         },
-        setConfig: (newConfig) => {
-          console.log("Mock Element SDK: SetConfig", newConfig);
-          mockConfig = Object.assign(window.elementSdk.config, newConfig);
-          if (globalConfigChangeHandler) {
-            globalConfigChangeHandler(mockConfig);
-          }
-        }
+        rounding: {
+          card: "rounded-2xl",
+          button: "rounded-lg",
+          input: "rounded-lg",
+        },
       };
-    })();
-  </script>
-  <!-- ========================================== -->
-  <!-- SCRIPT FIREBASE & APLIKASI -->
-  <!-- ========================================== -->
-  <script type="module">
-    // Import Firebase
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, addDoc, updateDoc, onSnapshot, collection, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    const defaultConfig = {
-      app_title: "One Stop Entertainment Pay Boss",
-
-      // --- SERVICE STATUS (fitur baru) ---
-      // "true" atau "false". Mengontrol apakah layanan muncul di dashboard.
-      billiard_enabled: "false", // <-- UBAH INI JADI "false"
-      karaoke_enabled: "true",
-      massage_enabled: "false", // <-- UBAH INI JADI "false"
-
-      // --- HARGA & SERVICE ---
-      // (Harga Biliard & Massage)
-      billiard_price: "50000",
-      billiard_service: "0",
-      
-      massage_price: "30000",
-      massage_service: "0",
-
-      // (Harga baru Karaoke per room)
-      karaoke_k1_price: "175000", // Room 1 Besar
-      karaoke_k1_service: "15000",
-      
-      karaoke_k2_price: "100000", // Room 2
-      karaoke_k2_service: "10000",
-      
-      karaoke_k3_price: "100000", // Room 3
-      karaoke_k3_service: "10000",
-      
-      // --- KONFIGURASI TAMPILAN ---
-      background_color: "#F3F4F6", // Abu-abu muda (Modern)
-      surface_color: "#FFFFFF",    // Putih (Bersih)
-      text_color: "#1F2937",       // Abu-abu gelap (Teks profesional)
-      primary_action_color: "#3B82F6", // Biru (Tombol utama)
-      secondary_action_color: "#6B7280", // Abu-abu (Tombol sekunder)
-      font_family: "Inter",
-      font_size: 16
-    };
-    
-    // Variabel global Firebase
-    let db, auth, app, userId, appId;
-    let unsubscribeBookings = null; // Untuk listener snapshot
-
-    let currentUser = null; // User aplikasi (Kasir/Manager)
-    let allBookings = []; // Data dari Firebase
-    let currentView = 'login';
-    let selectedBooking = null;
-
-    const USERS = {
-      kasir1: { username: 'kasir1', password: 'kasir123', role: 'Kasir', name: 'Kasir 1' },
-      kasir2: { username: 'kasir2', password: 'kasir123', role: 'Kasir', name: 'Kasir 2' },
-      manager: { username: 'manager', password: 'manager123', role: 'Manager', name: 'Manager' }
-    };
-
-    const ROOMS = {
-      billiard: [{ id: 'B1', name: 'Billiard 1', type: 'billiard' }],
-      karaoke: [
-        { id: 'K1', name: 'Karaoke 1 (Besar)', type: 'karaoke' }, // Nama diubah
-        { id: 'K2', name: 'Karaoke 2', type: 'karaoke' },
-        { id: 'K3', name: 'Karaoke 3', type: 'karaoke' }
-      ],
-      massage: [{ id: 'M1', name: 'Kursi Pijat 1', type: 'massage' }]
-    };
-
-    // Handler ini dipanggil oleh onSnapshot
-    const dataHandler = {
-      onDataChanged(data) {
-        allBookings = data;
-        if (currentView !== 'login') {
-          renderApp();
-        }
-      }
-    };
-
-    // Menggantikan initApp() asli
-    async function initializeFirebaseAndAuth() {
-      // KONFIGURASI FIREBASE ANDA DIMASUKKAN DI SINI
-      // --- INI ADALAH KONFIGURASI BARU ANDA ---
-      const firebaseConfig = {
-        apiKey: "AIzaSyCom-U-BP75_6j_9dwCXdA0VD1vmfCopOg",
-        authDomain: "paybossmanager.firebaseapp.com",
-        projectId: "paybossmanager",
-        storageBucket: "paybossmanager.firebasestorage.app",
-        messagingSenderId: "627431696008",
-        appId: "1:627431696008:web:56137065fbd9aee32b613d"
+      // Lokasi PayBoss Cafe (Target GPS)
+      const TARGET_LOCATION = {
+        latitude: -2.1717657457047723,
+        longitude: 115.4029877085838,
       };
-      // ----------------------------------------
+      const GPS_RADIUS_METERS = 100;
 
-      // Kita set appId ke projectId untuk konsistensi
-      appId = firebaseConfig.projectId || 'default-app-id';
+      // URL Google Apps Script (ganti kalau URL deploy berubah)
+      const GOOGLE_SHEET_WEBAPP_URL =
+        "https://script.google.com/macros/s/AKfycbxOHwN1-GyfwWrQLucTf-X0Db_9HefScgxd5g2h35-ntTNyGQZ4NePhZ39OfeZqRvdM/exec";
 
-      if (!firebaseConfig.apiKey) {
-        console.error("Firebase config missing!");
-        document.getElementById('app').innerHTML = `<div class="p-4 text-red-700">Firebase config not found. App cannot start.</div>`;
-        return;
+      // --- DATA KARYAWAN (bisa diedit manual di sini, atau nanti dihubungkan ke Sheet lain) ---
+      const initialDbKaryawan = [
+        {
+          id: "PB251101",
+          nama: "Dayat",
+          posisi: "Koordinator",
+          password: "dayat123",
+          fotoInisial: "D",
+          tanggalLahir: "",
+          fotoUrl: "",
+          noWhatsapp: "",
+          email: "",
+          alamat: "",
+          statusPernikahan: "",
+          kontakDarurat: "",
+        },
+        {
+          id: "PB251102",
+          nama: "Ilham Ali Naufal",
+          posisi: "Pramusaji",
+          password: "ilham123",
+          fotoInisial: "IAN",
+          tanggalLahir: "",
+          fotoUrl: "",
+          noWhatsapp: "",
+          email: "",
+          alamat: "",
+          statusPernikahan: "",
+          kontakDarurat: "",
+        },
+        {
+          id: "PB251104",
+          nama: "Renita Aulia Jasmin",
+          posisi: "Bartender",
+          password: "renita123",
+          fotoInisial: "RAJ",
+          tanggalLahir: "",
+          fotoUrl: "",
+          noWhatsapp: "",
+          email: "",
+          alamat: "",
+          statusPernikahan: "",
+          kontakDarurat: "",
+        },
+        {
+          id: "PB251106",
+          nama: "Bella",
+          posisi: "Barista",
+          password: "bella123",
+          fotoInisial: "B",
+          tanggalLahir: "",
+          fotoUrl: "",
+          noWhatsapp: "",
+          email: "",
+          alamat: "",
+          statusPernikahan: "",
+          kontakDarurat: "",
+        },
+        {
+          id: "PB251107",
+          nama: "Rina",
+          posisi: "Waitress",
+          password: "rina123",
+          fotoInisial: "R",
+          tanggalLahir: "",
+          fotoUrl: "",
+          noWhatsapp: "",
+          email: "",
+          alamat: "",
+          statusPernikahan: "",
+          kontakDarurat: "",
+        },
+        {
+          id: "PB251108",
+          nama: "Andi",
+          posisi: "Pramusaji",
+          password: "andi123",
+          fotoInisial: "A",
+          tanggalLahir: "",
+          fotoUrl: "",
+          noWhatsapp: "",
+          email: "",
+          alamat: "",
+          statusPernikahan: "",
+          kontakDarurat: "",
+        },
+        {
+          id: "PB251109",
+          nama: "Yoga",
+          posisi: "Chef",
+          password: "yoga123",
+          fotoInisial: "Y",
+          tanggalLahir: "",
+          fotoUrl: "",
+          noWhatsapp: "",
+          email: "",
+          alamat: "",
+          statusPernikahan: "",
+          kontakDarurat: "",
+        },
+      ];
+
+      // Jadwal roster contoh (boleh kamu sesuaikan lagi)
+      const initialDbRoster = {
+        PB251101: {
+          "2025-11-16": "OFF",
+          "2025-11-17": 1,
+          "2025-11-18": 1,
+          "2025-11-19": 1,
+          "2025-11-20": 1,
+          "2025-11-21": 1,
+          "2025-11-22": 1,
+        },
+        PB251102: {
+          "2025-11-16": 2,
+          "2025-11-17": "OFF",
+          "2025-11-18": 3,
+          "2025-11-19": 3,
+          "2025-11-20": 3,
+          "2025-11-21": 3,
+          "2025-11-22": 3,
+        },
+        PB251104: {
+          "2025-11-16": 2,
+          "2025-11-17": 2,
+          "2025-11-18": "OFF",
+          "2025-11-19": 2,
+          "2025-11-20": 2,
+          "2025-11-21": 2,
+          "2025-11-22": 2,
+        },
+        PB251108: {
+          "2025-11-16": 1,
+          "2025-11-17": 1,
+          "2025-11-18": 1,
+          "2025-11-19": "OFF",
+          "2025-11-20": 2,
+          "2025-11-21": 2,
+          "2025-11-22": 2,
+        },
+        PB251109: {
+          "2025-11-16": 1,
+          "2025-11-17": 1,
+          "2025-11-18": 1,
+          "2025-11-19": 1,
+          "2025-11-20": "OFF",
+          "2025-11-21": 1,
+          "2025-11-22": "OFF",
+        },
+        PB251106: {
+          "2025-11-16": 2,
+          "2025-11-17": 2,
+          "2025-11-18": "OFF",
+          "2025-11-19": 2,
+          "2025-11-20": 2,
+          "2025-11-21": 2,
+          "2025-11-22": 2,
+        },
+        PB251107: {
+          "2025-11-16": 2,
+          "2025-11-17": "OFF",
+          "2025-11-18": 3,
+          "2025-11-19": 3,
+          "2025-11-20": 3,
+          "2025-11-21": 3,
+          "2025-11-22": 3,
+        },
+      };
+
+      // Shift
+      const shiftDetails = {
+        1: { nama: "Pagi", ikon: Sun, waktu: "08:00 - 16:00", color: "text-blue-500" },
+        2: { nama: "Siang", ikon: Sunset, waktu: "16:00 - 23:00", color: "text-orange-500" },
+        3: { nama: "Malam", ikon: Moon, waktu: "23:00 - 08:00", color: "text-indigo-500" },
+        OFF: { nama: "OFF", ikon: Home, waktu: "Libur", color: "text-gray-500" },
+      };
+
+      // Jobdesk per posisi
+      const jobDeskByPosition = {
+        "Koordinator": [
+          "Memimpin briefing pagi tim FOH & BOH",
+          "Memastikan ketersediaan stok (Bar & Kitchen)",
+          "Menangani keluhan atau masukan tamu (service recovery)",
+          "Membuat laporan closing harian",
+          "Memastikan semua tim menjalankan SOP dengan baik",
+        ],
+        "Pramusaji": [
+          "Menyambut tamu dan mengantarkan ke meja",
+          "Mencatat pesanan dengan jelas di sistem/nota",
+          "Menyajikan makanan & minuman ke tamu dengan sopan",
+          "Membersihkan meja setelah tamu selesai",
+          "Membantu menjaga kebersihan area dining",
+        ],
+        "Waitress": [
+          "Menyambut tamu dengan ramah",
+          "Menyajikan makanan & minuman ke tamu",
+          "Melakukan pengecekan kepuasan tamu di meja",
+          "Membersihkan meja dan area dining",
+          "Membantu pramusaji lain jika sedang ramai",
+        ],
+        "Bartender": [
+          "Menyiapkan minuman kopi & non-kopi sesuai resep",
+          "Menjaga kebersihan area bar & peralatan",
+          "Melakukan kalibrasi mesin espresso di awal shift",
+          "Mencatat kebutuhan restock bahan minuman",
+          "Menyajikan minuman dengan presentasi yang menarik",
+        ],
+        "Barista": [
+          "Menyiapkan minuman kopi & signature drink",
+          "Menjaga stok biji kopi & bahan minuman",
+          "Membersihkan mesin kopi setelah digunakan",
+          "Mencatat bahan yang perlu restock",
+          "Membantu FOH saat kondisi ramai",
+        ],
+        "Chef": [
+          "Persiapan 'mise en place' bahan baku kitchen",
+          "Memasak pesanan sesuai SOP dan urutan (FIFO)",
+          "Menjaga kualitas rasa dan presentasi hidangan",
+          "Memastikan kebersihan area kitchen",
+          "Melakukan stok opname harian bahan baku kitchen",
+        ],
+      };
+
+      // --- UTILITAS WAKTU & JARAK ---
+      function getHaversineDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371e3; // meter
+        const φ1 = (lat1 * Math.PI) / 180;
+        const φ2 = (lat2 * Math.PI) / 180;
+        const Δφ = ((lat2 - lat1) * Math.PI) / 180;
+        const Δλ = ((lon2 - lon1) * Math.PI) / 180;
+
+        const a =
+          Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+          Math.cos(φ1) * Math.cos(φ2) *
+            Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return R * c; // dalam meter
       }
 
-      app = initializeApp(firebaseConfig);
-      db = getFirestore(app);
-      auth = getAuth(app);
-      setLogLevel('Debug'); // Tampilkan log Firebase
-
-      onAuthStateChanged(auth, (user) => {
-        if (user) {
-          userId = user.uid;
-          console.log("Firebase User authenticated:", user); // Log lebih detail
-          // User sudah login, muat data booking
-          loadBookings();
-        } else {
-          // User belum login, render halaman login
-          console.log("Firebase User not authenticated.");
-          userId = null;
-          if (unsubscribeBookings) {
-            unsubscribeBookings(); // Hentikan listener lama
-            unsubscribeBookings = null;
-          }
-          renderApp(); // Pastikan renderApp dipanggil
-        }
-      });
-
-      // Coba login
-      try {
-        // DIMODIFIKASI: Karena kita menggunakan konfigurasi Firebase kustom,
-        // kita tidak boleh menggunakan __initial_auth_token (yang mana
-        // ditujukan untuk project lain).
-        // Kita HARUS login secara anonim ke project kita sendiri.
-        await signInAnonymously(auth);
-        
-      } catch (error) {
-        console.error("Firebase sign-in failed:", error);
-      }
-    }
-    
-    // Fungsi baru untuk memuat dan mendengarkan data booking
-    function loadBookings() {
-      if (!userId) {
-        console.log("loadBookings skipped: userId not available.");
-        return; 
-      }
-      
-      // Hentikan listener sebelumnya jika ada
-      if (unsubscribeBookings) {
-        unsubscribeBookings();
+      function formatDateYYYYMMDD(date) {
+        return date.toISOString().split("T")[0];
       }
 
-      // DIMODIFIKASI: Path dikembalikan ke users/{userId}/bookings
-      // Ini adalah path yang aman dan benar secara struktur.
-      // --- PERUBAHAN SOLUSI: Kita akan menggunakan path 'publik' yang sama untuk semua user ---
-      const collectionRef = collection(db, 'payboss_bookings', appId, 'all_bookings');
-      console.log('Attempting to listen to Firestore at path:', collectionRef.path);
-      
-      // Dengarkan perubahan data secara real-time
-      unsubscribeBookings = onSnapshot(collectionRef, (snapshot) => {
-        console.log("Firestore data updated!");
-        const bookingsData = snapshot.docs.map(doc => ({
-          id: doc.id, // Penting: tambahkan ID dokumen Firestore
-          ...doc.data()
+      function formatShortDate(date) {
+        return date.toLocaleDateString("id-ID", {
+          weekday: "long",
+          day: "numeric",
+          month: "short",
+        });
+      }
+
+      function formatTime(date) {
+        if (!date) return "-";
+        return date.toLocaleTimeString("id-ID", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        });
+      }
+
+      function buildJobdeskForPosition(posisi) {
+        const tasks = jobDeskByPosition[posisi] || [];
+        return tasks.map((label, idx) => ({
+          id: idx + 1,
+          label,
+          completed: false,
         }));
-        dataHandler.onDataChanged(bookingsData);
-      }, (error) => {
-        console.error("Error listening to Firestore:", error);
-        console.error("PASTIKAN FIREBASE SECURITY RULES ANDA MENGIZINKAN AKSES 'read' ke path:", collectionRef.path);
-      });
-    }
-
-    // Fungsi init utama aplikasi
-    async function initApp() {
-      // 1. Inisialisasi Firebase & Autentikasi
-      await initializeFirebaseAndAuth();
-
-      // 2. Inisialisasi Element SDK (Mock)
-      // Ini harus dipanggil setelah Firebase init agar config-nya siap
-      window.elementSdk.init({
-        defaultConfig,
-        onConfigChange,
-        mapToCapabilities: (config) => ({
-          recolorables: [
-            {
-              get: () => config.background_color || defaultConfig.background_color,
-              set: (value) => {
-                config.background_color = value;
-                window.elementSdk.setConfig({ background_color: value });
-              }
-            },
-            {
-              get: () => config.surface_color || defaultConfig.surface_color,
-              set: (value) => {
-                config.surface_color = value;
-                window.elementSdk.setConfig({ surface_color: value });
-              }
-            },
-            {
-              get: () => config.text_color || defaultConfig.text_color,
-              set: (value) => {
-                config.text_color = value;
-                window.elementSdk.setConfig({ text_color: value });
-              }
-            },
-            {
-              get: () => config.primary_action_color || defaultConfig.primary_action_color,
-              set: (value) => {
-                config.primary_action_color = value;
-                window.elementSdk.setConfig({ primary_action_color: value });
-              }
-            },
-            {
-              get: () => config.secondary_action_color || defaultConfig.secondary_action_color,
-              set: (value) => {
-                config.secondary_action_color = value;
-                window.elementSdk.setConfig({ secondary_action_color: value });
-              }
-            }
-          ],
-          borderables: [],
-          fontEditable: {
-            get: () => config.font_family || defaultConfig.font_family,
-            set: (value) => {
-              config.font_family = value;
-              window.elementSdk.setConfig({ font_family: value });
-            }
-          },
-          fontSizeable: {
-            get: () => config.font_size || defaultConfig.font_size,
-            set: (value) => {
-              config.font_size = value;
-              window.elementSdk.setConfig({ font_size: value });
-            }
-          }
-        }),
-        mapToEditPanelValues: (config) => new Map([
-          ["app_title", config.app_title || defaultConfig.app_title],
-          
-          // Status
-          ["billiard_enabled", config.billiard_enabled !== "false"], // boolean
-          ["karaoke_enabled", config.karaoke_enabled !== "false"], // boolean
-          ["massage_enabled", config.massage_enabled !== "false"], // boolean
-
-          // Harga Biliard & Massage
-          ["billiard_price", config.billiard_price || defaultConfig.billiard_price],
-          ["billiard_service", config.billiard_service || defaultConfig.billiard_service],
-          ["massage_price", config.massage_price || defaultConfig.massage_price],
-          ["massage_service", config.massage_service || defaultConfig.massage_service],
-          
-          // Harga Karaoke (K1, K2, K3)
-          ["karaoke_k1_price", config.karaoke_k1_price || defaultConfig.karaoke_k1_price],
-          ["karaoke_k1_service", config.karaoke_k1_service || defaultConfig.karaoke_k1_service],
-          ["karaoke_k2_price", config.karaoke_k2_price || defaultConfig.karaoke_k2_price],
-          ["karaoke_k2_service", config.karaoke_k2_service || defaultConfig.karaoke_k2_service],
-          ["karaoke_k3_price", config.karaoke_k3_price || defaultConfig.karaoke_k3_price],
-          ["karaoke_k3_service", config.karaoke_k3_service || defaultConfig.karaoke_k3_service]
-        ])
-      });
-      
-      // Render awal
-      renderApp();
-    }
-
-    // --- FUNGSI BARU ---
-    // Menggantikan getPricePerHour. Sekarang mengambil harga per jam DAN service charge.
-    function getRoomDetails(room) {
-      const config = window.elementSdk?.config || defaultConfig;
-      const { id } = room; // ID unik ruangan (K1, B1, M1)
-
-      let price = 0;
-      let service = 0;
-
-      switch (id) {
-        case 'B1':
-          price = parseInt(config.billiard_price) || 0;
-          service = parseInt(config.billiard_service) || 0;
-          break;
-        case 'M1':
-          price = parseInt(config.massage_price) || 0;
-          service = parseInt(config.massage_service) || 0;
-          break;
-        case 'K1':
-          price = parseInt(config.karaoke_k1_price) || 0;
-          service = parseInt(config.karaoke_k1_service) || 0;
-          break;
-        case 'K2':
-          price = parseInt(config.karaoke_k2_price) || 0;
-          service = parseInt(config.karaoke_k2_service) || 0;
-          break;
-        case 'K3':
-          price = parseInt(config.karaoke_k3_price) || 0;
-          service = parseInt(config.karaoke_k3_service) || 0;
-          break;
-        default:
-          price = 0;
-          service = 0;
-      }
-      return { price_per_hour: price, service_charge: service };
-    }
-    
-    // --- FUNGSI BARU ---
-    // Cek apakah sebuah layanan (billiard, karaoke, massage) diaktifkan di config
-    function isServiceEnabled(roomType) {
-      const config = window.elementSdk?.config || defaultConfig;
-      if (roomType === 'billiard') return config.billiard_enabled !== "false";
-      if (roomType === 'karaoke') return config.karaoke_enabled !== "false";
-      if (roomType === 'massage') return config.massage_enabled !== "false";
-      return false;
-    }
-    
-    // --- FUNGSI BARU ---
-    // Untuk tombol manager (simulasi, non-permanen)
-    function toggleServiceStatus(serviceType) {
-      const config = window.elementSdk?.config || defaultConfig;
-      const key = `${serviceType}_enabled`; // e.g., "billiard_enabled"
-      const currentValue = config[key] !== "false"; // Cek status saat ini
-      const newValue = !currentValue; // Balikkan status
-      
-      // Ini adalah MOCK. Mengupdate config di 'elementSdk'
-      // onConfigChange akan dipanggil, lalu me-render ulang aplikasi.
-      // Akan reset jika halaman di-refresh.
-      window.elementSdk.setConfig({ [key]: newValue.toString() });
-    }
-
-    function formatCurrency(amount) {
-      return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
-    }
-
-    function formatTime(isoString) {
-      const date = new Date(isoString);
-      return date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-    }
-
-    function formatDate(isoString) {
-      const date = new Date(isoString);
-      return date.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
-    }
-
-    // --- FUNGSI HELPER BARU UNTUK LAPORAN ---
-    
-    // Cek apakah tanggal berada di minggu ini (Senin - Minggu)
-    function isDateInThisWeek(date) {
-      const today = new Date();
-      const firstDayOfWeek = new Date(today);
-      const day = today.getDay(); // 0 (Minggu) - 6 (Sabtu)
-      const diff = today.getDate() - day + (day === 0 ? -6 : 1); // Hitung mundur ke Senin
-      firstDayOfWeek.setDate(diff);
-      firstDayOfWeek.setHours(0, 0, 0, 0);
-
-      const lastDayOfWeek = new Date(firstDayOfWeek);
-      lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 6);
-      lastDayOfWeek.setHours(23, 59, 59, 999);
-
-      return date >= firstDayOfWeek && date <= lastDayOfWeek;
-    }
-
-    // Cek apakah tanggal berada di bulan ini
-    function isDateInThisMonth(date) {
-      const today = new Date();
-      return date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear();
-    }
-    
-    // --- FUNGSI UTAMA BARU UNTUK LAPORAN EXCEL ---
-    function generateExcelReport(reportType) {
-      // 1. Dapatkan semua booking yang sudah 'completed'
-      const completedBookings = allBookings.filter(b => 
-        b.status === 'completed' && b.created_at
-      );
-
-      // 2. Filter berdasarkan tipe laporan (mingguan/bulanan)
-      let filteredBookings;
-      let fileName = "Laporan_Pendapatan.xlsx";
-
-      if (reportType === 'weekly') {
-        filteredBookings = completedBookings.filter(b => isDateInThisWeek(new Date(b.created_at)));
-        fileName = `Laporan_Mingguan_${formatDate(new Date()).replace(/\//g, '-')}.xlsx`;
-      } else if (reportType === 'monthly') {
-        filteredBookings = completedBookings.filter(b => isDateInThisMonth(new Date(b.created_at)));
-        fileName = `Laporan_Bulanan_${new Date().getMonth() + 1}_${new Date().getFullYear()}.xlsx`;
-      } else {
-        console.error("Tipe laporan tidak dikenal");
-        return;
       }
 
-      if (filteredBookings.length === 0) {
-        alert("Tidak ada data pendapatan yang selesai (completed) untuk periode ini.");
-        return;
-      }
+      // --- FUNGSI KONEKSI GOOGLE SHEET ---
 
-      // 3. Ubah data menjadi format yang diinginkan untuk Excel
-      const dataForExcel = filteredBookings.map(b => ({
-        "Tanggal": formatDate(b.created_at),
-        "Waktu": formatTime(b.created_at),
-        "Kasir": b.created_by,
-        "Pelanggan": b.customer_name,
-        "Ruangan": `${b.room_number} (${b.room_type})`,
-        "Durasi (Jam)": b.duration_hours,
-        "Biaya Sewa": (b.price_per_hour * b.duration_hours),
-        "Biaya Service": b.service_charge,
-        "Total Pendapatan": b.total_price
-      }));
-
-      // 4. Hitung Total Pendapatan
-      const totalRevenue = dataForExcel.reduce((sum, row) => sum + row["Total Pendapatan"], 0);
-
-      // 5. Buat Worksheet (lembar kerja) menggunakan SheetJS
-      const ws = XLSX.utils.json_to_sheet(dataForExcel);
-      
-      // 6. Tambahkan baris TOTAL di bagian bawah
-      XLSX.utils.sheet_add_aoa(ws, [
-        [], // Baris kosong
-        ["", "", "", "", "", "", "", "GRAND TOTAL", totalRevenue]
-      ], { origin: -1 }); // Menambahkan di akhir sheet
-
-      // 7. Buat Workbook (file Excel)
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Pendapatan");
-
-      // 8. Trigger download file Excel
-      XLSX.writeFile(wb, fileName);
-    }
-    
-    // ---------------------------------------------
-
-    function getRoomStatus(roomId) {
-      const activeBooking = allBookings.find(b => 
-        b.room_number === roomId && b.status === 'active'
-      );
-      return activeBooking || null;
-    }
-
-    function getTimeRemaining(endTime) {
-      const now = new Date();
-      const end = new Date(endTime);
-      const diff = end - now;
-      
-      if (diff <= 0) return 'Waktu Habis!';
-      
-      const hours = Math.floor(diff / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      
-      return `${hours}j ${minutes}m`;
-    }
-
-    // Login ini hanya untuk UI, bukan Firebase Auth
-    async function handleLogin(e) {
-      e.preventDefault();
-      const username = document.getElementById('username').value;
-      const password = document.getElementById('password').value;
-      
-      const user = USERS[username];
-      if (user && user.password === password) {
-        currentUser = user;
-        currentView = 'dashboard';
-        renderApp();
-      } else {
-        const errorDiv = document.getElementById('login-error');
-        errorDiv.textContent = 'Username atau password salah!';
-        errorDiv.classList.remove('hidden');
-      }
-    }
-
-    function handleLogout() {
-      currentUser = null;
-      currentView = 'login';
-      renderApp();
-    }
-
-    function showBookingForm(room) {
-      selectedBooking = { room, mode: 'new' };
-      currentView = 'booking-form';
-      renderApp();
-    }
-
-    // DIMODIFIKASI: Menggunakan Firestore
-    async function handleBookingSubmit(e) {
-      e.preventDefault();
-      
-      if (!userId) {
-        alert("Error: User tidak terautentikasi. Coba muat ulang.");
-        return;
-      }
-
-      const customerName = document.getElementById('customer-name').value;
-      const duration = parseInt(document.getElementById('duration').value);
-      const bookingType = document.getElementById('booking-type').value;
-      
-      const now = new Date();
-      let startTime;
-      if (bookingType === 'open') {
-        startTime = now;
-      } else {
-        const bookingTimeValue = document.getElementById('booking-time').value;
-        if (!bookingTimeValue) {
-            alert('Silakan pilih waktu mulai booking.');
-            return;
-        }
-        startTime = new Date(bookingTimeValue);
-      }
-      
-      const submitBtn = document.getElementById('submit-booking');
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Menyimpan...';
-      
-      try {
-        // DIMODIFIKASI: Path dikembalikan ke users/{userId}/bookings
-        // --- PERUBAHAN SOLUSI: Kita akan menggunakan path 'publik' yang sama untuk semua user ---
-        const collectionRef = collection(db, 'payboss_bookings', appId, 'all_bookings');
-        console.log('Attempting to write to Firestore at path:', collectionRef.path);
-        await addDoc(collectionRef, booking);
-        
-        // onSnapshot akan otomatis update UI
-        currentView = 'dashboard';
-        renderApp();
-
-      } catch (error) {
-        console.error("Error adding document: ", error);
-        console.error("PASTIKAN FIREBASE SECURITY RULES ANDA MENGIZINKAN AKSES 'create' ke path:", collectionRef.path);
-        alert('Gagal menyimpan booking. Silakan coba lagi.');
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Simpan Booking';
-      }
-    }
-
-    // DIMODIFIKASI: Menggunakan Firestore
-    async function handleCheckout(booking) {
-      const confirmDiv = document.createElement('div');
-      confirmDiv.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 slide-in';
-      confirmDiv.innerHTML = `
-        <div class="bg-white rounded-lg p-6 max-w-md mx-4">
-          <h3 class="text-xl font-bold mb-4" style="color: ${window.elementSdk?.config?.text_color || defaultConfig.text_color}">Konfirmasi Checkout</h3>
-          <p class="mb-4">Checkout untuk ${booking.customer_name}?</p>
-          <p class="mb-6 font-bold text-lg">Total: ${formatCurrency(booking.total_price)}</p>
-          <div class="flex gap-3">
-            <button id="confirm-checkout" class="flex-1 px-4 py-2 rounded-lg text-white font-semibold" style="background-color: ${window.elementSdk?.config?.primary_action_color || defaultConfig.primary_action_color}">
-              Ya, Checkout
-            </button>
-            <button id="cancel-checkout" class="flex-1 px-4 py-2 rounded-lg font-semibold" style="background-color: ${window.elementSdk?.config?.secondary_action_color || defaultConfig.secondary_action_color}; color: white;">
-              Batal
-            </button>
-          </div>
-        </div>
-      `;
-      
-      document.body.appendChild(confirmDiv);
-      
-      document.getElementById('confirm-checkout').onclick = async () => {
-        if (!userId || !booking.id) {
-           alert("Error: Tidak dapat checkout. User ID or Booking ID tidak ditemukan.");
-           return;
-        }
-
-        // DIMODIFIKASI: Path dikembalikan ke users/{userId}/bookings
-        // --- PERUBAHAN SOLUSI: Kita akan menggunakan path 'publik' yang sama untuk semua user ---
-        const docRef = doc(db, 'payboss_bookings', appId, 'all_bookings', booking.id);
-        console.log('Attempting to update Firestore doc at path:', docRef.path);
-        
+      // Kirim data absensi ke Google Sheet
+      async function kirimAbsensiKeSheet({ user, jenis, data, shiftName }) {
         try {
-          await updateDoc(docRef, {
-            status: 'completed'
+          const now = new Date();
+          const todayYMD = formatDateYYYYMMDD(now);
+
+          const payload = {
+            action: "appendAbsensi",
+            timestamp: now.toISOString(),
+            tanggal: todayYMD,
+            jenis, // "checkIn" / "checkOut"
+            idKaryawan: user.id,
+            namaKaryawan: user.nama,
+            posisi: user.posisi,
+            shift: shiftName,
+            waktu: data.waktu ? data.waktu.toISOString() : now.toISOString(),
+            lat: data.lat || "",
+            lng: data.lng || "",
+            jarak: data.jarak || "",
+            alasanLuarArea: data.alasanLuarArea || "",
+          };
+
+          await fetch(GOOGLE_SHEET_WEBAPP_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+            mode: "no-cors", // biar nggak error CORS di browser
           });
-          
-          // onSnapshot akan update UI dashboard
-          // Kita hanya perlu tampilkan struk
-          document.body.removeChild(confirmDiv);
-          
-          // Buat objek booking yang diupdate untuk struk
-          const updatedBookingForReceipt = { ...booking, status: 'completed' };
-          showReceipt(updatedBookingForReceipt);
-
-        } catch (error) {
-          console.error("Error updating document: ", error);
-          console.error("PASTIKAN FIREBASE SECURITY RULES ANDA MENGIZINKAN AKSES 'update' ke path:", docRef.path);
-          alert("Gagal melakukan checkout. Coba lagi.");
-          document.body.removeChild(confirmDiv);
+        } catch (err) {
+          console.error("Gagal mengirim data ke Google Sheet", err);
         }
-      };
-      
-      document.getElementById('cancel-checkout').onclick = () => {
-        document.body.removeChild(confirmDiv);
-      };
-    }
-
-    // --- FUNGSI BARU ---
-    // Dipanggil oleh tombol 'Batal' di form booking
-    function handleCancelBooking() {
-      currentView = 'dashboard';
-      renderApp();
-    }
-
-    // --- TIDAK ADA PERUBAHAN DI FUNGSI RENDER ---
-    // (Semua fungsi showReceipt, renderLogin, getDailySalesAnalysis, renderDashboard, renderBookingForm tetap sama)
-
-    function showReceipt(booking) {
-      const receiptDiv = document.createElement('div');
-      receiptDiv.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 slide-in';
-      
-      const receiptContent = `
-        <div class="bg-white rounded-lg p-6 max-w-md mx-4">
-          <!-- Area Cetak -->
-          <div id="receipt-print" class="bg-white p-6">
-            <div class="text-center mb-4">
-              <h2 class="text-xl font-bold">PAY BOSS CAFE</h2>
-              <p class="text-sm">Jl. Tanjung Permai No 2 RT 07 Pembataan</p>
-              <p class="text-sm">Murung Pudak. Tabalong</p>
-              <p class="text-sm">HP : 0811-5194-456</p>
-            </div>
-            
-            <div class="border-t border-b border-gray-300 py-3 my-3 text-sm">
-              <div class="flex justify-between mb-1">
-                <span>Tanggal:</span>
-                <span>${formatDate(booking.created_at)}</span>
-              </div>
-              <div class="flex justify-between mb-1">
-                <span>Kasir:</span>
-                <span>${booking.created_by}</span>
-              </div>
-              <div class="flex justify-between mb-1">
-                <span>Pelanggan:</span>
-                <span>${booking.customer_name}</span>
-              </div>
-            </div>
-            
-            <div class="mb-3 text-sm">
-              <div class="flex justify-between mb-1">
-                <span>${booking.room_number} - ${booking.room_type.toUpperCase()}</span>
-                <span></span>
-              </div>
-              <div class="flex justify-between mb-1">
-                <span>Sewa Ruangan (${booking.duration_hours} jam)</span>
-                <span>${formatCurrency(booking.price_per_hour * booking.duration_hours)}</span>
-              </div>
-              ${booking.service_charge > 0 ? `
-              <div class="flex justify-between mb-1">
-                <span>Biaya Service</span>
-                <span>${formatCurrency(booking.service_charge)}</span>
-              </div>
-              ` : ''}
-            </div>
-            
-            <div class="border-t border-gray-300 pt-3 mb-4">
-              <div class="flex justify-between font-bold text-lg">
-                <span>TOTAL:</span>
-                <span>${formatCurrency(booking.total_price)}</span>
-              </div>
-            </div>
-            
-            <div class="text-center text-sm border-t border-gray-300 pt-3">
-              <p class="font-semibold mb-2">Instagram PAY BOSS CAFE</p>
-              <p class="mb-1">Terimakasih atas kunjungan anda.</p>
-              <p class="mb-1">Instagram : @Payboss.cafe</p>
-              <p class="mb-1">Wifi : Pay Boss Cafe</p>
-              <p>Password : P4yB0sSC4F3</p>
-            </div>
-          </div>
-          <!-- Tombol Aksi (Tidak Ikut Tercetak) -->
-          <div class="flex gap-3 mt-4">
-            <button id="print-receipt" class="flex-1 px-4 py-2 rounded-lg text-white font-semibold" style="background-color: ${window.elementSdk?.config?.primary_action_color || defaultConfig.primary_action_color}">
-              🖨️ Cetak Struk
-            </button>
-            <button id="close-receipt" class="flex-1 px-4 py-2 rounded-lg font-semibold" style="background-color: ${window.elementSdk?.config?.secondary_action_color || defaultConfig.secondary_action_color}; color: white;">
-              Tutup
-            </button>
-          </div>
-        </div>
-      `;
-      
-      receiptDiv.innerHTML = receiptContent;
-      document.body.appendChild(receiptDiv);
-      
-      document.getElementById('print-receipt').onclick = () => {
-        window.print();
-      };
-      
-      document.getElementById('close-receipt').onclick = () => {
-        document.body.removeChild(receiptDiv);
-      };
-    }
-
-    function renderLogin() {
-      const config = window.elementSdk?.config || defaultConfig;
-      const customFont = config.font_family || defaultConfig.font_family;
-      const baseFontStack = 'system-ui, -apple-system, sans-serif';
-      const baseSize = config.font_size || defaultConfig.font_size;
-      
-      // Tampilkan UI login hanya jika Firebase user ada
-      // dan UI user (kasir) belum login
-      if (!userId) {
-        return `<div class="p-4 text-center" style="color: ${config.text_color};">Menghubungkan ke server...</div>`;
       }
 
-      return `
-        <div class="min-h-full flex items-center justify-center p-4" style="background-color: ${config.background_color}; font-family: '${customFont}', ${baseFontStack};">
-          <div class="w-full max-w-md p-8 rounded-2xl shadow-2xl slide-in" style="background-color: ${config.surface_color};">
-            <div class="text-center mb-8">
-              <h1 class="text-3xl font-bold mb-2" style="color: ${config.text_color}; font-size: ${baseSize * 2}px;">${config.app_title}</h1>
-              <p class="text-lg" style="color: ${config.text_color}; font-size: ${baseSize}px;">Sistem Manajemen Rental</p>
-            </div>
-            
-            <form onsubmit="handleLogin(event)" class="space-y-4">
-              <div>
-                <label for="username" class="block mb-2 font-semibold" style="color: ${config.text_color}; font-size: ${baseSize}px;">Username</label>
-                <input type="text" id="username" required class="w-full px-4 py-3 rounded-lg border-2 focus:outline-none focus:ring-2" style="border-color: ${config.secondary_action_color}; font-size: ${baseSize}px;">
-              </div>
-              
-              <div>
-                <label for="password" class="block mb-2 font-semibold" style="color: ${config.text_color}; font-size: ${baseSize}px;">Password</label>
-                <input type="password" id="password" required class="w-full px-4 py-3 rounded-lg border-2 focus:outline-none focus:ring-2" style="border-color: ${config.secondary_action_color}; font-size: ${baseSize}px;">
-              </div>
-              
-              <div id="login-error" class="hidden text-red-600 text-center font-semibold" style="font-size: ${baseSize * 0.9}px;"></div>
-              
-              <button type="submit" class="w-full py-3 rounded-lg text-white font-bold text-lg transition-transform hover:scale-105" style="background-color: ${config.primary_action_color}; font-size: ${baseSize * 1.1}px;">
-                🔐 Login
-              </button>
-            </form>
-            
-            <!-- 
-            <div class="mt-6 p-4 rounded-lg" style="background-color: ${config.background_color};">
-              <p class="text-sm font-semibold mb-2" style="color: ${config.text_color}; font-size: ${baseSize * 0.85}px;">Akun Demo:</p>
-              <p class="text-xs" style="color: ${config.text_color}; font-size: ${baseSize * 0.75}px;">Kasir: kasir1 / kasir123</p>
-              <p class="text-xs" style="color: ${config.text_color}; font-size: ${baseSize * 0.75}px;">Manager: manager / manager123</p>
-            </div>
-             -->
-          </div>
-        </div>
-      `;
-    }
+      // Helper untuk mengelompokkan baris absensi dari Sheet
+      function groupAbsensiRows(rows) {
+        const map = new Map();
 
-    function getDailySalesAnalysis() {
-      const today = new Date();
-      const todayStr = today.toDateString();
-      
-      const todayBookings = allBookings.filter(booking => {
-        // Cek jika created_at ada, jika tidak, gunakan start_time
-        const bookingDateStr = booking.created_at || booking.start_time;
-        if (!bookingDateStr) return false;
-        
-        const bookingDate = new Date(bookingDateStr);
-        return bookingDate.toDateString() === todayStr && booking.status === 'completed';
-      });
-      
-      const totalRevenue = todayBookings.reduce((sum, booking) => sum + booking.total_price, 0);
-      
-      const categoryStats = {
-        billiard: { count: 0, revenue: 0, hours: 0 },
-        karaoke: { count: 0, revenue: 0, hours: 0 },
-        massage: { count: 0, revenue: 0, hours: 0 }
-      };
-      
-      todayBookings.forEach(booking => {
-        const category = booking.room_type;
-        if (categoryStats[category]) {
-          categoryStats[category].count++;
-          categoryStats[category].revenue += booking.total_price;
-          categoryStats[category].hours += booking.duration_hours;
-        }
-      });
-      
-      const activeBookings = allBookings.filter(booking => booking.status === 'active');
-      const pendingRevenue = activeBookings.reduce((sum, booking) => sum + booking.total_price, 0);
-      
-      const cashierStats = {};
-      todayBookings.forEach(booking => {
-        if (!booking.created_by) return;
-        if (!cashierStats[booking.created_by]) {
-          cashierStats[booking.created_by] = { count: 0, revenue: 0 };
-        }
-        cashierStats[booking.created_by].count++;
-        cashierStats[booking.created_by].revenue += booking.total_price;
-      });
-      
-      const topCashier = Object.entries(cashierStats).sort((a, b) => b[1].revenue - a[1].revenue)[0];
-      
-      return {
-        totalRevenue,
-        totalBookings: todayBookings.length,
-        categoryStats,
-        activeBookings: activeBookings.length,
-        pendingRevenue,
-        topCashier: topCashier ? { name: topCashier[0], ...topCashier[1] } : null
-      };
-    }
+        rows.forEach((row) => {
+          const key = `${row.idKaryawan}|${row.tanggal}`;
+          let record = map.get(key);
+          if (!record) {
+            record = {
+              idKaryawan: row.idKaryawan,
+              namaKaryawan: row.namaKaryawan,
+              posisi: row.posisi,
+              tanggal: row.tanggal,
+              shift: row.shift || "",
+              checkIn: null,
+              checkOut: null,
+              jobDeskProgress: buildJobdeskForPosition(row.posisi),
+              status: "",
+            };
+            map.set(key, record);
+          }
 
-    function renderDashboard() {
-      const config = window.elementSdk?.config || defaultConfig;
-      const customFont = config.font_family || defaultConfig.font_family;
-      const baseFontStack = 'system-ui, -apple-system, sans-serif';
-      const baseSize = config.font_size || defaultConfig.font_size;
-      
-      // --- DIMODIFIKASI ---
-      // Filter ruangan berdasarkan layanan yang aktif
-      const allRoomsRaw = [...ROOMS.billiard, ...ROOMS.karaoke, ...ROOMS.massage];
-      const allRooms = allRoomsRaw.filter(room => isServiceEnabled(room.type));
-      
-      const salesAnalysis = getDailySalesAnalysis();
-      
-      const salesAnalysisSection = currentUser.role === 'Manager' ? `
-        <div class="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <!-- Total Pendapatan Hari Ini -->
-          <div class="p-4 rounded-xl shadow-lg" style="background-color: ${config.surface_color};">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-sm font-medium" style="color: ${config.text_color}; font-size: ${baseSize * 0.85}px;">💰 Pendapatan Hari Ini</p>
-                <p class="text-2xl font-bold" style="color: ${config.primary_action_color}; font-size: ${baseSize * 1.5}px;">${formatCurrency(salesAnalysis.totalRevenue)}</p>
-                <p class="text-xs" style="color: ${config.text_color}; font-size: ${baseSize * 0.75}px;">${salesAnalysis.totalBookings} transaksi selesai</p>
-              </div>
-              <div class="text-3xl">📊</div>
-            </div>
-          </div>
-          
-          <!-- Booking Aktif -->
-          <div class="p-4 rounded-xl shadow-lg" style="background-color: ${config.surface_color};">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-sm font-medium" style="color: ${config.text_color}; font-size: ${baseSize * 0.85}px;">🔄 Booking Aktif</p>
-                <p class="text-2xl font-bold" style="color: ${config.secondary_action_color}; font-size: ${baseSize * 1.5}px;">${salesAnalysis.activeBookings}</p>
-                <p class="text-xs" style="color: ${config.text_color}; font-size: ${baseSize * 0.75}px;">Pending: ${formatCurrency(salesAnalysis.pendingRevenue)}</p>
-              </div>
-              <div class="text-3xl">⏳</div>
-            </div>
-          </div>
-          
-          <!-- Ruangan Terpopuler -->
-          <div class="p-4 rounded-xl shadow-lg" style="background-color: ${config.surface_color};">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-sm font-medium" style="color: ${config.text_color}; font-size: ${baseSize * 0.85}px;">🏆 Terpopuler</p>
-                ${Object.entries(salesAnalysis.categoryStats).sort((a, b) => b[1].count - a[1].count).slice(0, 1).map(([type, stats]) => `
-                  <p class="text-lg font-bold capitalize" style="color: ${config.text_color}; font-size: ${baseSize * 1.1}px;">${type}</p>
-                  <p class="text-xs" style="color: ${config.text_color}; font-size: ${baseSize * 0.75}px;">${stats.count} booking, ${stats.hours}h</p>
-                `).join('')}
-              </div>
-              <div class="text-3xl">🎯</div>
-            </div>
-          </div>
-          
-          <!-- Kasir Terbaik -->
-          <div class="p-4 rounded-xl shadow-lg" style="background-color: ${config.surface_color};">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-sm font-medium" style="color: ${config.text_color}; font-size: ${baseSize * 0.85}px;">👑 Kasir Terbaik</p>
-                ${salesAnalysis.topCashier ? `
-                  <p class="text-lg font-bold" style="color: ${config.text_color}; font-size: ${baseSize * 1.1}px;">${salesAnalysis.topCashier.name}</p>
-                  <p class="text-xs" style="color: ${config.text_color}; font-size: ${baseSize * 0.75}px;">${formatCurrency(salesAnalysis.topCashier.revenue)}</p>
-                ` : `
-                  <p class="text-lg" style="color: ${config.text_color}; font-size: ${baseSize * 1.1}px;">Belum ada</p>
-                  <p class="text-xs" style="color: ${config.text_color}; font-size: ${baseSize * 0.75}px;">transaksi hari ini</p>
-                `}
-              </div>
-              <div class="text-3xl">🥇</div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Detail Analisa per Kategori -->
-        <div class="mb-6 p-6 rounded-xl shadow-lg" style="background-color: ${config.surface_color};">
-          <h3 class="text-xl font-bold mb-4" style="color: ${config.text_color}; font-size: ${baseSize * 1.25}px;">📈 Analisa Penjualan per Kategori</h3>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            ${Object.entries(salesAnalysis.categoryStats).map(([type, stats]) => `
-              <div class="p-4 rounded-lg border-2" style="background-color: ${config.background_color}; border-color: ${config.secondary_action_color};">
-                <h4 class="font-bold capitalize mb-2" style="color: ${config.text_color}; font-size: ${baseSize * 1.1}px;">
-                  ${type === 'billiard' ? '🎱' : type === 'karaoke' ? '🎤' : '💆'} ${type}
-                </h4>
-                <div class="space-y-1">
-                  <p class="text-sm" style="color: ${config.text_color}; font-size: ${baseSize * 0.85}px;">
-                    <span class="font-semibold">Booking:</span> ${stats.count}x
-                  </p>
-                  <p class="text-sm" style="color: ${config.text_color}; font-size: ${baseSize * 0.85}px;">
-                    <span class="font-semibold">Total Jam:</span> ${stats.hours}h
-                  </p>
-                  <p class="text-sm" style="color: ${config.text_color}; font-size: ${baseSize * 0.85}px;">
-                    <span class="font-semibold">Pendapatan:</span> ${formatCurrency(stats.revenue)}
-                  </p>
-                  <p class="text-xs" style="color: ${config.text_color}; font-size: ${baseSize * 0.75}px;">
-                    Rata-rata: ${stats.count > 0 ? formatCurrency(stats.revenue / stats.count) : formatCurrency(0)}/booking
-                  </p>
-                </div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      ` : '';
-      
-      // --- BAGIAN BARU (HANYA UNTUK MANAGER) ---
-      const managerControlsSection = currentUser.role === 'Manager' ? `
-        <div class="mb-6 p-6 rounded-xl shadow-lg" style="background-color: ${config.surface_color};">
-          <h3 class="text-xl font-bold mb-4" style="color: ${config.text_color}; font-size: ${baseSize * 1.25}px;">⚙️ Kontrol Layanan</h3>
-          <p class="text-sm mb-4" style="color: ${config.text_color}; font-size: ${baseSize * 0.85}px;">
-            (Perubahan ini hanya untuk sesi ini. Muat ulang akan mengembalikan ke setelan 'defaultConfig' di kode.)
-          </p>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            ${['billiard', 'karaoke', 'massage'].map(type => {
-              const enabled = isServiceEnabled(type);
-              return `
-              <div class="p-4 rounded-lg border-2 ${enabled ? 'border-green-400' : 'border-red-400'}" style="background-color: ${config.background_color};">
-                <h4 class="font-bold capitalize mb-2" style="color: ${config.text_color}; font-size: ${baseSize * 1.1}px;">
-                  ${type === 'billiard' ? '🎱' : type === 'karaoke' ? '🎤' : '💆'} ${type}
-                </h4>
-                <button onclick="toggleServiceStatus('${type}')" class="w-full py-2 rounded-lg text-white font-semibold" style="background-color: ${enabled ? config.secondary_action_color : '#10B981'};">
-                  ${enabled ? 'NONAKTIFKAN' : 'AKTIFKAN'}
+          const waktuDate = row.waktu
+            ? new Date(row.waktu)
+            : row.timestamp
+            ? new Date(row.timestamp)
+            : null;
+
+          const baseObj = {
+            waktu: waktuDate,
+            alasanLuarArea: row.alasanLuarArea || null,
+            lat: row.lat !== "" && row.lat != null ? Number(row.lat) : null,
+            lng: row.lng !== "" && row.lng != null ? Number(row.lng) : null,
+            jarak: row.jarak !== "" && row.jarak != null ? Number(row.jarak) : null,
+          };
+
+          if (row.jenis === "checkIn") {
+            record.checkIn = baseObj;
+          } else if (row.jenis === "checkOut") {
+            record.checkOut = baseObj;
+          }
+        });
+
+        // opsional set status
+        map.forEach((rec) => {
+          if (rec.checkIn && rec.checkOut) rec.status = "Hadir (Lengkap)";
+          else if (rec.checkIn && !rec.checkOut) rec.status = "Hadir (Belum Check-out)";
+          else if (!rec.checkIn && rec.checkOut) rec.status = "Check-out Tanpa Check-in";
+          else rec.status = "";
+        });
+
+        return Array.from(map.values());
+      }
+
+      // Baca data absensi dari Google Sheet
+      async function loadAbsensiDariSheet() {
+        try {
+          const res = await fetch(
+            GOOGLE_SHEET_WEBAPP_URL + "?action=getAbsensi"
+          );
+          if (!res.ok) throw new Error("Response tidak OK");
+          const json = await res.json();
+          if (!json || !Array.isArray(json.data)) return [];
+
+          return groupAbsensiRows(json.data);
+        } catch (err) {
+          console.error("Gagal load absensi dari Google Sheet", err);
+          return [];
+        }
+      }
+
+      // --- KOMPONEN SHARED ---
+
+      const Modal = ({ children, onClose, title }) => (
+        <AnimatePresence>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 p-4"
+            onClick={onClose}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className={`relative w-full max-w-lg overflow-hidden ${theme.colors.card} ${theme.rounding.card} shadow-2xl`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div
+                className={`flex items-center justify-between p-5 ${theme.colors.border} border-b`}
+              >
+                <h3 className={`text-xl font-bold ${theme.colors.textPrimary}`}>
+                  {title}
+                </h3>
+                <button
+                  onClick={onClose}
+                  className={`${theme.colors.textSecondary || "text-stone-600"} hover:text-red-500`}
+                >
+                  <XCircle size={24} />
                 </button>
-                ${!enabled ? `<p class="text-xs text-center mt-2 p-1 bg-yellow-100 text-yellow-800 rounded" style="font-size: ${baseSize * 0.75}px;">Layanan Ditutup</p>` : ''}
               </div>
-              `}).join('')}
-          </div>
-        </div>
-      ` : '';
-      
-      // --- BAGIAN BARU (HANYA UNTUK MANAGER) ---
-      const managerReportsSection = currentUser.role === 'Manager' ? `
-        <div class="mb-6 p-6 rounded-xl shadow-lg" style="background-color: ${config.surface_color};">
-          <h3 class="text-xl font-bold mb-4" style="color: ${config.text_color}; font-size: ${baseSize * 1.25}px;">📄 Laporan Pendapatan</h3>
-          <p class="text-sm mb-4" style="color: ${config.text_color}; font-size: ${baseSize * 0.85}px;">
-            Download laporan pendapatan (hanya dari transaksi 'completed') dalam format Excel.
-          </p>
-          <div class="flex flex-col sm:flex-row gap-4">
-            <button onclick="generateExcelReport('weekly')" class="flex-1 py-3 px-4 rounded-lg text-white font-semibold transition-transform hover:scale-105" style="background-color: ${config.primary_action_color}; font-size: ${baseSize}px;">
-              💾 Download Laporan Minggu Ini
-            </button>
-            <button onclick="generateExcelReport('monthly')" class="flex-1 py-3 px-4 rounded-lg text-white font-semibold transition-transform hover:scale-105" style="background-color: ${config.primary_action_color}; font-size: ${baseSize}px;">
-              💾 Download Laporan Bulan Ini
-            </button>
-          </div>
-        </div>
-      ` : '';
-      
-      const roomCards = allRooms.map(room => {
-        const status = getRoomStatus(room.id);
-        const isActive = status !== null;
-        
-        // --- DIMODIFIKASI ---
-        // Menggunakan fungsi baru untuk harga & service
-        const { price_per_hour, service_charge } = getRoomDetails(room);
-        
-        return `
-          <div class="p-6 rounded-xl shadow-lg transition-transform hover:scale-105 ${isActive ? 'active-room' : ''}" style="background-color: ${config.surface_color};">
-            <div class="flex justify-between items-start mb-4">
-              <div>
-                <h3 class="text-xl font-bold mb-1" style="color: ${config.text_color}; font-size: ${baseSize * 1.25}px;">${room.name}</h3>
-                
-                <!-- Tampilan harga & service di kartu -->
-                <p class="text-sm" style="color: ${config.text_color}; font-size: ${baseSize * 0.85}px;">
-                  ${formatCurrency(price_per_hour)}/jam
-                  ${service_charge > 0 ? ` (+${formatCurrency(service_charge)} service)` : ''}
-                </p>
-                
-              </div>
-              <span class="px-3 py-1 rounded-full text-sm font-semibold" style="background-color: ${isActive ? '#EF4444' : '#10B981'}; color: white; font-size: ${baseSize * 0.85}px;">
-                ${isActive ? '🔴 Aktif' : '🟢 Tersedia'}
-              </span>
-            </div>
-            
-            ${isActive ? `
-              <div class="mb-4 p-3 rounded-lg" style="background-color: ${config.background_color};">
-                <p class="font-semibold mb-1" style="color: ${config.text_color}; font-size: ${baseSize * 0.9}px;">👤 ${status.customer_name}</p>
-                <p class="text-sm mb-1" style="color: ${config.text_color}; font-size: ${baseSize * 0.8}px;">⏰ Masuk: ${formatTime(status.start_time)}</p>
-                <p class="text-sm mb-1" style="color: ${config.text_color}; font-size: ${baseSize * 0.8}px;">🏁 Keluar: ${formatTime(status.end_time)}</p>
-                <p class="text-sm font-bold" style="color: ${config.text_color}; font-size: ${baseSize * 0.85}px;">⏳ Sisa: ${getTimeRemaining(status.end_time)}</p>
-              </div>
-              <button onclick='handleCheckout(${JSON.stringify(status).replace(/"/g, "&quot;")})' class="w-full py-2 rounded-lg text-white font-semibold transition-transform hover:scale-105" style="background-color: ${config.primary_action_color}; font-size: ${baseSize}px;">
-                💰 Checkout - ${formatCurrency(status.total_price)}
-              </button>
-            ` : `
-              <button onclick='showBookingForm(${JSON.stringify(room)})' class="w-full py-2 rounded-lg text-white font-semibold transition-transform hover:scale-105" style="background-color: ${config.secondary_action_color}; font-size: ${baseSize}px;">
-                ➕ Booking Ruangan
-              </button>
-            `}
-          </div>
-        `;
-      }).join('');
-      
-      return `
-        <div style="background-color: ${config.background_color}; font-family: '${customFont}', ${baseFontStack}; min-height: 100%;">
-          <div class="max-w-7xl mx-auto p-4">
-            <div class="flex justify-between items-center mb-6 p-4 rounded-xl shadow-lg" style="background-color: ${config.surface_color};">
-              <div>
-                <h1 class="text-2xl font-bold" style="color: ${config.text_color}; font-size: ${baseSize * 1.5}px;">${config.app_title}</h1>
-                <p style="color: ${config.text_color}; font-size: ${baseSize * 0.9}px;">👤 ${currentUser.name} (${currentUser.role})</p>
-              </div>
-              <button onclick="handleLogout()" class="px-6 py-2 rounded-lg text-white font-semibold transition-transform hover:scale-105" style="background-color: ${config.secondary_action_color}; font-size: ${baseSize}px;">
-                🚪 Logout
-              </button>
-            </div>
-            
-            ${salesAnalysisSection}
-            
-            ${managerControlsSection} <!-- Panel Kontrol Manager Ditambahkan -->
-            
-            ${managerReportsSection} <!-- Panel Laporan Manager Ditambahkan -->
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              ${roomCards}
-            </div>
-          </div>
-        </div>
-      `;
-    }
+              <div className="p-6">{children}</div>
+            </motion.div>
+          </motion.div>
+        </AnimatePresence>
+      );
 
-    function renderBookingForm() {
-      const config = window.elementSdk?.config || defaultConfig;
-      const customFont = config.font_family || defaultConfig.font_family;
-      const baseFontStack = 'system-ui, -apple-system, sans-serif';
-      const baseSize = config.font_size || defaultConfig.font_size;
-      
-      // --- DIMODIFIKASI ---
-      // Menggunakan fungsi baru untuk harga & service
-      const { price_per_hour, service_charge } = getRoomDetails(selectedBooking.room);
-      
-      return `
-        <div style="background-color: ${config.background_color}; font-family: '${customFont}', ${baseFontStack}; min-height: 100%;">
-          <div class="max-w-2xl mx-auto p-4">
-            <div class="p-6 rounded-xl shadow-2xl slide-in" style="background-color: ${config.surface_color};">
-              <h2 class="text-2xl font-bold mb-6" style="color: ${config.text_color}; font-size: ${baseSize * 1.5}px;">📝 Booking ${selectedBooking.room.name}</h2>
-              
-              <form onsubmit="handleBookingSubmit(event)" class="space-y-4">
+      const Button = ({
+        onClick,
+        children,
+        variant = "primary",
+        disabled = false,
+        className = "",
+        type = "button",
+      }) => {
+        const variants = {
+          primary: `${theme.colors.primary} ${theme.colors.textLight} ${theme.colors.primaryHover}`,
+          secondary: `${theme.colors.secondary} ${theme.colors.textLight} ${theme.colors.secondaryHover}`,
+          accent: `${theme.colors.accent} ${theme.colors.textLight} ${theme.colors.accentHover}`,
+          danger: `${theme.colors.danger} ${theme.colors.textLight} hover:bg-red-700`,
+          light: `${theme.colors.background} ${theme.colors.textPrimary} hover:bg-stone-200`,
+        };
+
+        return (
+          <button
+            type={type}
+            onClick={onClick}
+            disabled={disabled}
+            className={`flex w-full items-center justify-center gap-2 p-3 font-semibold ${theme.rounding.button} transition-all duration-200 ${variants[variant]} ${
+              disabled ? "opacity-50 cursor-not-allowed" : ""
+            } ${className}`}
+          >
+            {children}
+          </button>
+        );
+      };
+
+      const Input = ({
+        type = "text",
+        placeholder,
+        value,
+        onChange,
+        icon,
+        className = "",
+        ...rest
+      }) => (
+        <div className="relative w-full">
+          {icon && (
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400">
+              {icon}
+            </div>
+          )}
+          <input
+            type={type}
+            placeholder={placeholder}
+            value={value}
+            onChange={onChange}
+            {...rest}
+            className={`w-full ${theme.colors.background} ${theme.rounding.input} ${
+              theme.colors.textPrimary
+            } border ${theme.colors.border} p-3 ${
+              icon ? "pl-10" : ""
+            } focus:outline-none focus:ring-2 focus:ring-amber-800 ${className}`}
+          />
+        </div>
+      );
+
+      const Spinner = ({ size = 24 }) => (
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          className="border-t-transparent border-solid rounded-full border-stone-700 border-2"
+          style={{ width: size, height: size }}
+        />
+      );
+
+      const ProgressBar = ({ value, max }) => {
+        const percent = max > 0 ? (value / max) * 100 : 0;
+        return (
+          <div
+            className={`w-full ${theme.colors.background} ${theme.rounding.button} overflow-hidden`}
+          >
+            <motion.div
+              className={`${theme.colors.accent} h-2`}
+              initial={{ width: 0 }}
+              animate={{ width: `${percent}%` }}
+              transition={{ duration: 0.5, ease: "easeInOut" }}
+            />
+          </div>
+        );
+      };
+
+      // --- MODAL ABSENSI (Selfie + GPS) ---
+
+      const AttendanceFlow = ({ user, type, onClose, onComplete, todayShift }) => {
+        const [step, setStep] = useState("camera");
+        const [selfie, setSelfie] = useState(null);
+        const [locationData, setLocationData] = useState(null);
+        const [inArea, setInArea] = useState(false);
+        const [distance, setDistance] = useState(0);
+        const [error, setError] = useState(null);
+        const [cameraSupported, setCameraSupported] = useState(true);
+
+        const [reason, setReason] = useState("");
+        const reasons = ["Sakit", "Izin", "Dinas Luar", "Lainnya"];
+
+        const webcamRef = useRef(null);
+        const streamRef = useRef(null);
+
+        useEffect(() => {
+          if (step === "camera") {
+            const startCamera = async () => {
+              try {
+                if (
+                  typeof navigator === "undefined" ||
+                  !navigator.mediaDevices ||
+                  !navigator.mediaDevices.getUserMedia
+                ) {
+                  setCameraSupported(false);
+                  setError(
+                    "Kamera tidak didukung di browser/lingkungan ini. Anda bisa melanjutkan tanpa selfie."
+                  );
+                  return;
+                }
+
+                setCameraSupported(true);
+                const stream = await navigator.mediaDevices.getUserMedia({
+                  video: { facingMode: "user" },
+                  audio: false,
+                });
+                if (webcamRef.current) {
+                  webcamRef.current.srcObject = stream;
+                  webcamRef.current.play();
+                  streamRef.current = stream;
+                }
+              } catch (err) {
+                console.error("Error accessing webcam:", err);
+                setCameraSupported(false);
+                setError(
+                  "Gagal mengakses kamera. Periksa izin kamera Anda, atau lanjutkan tanpa selfie."
+                );
+              }
+            };
+            startCamera();
+          }
+
+          return () => {
+            if (streamRef.current) {
+              streamRef.current.getTracks().forEach((track) => track.stop());
+              streamRef.current = null;
+            }
+          };
+        }, [step]);
+
+        const captureSelfie = useCallback(() => {
+          if (!webcamRef.current || !cameraSupported) {
+            setError(
+              "Kamera belum siap atau tidak didukung. Anda bisa menekan tombol 'Lewati Selfie'."
+            );
+            return;
+          }
+
+          const video = webcamRef.current;
+          const canvas = document.createElement("canvas");
+          canvas.width = video.videoWidth || 640;
+          canvas.height = video.videoHeight || 480;
+
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            setError("Gagal memproses gambar.");
+            return;
+          }
+
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const imageSrc = canvas.toDataURL("image/jpeg");
+
+          if (!imageSrc) {
+            setError("Gagal mengambil foto. Coba lagi.");
+            return;
+          }
+          setSelfie(imageSrc);
+          setStep("location");
+
+          if (streamRef.current) {
+            streamRef.current.getTracks().forEach((track) => track.stop());
+            streamRef.current = null;
+          }
+        }, [cameraSupported]);
+
+        const continueWithoutSelfie = () => {
+          setSelfie(null);
+          setError(null);
+          setStep("location");
+
+          if (streamRef.current) {
+            streamRef.current.getTracks().forEach((track) => track.stop());
+            streamRef.current = null;
+          }
+        };
+
+        useEffect(() => {
+          if (step === "location") {
+            setError(null);
+            if (!navigator.geolocation) {
+              setError("Browser Anda tidak mendukung Geolocation.");
+              setStep("confirm");
+              return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+              (position) => {
+                const { latitude, longitude } = position.coords;
+                const dist = getHaversineDistance(
+                  latitude,
+                  longitude,
+                  TARGET_LOCATION.latitude,
+                  TARGET_LOCATION.longitude
+                );
+
+                setLocationData({ latitude, longitude });
+                setDistance(dist);
+
+                if (dist <= GPS_RADIUS_METERS) {
+                  setInArea(true);
+                  setStep("confirm");
+                } else {
+                  setInArea(false);
+                  setStep("reason");
+                }
+              },
+              (err) => {
+                let errMsg = "Gagal mendapatkan lokasi. ";
+                if (err.code === 1)
+                  errMsg += "Pastikan Anda mengizinkan akses lokasi.";
+                if (err.code === 2) errMsg += "Sinyal lokasi tidak tersedia.";
+                if (err.code === 3) errMsg += "Waktu tunggu habis.";
+                setError(errMsg);
+                setStep("confirm");
+              },
+              { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+          }
+        }, [step]);
+
+        const handleSubmit = async () => {
+          setStep("loading");
+
+          const attendanceData = {
+            waktu: new Date(),
+            fotoBase64: selfie,
+            lat: locationData?.latitude,
+            lng: locationData?.longitude,
+            alasanLuarArea: inArea ? null : reason,
+            jarak: distance,
+          };
+
+          try {
+            await kirimAbsensiKeSheet({
+              user,
+              jenis: type,
+              data: attendanceData,
+              shiftName: todayShift?.nama || "",
+            });
+          } catch (e) {
+            console.error(e);
+          }
+
+          onComplete(attendanceData);
+          setStep("success");
+        };
+
+        const title = type === "checkIn" ? "Absen Check-in" : "Absen Check-out";
+
+        const renderStep = () => {
+          switch (step) {
+            case "camera":
+              return (
+                <div className="text-center">
+                  <p className={`${theme.colors.textSecondary} mb-4`}>
+                    Posisikan wajah Anda di dalam frame dan ambil selfie untuk
+                    verifikasi. Jika kamera tidak berfungsi, Anda tetap bisa
+                    lanjut tanpa selfie.
+                  </p>
+                  {cameraSupported && (
+                    <div
+                      className={`w-full overflow-hidden ${theme.rounding.card} border-2 ${theme.colors.border} shadow-inner bg-black`}
+                    >
+                      <video
+                        ref={webcamRef}
+                        autoPlay
+                        playsInline
+                        muted
+                        className="w-full h-auto"
+                        style={{ transform: "scaleX(-1)" }}
+                      />
+                    </div>
+                  )}
+                  {error && (
+                    <p className="text-red-500 text-sm mt-2">{error}</p>
+                  )}
+                  <div className="flex flex-col sm:flex-row gap-3 mt-4">
+                    <Button
+                      onClick={captureSelfie}
+                      variant="secondary"
+                      className="sm:flex-1"
+                      disabled={!cameraSupported}
+                    >
+                      <Camera size={20} /> Ambil Foto
+                    </Button>
+                    <Button
+                      onClick={continueWithoutSelfie}
+                      variant="light"
+                      className="sm:flex-1"
+                    >
+                      Lewati Selfie
+                    </Button>
+                  </div>
+                </div>
+              );
+
+            case "location":
+              return (
+                <div className="flex flex-col items-center justify-center h-48">
+                  <Spinner size={40} />
+                  <p
+                    className={`${theme.colors.textPrimary} mt-4 font-semibold`}
+                  >
+                    Mendeteksi lokasi Anda...
+                  </p>
+                  <p className={`${theme.colors.textSecondary} text-sm`}>
+                    Pastikan GPS dan izin lokasi aktif.
+                  </p>
+                </div>
+              );
+
+            case "reason":
+              return (
                 <div>
-                  <label class="block mb-2 font-semibold" style="color: ${config.text_color}; font-size: ${baseSize}px;">Nama Pelanggan</label>
-                  <input type="text" id="customer-name" required class="w-full px-4 py-3 rounded-lg border-2 focus:outline-none focus:ring-2" style="border-color: ${config.secondary_action_color}; font-size: ${baseSize}px;">
-                </div>
-                
-                <div>
-                  <label class="block mb-2 font-semibold" style="color: ${config.text_color}; font-size: ${baseSize}px;">Tipe Booking</label>
-                  <select id="booking-type" class="w-full px-4 py-3 rounded-lg border-2 focus:outline-none focus:ring-2" style="border-color: ${config.secondary_action_color}; font-size: ${baseSize}px;" onchange="document.getElementById('booking-time-group').style.display = this.value === 'booking' ? 'block' : 'none'">
-                    <option value="open">🟢 Open Room (Mulai Sekarang)</option>
-                    <option value="booking">📅 Booking (Jadwal Nanti)</option>
-                  </select>
-                </div>
-                
-                <div id="booking-time-group" style="display: none;">
-                  <label class="block mb-2 font-semibold" style="color: ${config.text_color}; font-size: ${baseSize}px;">Waktu Mulai</label>
-                  <input type="datetime-local" id="booking-time" class="w-full px-4 py-3 rounded-lg border-2 focus:outline-none focus:ring-2" style="border-color: ${config.secondary_action_color}; font-size: ${baseSize}px;">
-                </div>
-                
-                <div>
-                  <label class="block mb-2 font-semibold" style="color: ${config.text_color}; font-size: ${baseSize}px;">Durasi</label>
-                  <select id="duration" class="w-full px-4 py-3 rounded-lg border-2 focus:outline-none focus:ring-2" style="border-color: ${config.secondary_action_color}; font-size: ${baseSize}px;">
-                    <!-- Kalkulasi harga di form booking diupdate -->
-                    <option value="1">1 Jam - ${formatCurrency((price_per_hour * 1) + service_charge)}</option>
-                    <option value="2">2 Jam - ${formatCurrency((price_per_hour * 2) + service_charge)}</option>
-                    <option value="3">3 Jam - ${formatCurrency((price_per_hour * 3) + service_charge)}</option>
-                  </select>
-                </div>
-                
-                <div class="flex gap-3 pt-4">
-                  <button type="submit" id="submit-booking" class="flex-1 py-3 rounded-lg text-white font-bold transition-transform hover:scale-105" style="background-color: ${config.primary_action_color}; font-size: ${baseSize * 1.1}px;">
-                    ✅ Simpan Booking
-                  </button>
-                  <button type="button" onclick="handleCancelBooking()" class="flex-1 py-3 rounded-lg text-white font-semibold transition-transform hover:scale-105" style="background-color: ${config.secondary_action_color}; font-size: ${baseSize}px;">
-                    ❌ Batal
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      `;
-    }
-
-    // Fungsi render utama (DIMODIFIKASI)
-    function renderApp() {
-      const app = document.getElementById('app');
-      
-      // Tampilkan "Loading" jika Firebase auth belum siap
-      if (!userId) {
-        app.innerHTML = renderLogin(); // renderLogin akan menampilkan "Menghubungkan..."
-        return;
-      }
-      
-      // Jika user Firebase sudah ada, cek user aplikasi (kasir)
-      if (currentView === 'login') {
-        app.innerHTML = renderLogin();
-      } else if (currentView === 'dashboard') {
-        app.innerHTML = renderDashboard();
-        // Hapus interval, karena onSnapshot sudah menangani update
-      } else if (currentView === 'booking-form') {
-        app.innerHTML = renderBookingForm();
-      }
-    }
-
-    async function onConfigChange(config) {
-      renderApp();
-    }
-    
-    // Globalize functions agar bisa dipanggil dari HTML
-    window.handleLogin = handleLogin;
-    window.handleLogout = handleLogout;
-    window.showBookingForm = showBookingForm;
-    window.handleBookingSubmit = handleBookingSubmit;
-    window.handleCheckout = handleCheckout;
-    window.toggleServiceStatus = toggleServiceStatus; // <-- Fungsi baru di-globalize
-    window.handleCancelBooking = handleCancelBooking; // <-- Fungsi 'Batal' di-globalize
-    window.generateExcelReport = generateExcelReport; // <-- Fungsi Laporan Excel di-globalize
-
-    // Mulai aplikasi
-    initApp();
-  </script>
-</body>
-</html>
+                  <div
+                    className={`flex items-center gap-3 p-4 ${theme.rounding.button} bg-yellow-100 border border-yellow-300 text-yellow-800`}
+                  >
+                    <AlertTriangle size={24} />
+                    <div>
+                      <h4 className="font-bold">Anda Berada di Luar Area!</h4>
+                      <p className="text-sm">
+                        Jarak Anda: {distance.toFixed(0)} meter dari PayBoss
+                        Cafe.
+                      </p>
+                    </div>
+                  </div>
+                  <p
+                    className={`${theme.colors.textSecondary} mt-4 mb-3`}
+                  >
+                    Harap pilih alasan Anda absen di luar area kerja:
+                  </p>
+                  <div className="space-y-2">
+                    {reasons.map((r) => (
+                      <label
+                        key={r}
+                        className={`flex items-center w-full p-3 ${
+                          theme.rounding.input
+                        } ${theme.colors.background} border ${
+                          reason === r
+                            ? "border-amber-800 ring-2 ring-amber-800"
+                            : theme.colors.border
