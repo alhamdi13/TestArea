@@ -242,7 +242,8 @@
 
       // DIMODIFIKASI: Path dikembalikan ke users/{userId}/bookings
       // Ini adalah path yang aman dan benar secara struktur.
-      const collectionRef = collection(db, 'users', userId, 'bookings');
+      // --- PERUBAHAN SOLUSI: Kita akan menggunakan path 'publik' yang sama untuk semua user ---
+      const collectionRef = collection(db, 'payboss_bookings', appId, 'all_bookings');
       console.log('Attempting to listen to Firestore at path:', collectionRef.path);
       
       // Dengarkan perubahan data secara real-time
@@ -588,36 +589,14 @@
         startTime = new Date(bookingTimeValue);
       }
       
-      const endTime = new Date(startTime.getTime() + duration * 60 * 60 * 1000);
-      
-      // --- DIMODIFIKASI ---
-      // Menggunakan fungsi baru untuk mendapatkan harga & service
-      const { price_per_hour, service_charge } = getRoomDetails(selectedBooking.room);
-      const totalPrice = (price_per_hour * duration) + service_charge;
-      
-      // ID akan dibuat otomatis oleh Firestore
-      const booking = {
-        room_type: selectedBooking.room.type,
-        room_number: selectedBooking.room.id,
-        customer_name: customerName,
-        start_time: startTime.toISOString(),
-        duration_hours: duration,
-        end_time: endTime.toISOString(),
-        status: bookingType === 'open' ? 'active' : 'booked',
-        price_per_hour: price_per_hour, // Harga per jam
-        service_charge: service_charge, // Biaya service (BARU)
-        total_price: totalPrice, // Total (harga * jam + service)
-        created_by: currentUser.name,
-        created_at: now.toISOString()
-      };
-      
       const submitBtn = document.getElementById('submit-booking');
       submitBtn.disabled = true;
       submitBtn.textContent = 'Menyimpan...';
       
       try {
         // DIMODIFIKASI: Path dikembalikan ke users/{userId}/bookings
-        const collectionRef = collection(db, 'users', userId, 'bookings');
+        // --- PERUBAHAN SOLUSI: Kita akan menggunakan path 'publik' yang sama untuk semua user ---
+        const collectionRef = collection(db, 'payboss_bookings', appId, 'all_bookings');
         console.log('Attempting to write to Firestore at path:', collectionRef.path);
         await addDoc(collectionRef, booking);
         
@@ -663,7 +642,8 @@
         }
 
         // DIMODIFIKASI: Path dikembalikan ke users/{userId}/bookings
-        const docRef = doc(db, 'users', userId, 'bookings', booking.id);
+        // --- PERUBAHAN SOLUSI: Kita akan menggunakan path 'publik' yang sama untuk semua user ---
+        const docRef = doc(db, 'payboss_bookings', appId, 'all_bookings', booking.id);
         console.log('Attempting to update Firestore doc at path:', docRef.path);
         
         try {
