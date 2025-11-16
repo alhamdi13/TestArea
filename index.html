@@ -39,12 +39,7 @@
       const IconWrapper = ({ children, className = "", size = 24 }) => (
         <span
           className={className}
-          style={{
-            fontSize: size,
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
+          style={{ fontSize: size, display: "inline-flex", alignItems: "center", justifyContent: "center" }}
         >
           {children}
         </span>
@@ -62,7 +57,7 @@
       const XCircle = (props) => <IconWrapper {...props}>❌</IconWrapper>;
       const MapPin = (props) => <IconWrapper {...props}>📍</IconWrapper>;
       const Camera = (props) => <IconWrapper {...props}>📷</IconWrapper>;
-      const ListChecks = (props) => <IconWrapper {...props}>📋</IconWrapper>;
+      const ListChecks = (props) => <IconWrapper {...props}>✅</IconWrapper>;
       const ChevronLeft = (props) => <IconWrapper {...props}>◀️</IconWrapper>;
       const ChevronRight = (props) => <IconWrapper {...props}>▶️</IconWrapper>;
       const Plus = (props) => <IconWrapper {...props}>➕</IconWrapper>;
@@ -75,6 +70,7 @@
       const Moon = (props) => <IconWrapper {...props}>🌙</IconWrapper>;
       const Sun = (props) => <IconWrapper {...props}>☀️</IconWrapper>;
       const Sunset = (props) => <IconWrapper {...props}>🌆</IconWrapper>;
+      const LockIcon = (props) => <IconWrapper {...props}>🔒</IconWrapper>;
 
       // --- STYLING & KONFIGURASI ---
 
@@ -102,21 +98,21 @@
         },
       };
 
-      // Lokasi PayBoss Cafe (Target GPS)
+      // Lokasi PayBoss Cafe
       const TARGET_LOCATION = {
         latitude: -2.1717657457047723,
         longitude: 115.4029877085838,
       };
       const GPS_RADIUS_METERS = 100;
 
-      // Hardcode tanggal hari ini untuk demo
+      // Hardcode tanggal hari ini (nanti bisa diganti Date.now)
       const TODAY = "2025-11-16";
 
-      // URL Google Apps Script Web App (READ/WRITE Google Sheet)
+      // URL Google Apps Script Web App
       const GOOGLE_SHEET_WEBAPP_URL =
         "https://script.google.com/macros/s/AKfycbxOHwN1-GyfwWrQLucTf-X0Db_9HefScgxd5g2h35-ntTNyGQZ4NePhZ39OfeZqRvdM/exec";
 
-      // --- DATABASE AWAL ---
+      // --- DATA MASTER KARYAWAN & ROSTER ---
 
       const initialDbKaryawan = [
         {
@@ -145,7 +141,7 @@
           alamat: "",
           statusPernikahan: "",
           kontakDarurat: "",
-          fotoInisial: "IA",
+          fotoInisial: "IAN",
         },
         {
           id: "PB251104",
@@ -159,41 +155,13 @@
           alamat: "",
           statusPernikahan: "",
           kontakDarurat: "",
-          fotoInisial: "RA",
-        },
-        {
-          id: "PB251108",
-          nama: "Fitri Ainur Sabita",
-          posisi: "Chef",
-          password: "fitri123",
-          tanggalLahir: "",
-          fotoUrl: "",
-          noWhatsapp: "",
-          email: "",
-          alamat: "",
-          statusPernikahan: "",
-          kontakDarurat: "",
-          fotoInisial: "FA",
-        },
-        {
-          id: "PB251109",
-          nama: "Shada Amalia",
-          posisi: "Chef",
-          password: "shada123",
-          tanggalLahir: "",
-          fotoUrl: "",
-          noWhatsapp: "",
-          email: "",
-          alamat: "",
-          statusPernikahan: "",
-          kontakDarurat: "",
-          fotoInisial: "SA",
+          fotoInisial: "RAJ",
         },
         {
           id: "PB251106",
-          nama: "Ahmad Maulidan",
-          posisi: "Bartender",
-          password: "ahmad123",
+          nama: "Annisa",
+          posisi: "Kasir",
+          password: "annisa123",
           tanggalLahir: "",
           fotoUrl: "",
           noWhatsapp: "",
@@ -201,13 +169,13 @@
           alamat: "",
           statusPernikahan: "",
           kontakDarurat: "",
-          fotoInisial: "AM",
+          fotoInisial: "A",
         },
         {
           id: "PB251107",
-          nama: "Rusdhani",
-          posisi: "Pramusaji",
-          password: "rusdhani123",
+          nama: "Rudi",
+          posisi: "Barista",
+          password: "rudi123",
           tanggalLahir: "",
           fotoUrl: "",
           noWhatsapp: "",
@@ -217,39 +185,35 @@
           kontakDarurat: "",
           fotoInisial: "R",
         },
+        {
+          id: "PB251108",
+          nama: "Siti",
+          posisi: "Pramusaji",
+          password: "siti123",
+          tanggalLahir: "",
+          fotoUrl: "",
+          noWhatsapp: "",
+          email: "",
+          alamat: "",
+          statusPernikahan: "",
+          kontakDarurat: "",
+          fotoInisial: "S",
+        },
+        {
+          id: "PB251109",
+          nama: "Budi",
+          posisi: "Koki",
+          password: "budi123",
+          tanggalLahir: "",
+          fotoUrl: "",
+          noWhatsapp: "",
+          email: "",
+          alamat: "",
+          statusPernikahan: "",
+          kontakDarurat: "",
+          fotoInisial: "B",
+        },
       ];
-
-      const jobDeskTemplates = {
-        Pramusaji: [
-          "Menyambut tamu dengan ramah (Greeter)",
-          "Mencatat pesanan dengan akurat",
-          "Menyajikan pesanan (Runner)",
-          "Proaktif melayani kebutuhan tamu (table touch)",
-          "Membersihkan meja (Clear-up & Reset)",
-          "Membantu proses pembayaran di kasir",
-        ],
-        Bartender: [
-          "Menyiapkan bar station (mise en place)",
-          "Menerima pesanan minuman",
-          "Membuat pesanan minuman (Kopi & Non-Kopi) sesuai SOP",
-          "Menjaga kebersihan dan kerapian area bar",
-          "Melakukan stok opname harian bahan baku bar",
-        ],
-        Chef: [
-          "Persiapan 'mise en place' bahan baku kitchen",
-          "Memasak pesanan sesuai SOP dan urutan (FIFO)",
-          "Menjaga kualitas rasa dan presentasi hidangan",
-          "Memastikan kebersihan area kitchen (kitchen station)",
-          "Melakukan stok opname harian bahan baku kitchen",
-        ],
-        Koordinator: [
-          "Memimpin briefing pagi tim FOH & BOH",
-          "Memastikan ketersediaan stok (Bar & Kitchen)",
-          "Menangani keluhan atau masukan tamu (service recovery)",
-          "Membuat laporan closing harian",
-          "Memastikan semua tim menjalankan SOP dengan baik",
-        ],
-      };
 
       const initialDbRoster = {
         PB251101: {
@@ -335,28 +299,10 @@
 
         const a =
           Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-          Math.cos(φ1) *
-            Math.cos(φ2) *
-            Math.sin(Δλ / 2) *
-            Math.sin(Δλ / 2);
+          Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
         return R * c;
-      }
-
-      function getNext7Days(startDateString) {
-        const startDate = new Date(startDateString + "T00:00:00");
-        const dates = [];
-        for (let i = 0; i < 7; i++) {
-          const nextDate = new Date(startDate.getTime());
-          nextDate.setDate(startDate.getDate() + i);
-          dates.push(nextDate);
-        }
-        return dates;
-      }
-
-      function formatDateYYYYMMDD(date) {
-        return date.toISOString().split("T")[0];
       }
 
       function formatShortDate(date) {
@@ -373,27 +319,6 @@
           minute: "2-digit",
           second: "2-digit",
         });
-      }
-
-      // Helper localStorage
-      function loadFromStorage(key, fallback) {
-        if (typeof window === "undefined") return fallback;
-        try {
-          const stored = window.localStorage.getItem(key);
-          if (stored) return JSON.parse(stored);
-        } catch (e) {
-          console.error("Gagal parse localStorage", key, e);
-        }
-        return fallback;
-      }
-
-      function saveToStorage(key, value) {
-        if (typeof window === "undefined") return;
-        try {
-          window.localStorage.setItem(key, JSON.stringify(value));
-        } catch (e) {
-          console.error("Gagal simpan localStorage", key, e);
-        }
       }
 
       // --- KONEKSI GOOGLE SHEET ---
@@ -429,27 +354,47 @@
         }
       }
 
-      // Opsional: sync list karyawan ke Google Sheet
-      async function kirimKaryawanListKeSheet(listKaryawan) {
+      async function loadAbsensiDariSheet() {
         try {
-          const payload = {
-            action: "saveKaryawan",
-            data: listKaryawan,
-          };
-          await fetch(GOOGLE_SHEET_WEBAPP_URL, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(payload),
-            mode: "no-cors",
-          });
+          const res = await fetch(
+            GOOGLE_SHEET_WEBAPP_URL + "?action=getAbsensi&ts=" + Date.now()
+          );
+          if (!res.ok) throw new Error("Response tidak OK");
+          const json = await res.json();
+          if (!json || !Array.isArray(json.data)) return null;
+
+          // Mapping fleksibel (ikut header di Apps Script)
+          return json.data.map((row) => ({
+            id: row.id || row.ID || row.Id || "",
+            idKaryawan: row.idKaryawan || row.IDKaryawan || row.karyawanId,
+            namaKaryawan: row.namaKaryawan || row.Nama || row.nama,
+            posisi: row.posisi || row.Posisi || "",
+            tanggal: row.tanggal || row.Tanggal,
+            shift: row.shift || row.Shift,
+            checkIn: row.checkIn
+              ? {
+                  waktu: new Date(row.checkIn),
+                  alasanLuarArea: row.alasanLuarArea || row.AlasanLuarArea || null,
+                  lat: row.lat ? Number(row.lat) : null,
+                  lng: row.lng ? Number(row.lng) : null,
+                  jarak: row.jarak ? Number(row.jarak) : null,
+                }
+              : null,
+            checkOut: row.checkOut
+              ? {
+                  waktu: new Date(row.checkOut),
+                }
+              : null,
+            jobDeskProgress: [],
+            status: row.status || row.Status || "",
+          }));
         } catch (err) {
-          console.error("Gagal mengirim data karyawan ke Google Sheet", err);
+          console.error("Gagal load absensi dari Google Sheet", err);
+          return null;
         }
       }
 
-      // --- KOMPONEN UI SHARED ---
+      // --- KOMPONEN REUSABLE ---
 
       const Modal = ({ children, onClose, title }) => (
         <AnimatePresence>
@@ -468,7 +413,7 @@
               onClick={(e) => e.stopPropagation()}
             >
               <div
-                className={`flex items-center justify-between p-5 border-b ${theme.colors.border}`}
+                className={`flex items-center justify-between p-5 ${theme.colors.border} border-b`}
               >
                 <h3 className={`text-xl font-bold ${theme.colors.textPrimary}`}>
                   {title}
@@ -507,9 +452,9 @@
             type={type}
             onClick={onClick}
             disabled={disabled}
-            className={`flex w-full items-center justify-center gap-2 p-3 font-semibold ${theme.rounding.button} transition-all duration-200 ${
-              variants[variant]
-            } ${disabled ? "opacity-50 cursor-not-allowed" : ""} ${className}`}
+            className={`flex w-full items-center justify-center gap-2 p-3 font-semibold ${theme.rounding.button} transition-all duration-200 ${variants[variant]} ${
+              disabled ? "opacity-50 cursor-not-allowed" : ""
+            } ${className}`}
           >
             {children}
           </button>
@@ -546,18 +491,6 @@
         </div>
       );
 
-      const TextArea = ({ placeholder, value, onChange, className = "", ...rest }) => (
-        <textarea
-          placeholder={placeholder}
-          value={value}
-          onChange={onChange}
-          {...rest}
-          className={`w-full ${theme.colors.background} ${theme.rounding.input} ${
-            theme.colors.textPrimary
-          } border ${theme.colors.border} p-3 focus:outline-none focus:ring-2 focus:ring-amber-800 ${className}`}
-        />
-      );
-
       const Spinner = ({ size = 24 }) => (
         <motion.div
           animate={{ rotate: 360 }}
@@ -583,7 +516,7 @@
         );
       };
 
-      // --- ATTENDANCE FLOW (MODAL) ---
+      // --- MODAL ALUR ABSENSI (SELFIE + GPS) ---
 
       const AttendanceFlow = ({ user, type, onClose, onComplete, todayShift }) => {
         const [step, setStep] = useState("camera");
@@ -648,7 +581,7 @@
         const captureSelfie = useCallback(() => {
           if (!webcamRef.current || !cameraSupported) {
             setError(
-              "Kamera belum siap atau tidak didukung. Anda bisa menekan tombol 'Lewati Selfie'."
+              "Kamera belum siap atau tidak didukung. Anda bisa menekan tombol 'Lanjut tanpa Selfie'."
             );
             return;
           }
@@ -702,8 +635,7 @@
 
             navigator.geolocation.getCurrentPosition(
               (position) => {
-                const latitude = position.coords.latitude;
-                const longitude = position.coords.longitude;
+                const { latitude, longitude } = position.coords;
                 const dist = getHaversineDistance(
                   latitude,
                   longitude,
@@ -724,7 +656,8 @@
               },
               (err) => {
                 let errMsg = "Gagal mendapatkan lokasi. ";
-                if (err.code === 1) errMsg += "Pastikan Anda mengizinkan akses lokasi.";
+                if (err.code === 1)
+                  errMsg += "Pastikan Anda mengizinkan akses lokasi.";
                 if (err.code === 2) errMsg += "Sinyal lokasi tidak tersedia.";
                 if (err.code === 3) errMsg += "Waktu tunggu habis.";
                 setError(errMsg);
@@ -741,8 +674,8 @@
           const attendanceData = {
             waktu: new Date(),
             fotoBase64: selfie,
-            lat: locationData ? locationData.latitude : null,
-            lng: locationData ? locationData.longitude : null,
+            lat: locationData?.latitude,
+            lng: locationData?.longitude,
             alasanLuarArea: inArea ? null : reason,
             jarak: distance,
           };
@@ -752,7 +685,7 @@
               user,
               jenis: type,
               data: attendanceData,
-              shiftName: todayShift ? todayShift.nama : "",
+              shiftName: todayShift?.nama || "",
             });
           } catch (e) {
             console.error(e);
@@ -896,9 +829,7 @@
                       )}
                       <div>
                         <h4 className="font-bold">{user.nama}</h4>
-                        <p className={theme.colors.textSecondary}>
-                          {user.posisi}
-                        </p>
+                        <p className={theme.colors.textSecondary}>{user.posisi}</p>
                         <p className={theme.colors.textSecondary}>
                           {formatTime(new Date())}
                         </p>
@@ -910,9 +841,7 @@
                       <h5 className="font-semibold flex items-center gap-2">
                         <MapPin
                           size={16}
-                          className={
-                            inArea ? "text-green-600" : "text-red-600"
-                          }
+                          className={inArea ? "text-green-600" : "text-red-600"}
                         />
                         Status Lokasi
                       </h5>
@@ -997,99 +926,7 @@
         );
       };
 
-      // --- KOMPONEN KARYAWAN ---
-
-      // Profil karyawan (lihat data pribadi + foto)
-      const EmployeeProfile = ({ user }) => {
-        const avatarInitial =
-          user.fotoInisial ||
-          (user.nama && user.nama.length > 0 ? user.nama[0] : "?");
-
-        return (
-          <div className="p-4 space-y-4">
-            <h2
-              className={`text-2xl font-bold mb-2 ${theme.colors.textPrimary}`}
-            >
-              Profil Karyawan
-            </h2>
-
-            <div
-              className={`flex items-center gap-4 p-4 ${theme.colors.card} ${theme.rounding.card} shadow-md`}
-            >
-              {user.fotoUrl ? (
-                <img
-                  src={user.fotoUrl}
-                  alt={user.nama}
-                  className="w-20 h-20 rounded-full object-cover border"
-                />
-              ) : (
-                <div className="w-20 h-20 rounded-full bg-amber-700 text-white flex items-center justify-center text-2xl font-bold">
-                  {avatarInitial}
-                </div>
-              )}
-              <div>
-                <p className="text-sm text-stone-500 mb-1">
-                  ID: <span className="font-mono">{user.id}</span>
-                </p>
-                <h3 className="text-xl font-bold">{user.nama}</h3>
-                <p className={theme.colors.textSecondary}>{user.posisi}</p>
-              </div>
-            </div>
-
-            <div
-              className={`p-4 ${theme.colors.card} ${theme.rounding.card} shadow-md space-y-2`}
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                <div>
-                  <p className="font-semibold text-stone-500">Tanggal Lahir</p>
-                  <p className={theme.colors.textPrimary}>
-                    {user.tanggalLahir || "-"}
-                  </p>
-                </div>
-                <div>
-                  <p className="font-semibold text-stone-500">
-                    Nomor WhatsApp
-                  </p>
-                  <p className={theme.colors.textPrimary}>
-                    {user.noWhatsapp || "-"}
-                  </p>
-                </div>
-                <div>
-                  <p className="font-semibold text-stone-500">Email</p>
-                  <p className={theme.colors.textPrimary}>
-                    {user.email || "-"}
-                  </p>
-                </div>
-                <div>
-                  <p className="font-semibold text-stone-500">
-                    Status Pernikahan
-                  </p>
-                  <p className={theme.colors.textPrimary}>
-                    {user.statusPernikahan || "-"}
-                  </p>
-                </div>
-                <div className="md:col-span-2">
-                  <p className="font-semibold text-stone-500">
-                    Kontak Darurat
-                  </p>
-                  <p className={theme.colors.textPrimary}>
-                    {user.kontakDarurat || "-"}
-                  </p>
-                </div>
-                <div className="md:col-span-2">
-                  <p className="font-semibold text-stone-500">Alamat</p>
-                  <p className={theme.colors.textPrimary}>
-                    {user.alamat || "-"}
-                  </p>
-                </div>
-              </div>
-              <p className="text-xs text-stone-400 mt-3">
-                *Hubungi manajer untuk meng-update data pribadi Anda.
-              </p>
-            </div>
-          </div>
-        );
-      };
+      // --- KOMPONEN KARYAWAN HOME ---
 
       const KaryawanHome = ({
         user,
@@ -1107,15 +944,10 @@
           const record = dbAbsensi.find(
             (a) => a.idKaryawan === user.id && a.tanggal === TODAY
           );
-          setTodayRecord(record);
+          setTodayRecord(record || null);
 
-          const rosterForUser = dbRoster[user.id];
-          const shiftCode = rosterForUser ? rosterForUser[TODAY] : null;
-          const shiftDetail =
-            typeof shiftCode === "number" || shiftCode === "OFF"
-              ? shiftDetails[shiftCode]
-              : shiftDetails["OFF"];
-          setTodayShift(shiftDetail);
+          const shiftCode = dbRoster[user.id]?.[TODAY];
+          setTodayShift(shiftDetails[shiftCode] || shiftDetails["OFF"]);
 
           const hour = new Date().getHours();
           if (hour < 11) setGreeting("Selamat Pagi");
@@ -1148,33 +980,14 @@
             .length;
         }
 
-        const avatarInitial =
-          user.fotoInisial ||
-          (user.nama && user.nama.length > 0 ? user.nama[0] : "?");
-
         return (
           <div className="p-4 space-y-6">
             <div
-              className={`p-6 ${theme.colors.primary} ${theme.rounding.card} shadow-lg text-white flex items-center justify-between`}
+              className={`p-6 ${theme.colors.primary} ${theme.rounding.card} shadow-lg text-white`}
             >
-              <div>
-                <p className="text-lg font-light">{greeting},</p>
-                <h2 className="text-3xl font-bold">{user.nama}</h2>
-                <p className="text-stone-300 mt-1">{user.posisi}</p>
-              </div>
-              <div>
-                {user.fotoUrl ? (
-                  <img
-                    src={user.fotoUrl}
-                    alt={user.nama}
-                    className="w-16 h-16 rounded-full object-cover border-2 border-amber-300"
-                  />
-                ) : (
-                  <div className="w-16 h-16 rounded-full bg-amber-500 text-white flex items-center justify-center text-2xl font-bold">
-                    {avatarInitial}
-                  </div>
-                )}
-              </div>
+              <p className="text-lg font-light">{greeting},</p>
+              <h2 className="text-3xl font-bold">{user.nama}</h2>
+              <p className="text-stone-300 mt-1">{user.posisi}</p>
             </div>
 
             <div
@@ -1216,10 +1029,7 @@
                         <AlertTriangle
                           size={20}
                           className="text-yellow-500"
-                          title={
-                            "Absen di luar area: " +
-                            todayRecord.checkIn.alasanLuarArea
-                          }
+                          title={`Absen di luar area: ${todayRecord.checkIn.alasanLuarArea}`}
                         />
                       )}
                     </div>
@@ -1287,7 +1097,7 @@
                       variant="light"
                       className="mt-3"
                     >
-                      Lihat & Kerjakan Tugas
+                      Lihat / Update Job Desk
                     </Button>
                   </div>
                 )}
@@ -1297,1409 +1107,358 @@
         );
       };
 
-      const KaryawanJadwal = ({ user, dbRoster }) => {
-        const scheduleDays = getNext7Days(TODAY);
-        const userRoster = dbRoster[user.id] || {};
+      // --- JOB DESK KARYAWAN (SIMPLE MOCK) ---
 
-        return (
-          <div className="p-4">
-            <h2
-              className={`text-2xl font-bold mb-6 ${theme.colors.textPrimary}`}
-            >
-              Jadwal Kerja 7 Hari
-            </h2>
-            <div className="space-y-3">
-              {scheduleDays.map((day) => {
-                const dayString = formatDateYYYYMMDD(day);
-                const shiftCode =
-                  typeof userRoster[dayString] === "undefined"
-                    ? "OFF"
-                    : userRoster[dayString];
-                const shift =
-                  typeof shiftCode === "number" || shiftCode === "OFF"
-                    ? shiftDetails[shiftCode]
-                    : shiftDetails["OFF"];
-                const isToday = dayString === TODAY;
-                const ShiftIcon = shift.ikon;
-
-                return (
-                  <div
-                    key={dayString}
-                    className={`flex items-center p-4 ${theme.colors.card} ${theme.rounding.card} shadow-sm ${
-                      isToday ? "border-2 border-amber-800" : ""
-                    }`}
-                  >
-                    <div
-                      className={`p-3 mr-4 rounded-full ${
-                        shift.nama === "OFF" ? "bg-gray-100" : "bg-green-100"
-                      }`}
-                    >
-                      <ShiftIcon size={24} className={shift.color} />
-                    </div>
-                    <div className="flex-1">
-                      <p
-                        className={`font-bold text-lg ${theme.colors.textPrimary}`}
-                      >
-                        {formatShortDate(day)}
-                      </p>
-                      <p
-                        className={`${theme.colors.textSecondary} ${shift.color} font-medium`}
-                      >
-                        {shift.nama}
-                      </p>
-                    </div>
-                    <span className={`font-semibold ${theme.colors.textSecondary}`}>
-                      {shift.waktu}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        );
+      const JOB_DESK_TEMPLATE = {
+        Koordinator: [
+          "Memimpin briefing tim",
+          "Mengecek kesiapan operasional",
+          "Membuat laporan akhir shift",
+        ],
+        Kasir: [
+          "Membuka dan menutup kasir",
+          "Input transaksi dengan benar",
+          "Rekonsiliasi kas di akhir shift",
+        ],
+        Barista: [
+          "Menyiapkan minuman sesuai resep",
+          "Menjaga kebersihan area bar",
+          "Mencatat kebutuhan stok bahan",
+        ],
+        Pramusaji: [
+          "Menyambut tamu dengan ramah",
+          "Mengantar makanan/minuman",
+          "Membersihkan meja setelah tamu selesai",
+        ],
+        Bartender: [
+          "Menyiapkan minuman bar",
+          "Menjaga stok minuman",
+          "Menjaga kebersihan area bar",
+        ],
+        Koki: [
+          "Menyiapkan bahan masak",
+          "Memasak sesuai pesanan",
+          "Menjaga kebersihan dapur",
+        ],
       };
 
-      const KaryawanJobDesk = ({ user, dbAbsensi, setDbAbsensi }) => {
-        const todayRecord = dbAbsensi.find(
-          (a) => a.idKaryawan === user.id && a.tanggal === TODAY
-        );
+      const KaryawanJobDesk = ({ user, dbAbsensi, setDbAbsensi, onBack }) => {
+        const [record, setRecord] = useState(null);
 
-        if (!todayRecord || !todayRecord.checkIn) {
+        useEffect(() => {
+          let r = dbAbsensi.find(
+            (a) => a.idKaryawan === user.id && a.tanggal === TODAY
+          );
+          if (!r) {
+            const tasks =
+              JOB_DESK_TEMPLATE[user.posisi] || JOB_DESK_TEMPLATE["Pramusaji"];
+            r = {
+              id: Date.now().toString(),
+              idKaryawan: user.id,
+              namaKaryawan: user.nama,
+              posisi: user.posisi,
+              tanggal: TODAY,
+              shift: null,
+              checkIn: null,
+              checkOut: null,
+              jobDeskProgress: tasks.map((t, idx) => ({
+                id: `task-${idx}`,
+                nama: t,
+                completed: false,
+              })),
+              status: "",
+            };
+            setDbAbsensi((prev) => [...prev, r]);
+          }
+          setRecord(r);
+        }, [user, dbAbsensi, setDbAbsensi]);
+
+        const toggleTask = (taskId) => {
+          setRecord((prev) => {
+            if (!prev) return prev;
+            const updatedTasks = prev.jobDeskProgress.map((t) =>
+              t.id === taskId ? { ...t, completed: !t.completed } : t
+            );
+            const updatedRecord = { ...prev, jobDeskProgress: updatedTasks };
+            setDbAbsensi((all) =>
+              all.map((a) => (a.id === updatedRecord.id ? updatedRecord : a))
+            );
+            return updatedRecord;
+          });
+        };
+
+        if (!record) {
           return (
-            <div className="p-4 text-center mt-10">
-              <ListChecks
-                size={48}
-                className={`mx-auto ${theme.colors.textSecondary} opacity-50`}
-              />
-              <h3 className="text-xl font-bold mt-4">Job Desk Harian</h3>
-              <p className={theme.colors.textSecondary}>
-                Silakan check-in terlebih dahulu untuk melihat daftar tugas
-                harian Anda.
-              </p>
+            <div className="flex items-center justify-center h-screen">
+              <Spinner size={40} />
             </div>
           );
         }
 
-        const tasks = todayRecord.jobDeskProgress || [];
-
-        const handleToggleTask = (index) => {
-          const updatedAbsensi = dbAbsensi.map((record) => {
-            if (record.idKaryawan === user.id && record.tanggal === TODAY) {
-              const updatedTasks = record.jobDeskProgress.map((task, i) =>
-                i === index ? { ...task, completed: !task.completed } : task
-              );
-              return { ...record, jobDeskProgress: updatedTasks };
-            }
-            return record;
-          });
-          setDbAbsensi(updatedAbsensi);
-        };
-
-        const jobTotal = tasks.length;
-        const jobProgress = tasks.filter((t) => t.completed).length;
+        const total = record.jobDeskProgress.length;
+        const done = record.jobDeskProgress.filter((t) => t.completed).length;
 
         return (
-          <div className="p-4">
-            <h2
-              className={`text-2xl font-bold mb-2 ${theme.colors.textPrimary}`}
+          <div className="p-4 space-y-4">
+            <button
+              onClick={onBack}
+              className="inline-flex items-center gap-2 text-stone-600 hover:text-stone-900 mb-2"
             >
-              Job Desk Harian
-            </h2>
-            <p className={`${theme.colors.textSecondary} mb-4`}>
-              Tugas Anda sebagai {user.posisi}.
-            </p>
+              <ChevronLeft size={20} /> Kembali
+            </button>
+            <div
+              className={`p-5 ${theme.colors.card} ${theme.rounding.card} shadow-md`}
+            >
+              <h3 className={`text-xl font-bold ${theme.colors.textPrimary}`}>
+                Job Desk Hari Ini
+              </h3>
+              <p className={theme.colors.textSecondary}>
+                {user.nama} • {user.posisi}
+              </p>
+              <p className={`${theme.colors.textSecondary} text-sm mt-1`}>
+                {formatShortDate(new Date(TODAY + "T00:00:00"))}
+              </p>
 
-            <div className="mb-6">
-              <div className="flex justify-between items-center mb-2">
-                <span
-                  className={`text-sm font-medium ${theme.colors.textPrimary}`}
-                >
-                  Progres Selesai
-                </span>
-                <span
-                  className={`text-sm font-medium ${theme.colors.textPrimary}`}
-                >
-                  {jobProgress}/{jobTotal}
-                </span>
+              <div className="mt-4">
+                <ProgressBar value={done} max={total} />
+                <p className={`${theme.colors.textSecondary} text-sm mt-2`}>
+                  {done} dari {total} tugas selesai.
+                </p>
               </div>
-              <ProgressBar value={jobProgress} max={jobTotal} />
-            </div>
 
-            <div className="space-y-3">
-              {tasks.map((task, index) => (
-                <label
-                  key={index}
-                  className={`flex items-start p-4 ${theme.rounding.card} shadow-sm cursor-pointer transition-all ${
-                    task.completed
-                      ? "bg-green-50 border-green-200"
-                      : theme.colors.card
-                  } border ${theme.colors.border}`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={task.completed}
-                    onChange={() => handleToggleTask(index)}
-                    className="mt-1 h-5 w-5 text-green-700 rounded border-gray-300 focus:ring-green-700"
-                  />
-                  <span
-                    className={`ml-3 ${theme.colors.textPrimary} ${
-                      task.completed ? "line-through text-stone-500" : ""
-                    }`}
+              <ul className="mt-4 space-y-2">
+                {record.jobDeskProgress.map((task) => (
+                  <li
+                    key={task.id}
+                    className={`flex items-center gap-3 p-3 ${theme.rounding.input} ${theme.colors.background} border ${theme.colors.border}`}
                   >
-                    {task.task}
-                  </span>
-                </label>
-              ))}
-            </div>
-          </div>
-        );
-      };
-
-      const EmployeeDashboard = ({
-        user,
-        onLogout,
-        dbAbsensi,
-        setDbAbsensi,
-        dbRoster,
-        setDbRoster,
-        dbJobDesk,
-      }) => {
-        const [activeTab, setActiveTab] = useState("home");
-        const [isModalOpen, setIsModalOpen] = useState(false);
-        const [modalType, setModalType] = useState("checkIn");
-        const [modalShift, setModalShift] = useState(null);
-
-        const navItems = [
-          { id: "home", label: "Home", icon: Home },
-          { id: "jadwal", label: "Jadwal", icon: Calendar },
-          { id: "jobdesk", label: "Job Desk", icon: ListChecks },
-          { id: "profil", label: "Profil", icon: User },
-          { id: "logout", label: "Logout", icon: LogOut },
-        ];
-
-        const handleShowModal = (type, shift) => {
-          setModalType(type);
-          setModalShift(shift);
-          setIsModalOpen(true);
-        };
-
-        const handleAttendanceComplete = (data) => {
-          setDbAbsensi((prevDb) => {
-            const existingIndex = prevDb.findIndex(
-              (a) => a.idKaryawan === user.id && a.tanggal === TODAY
-            );
-
-            if (modalType === "checkIn") {
-              const jobTasks = dbJobDesk[user.posisi] || [];
-              const newRecord = {
-                id: "att_" + user.id + "_" + TODAY,
-                idKaryawan: user.id,
-                namaKaryawan: user.nama,
-                posisi: user.posisi,
-                tanggal: TODAY,
-                shift: modalShift ? modalShift.nama : "",
-                checkIn: data,
-                checkOut:
-                  existingIndex >= 0 ? prevDb[existingIndex].checkOut : null,
-                jobDeskProgress: jobTasks.map((task) => ({
-                  task,
-                  completed: false,
-                })),
-                status: data.alasanLuarArea ? "Luar Area" : "Tepat Waktu",
-              };
-
-              if (existingIndex >= 0) {
-                const updated = prevDb.slice();
-                updated[existingIndex] = newRecord;
-                return updated;
-              }
-              return prevDb.concat(newRecord);
-            }
-
-            if (modalType === "checkOut") {
-              return prevDb.map((record) => {
-                if (
-                  record.idKaryawan === user.id &&
-                  record.tanggal === TODAY
-                ) {
-                  return { ...record, checkOut: data };
-                }
-                return record;
-              });
-            }
-
-            return prevDb;
-          });
-        };
-
-        const renderContent = () => {
-          if (activeTab === "home") {
-            return (
-              <KaryawanHome
-                user={user}
-                dbAbsensi={dbAbsensi}
-                setDbAbsensi={setDbAbsensi}
-                dbRoster={dbRoster}
-                onNavigate={setActiveTab}
-                onShowModal={handleShowModal}
-              />
-            );
-          }
-          if (activeTab === "jadwal") {
-            return <KaryawanJadwal user={user} dbRoster={dbRoster} />;
-          }
-          if (activeTab === "jobdesk") {
-            return (
-              <KaryawanJobDesk
-                user={user}
-                dbAbsensi={dbAbsensi}
-                setDbAbsensi={setDbAbsensi}
-              />
-            );
-          }
-          if (activeTab === "profil") {
-            return <EmployeeProfile user={user} />;
-          }
-          return (
-            <KaryawanHome
-              user={user}
-              dbAbsensi={dbAbsensi}
-              setDbAbsensi={setDbAbsensi}
-              dbRoster={dbRoster}
-              onNavigate={setActiveTab}
-              onShowModal={handleShowModal}
-            />
-          );
-        };
-
-        return (
-          <div
-            className={`w-full min-h-screen ${theme.colors.background} flex flex-col`}
-            style={{ paddingBottom: "80px" }}
-          >
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeTab}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.2 }}
-                className="flex-grow"
-              >
-                {renderContent()}
-              </motion.div>
-            </AnimatePresence>
-
-            {isModalOpen && (
-              <AttendanceFlow
-                user={user}
-                type={modalType}
-                todayShift={modalShift}
-                onClose={() => setIsModalOpen(false)}
-                onComplete={handleAttendanceComplete}
-              />
-            )}
-
-            <nav
-              className={`fixed bottom-0 left-0 right-0 h-20 bg-white shadow-lg border-t ${theme.colors.border} flex justify-around items-center`}
-            >
-              {navItems.map((item) => {
-                const isActive = activeTab === item.id;
-                const Icon = item.icon;
-
-                const onClick = () => {
-                  if (item.id === "logout") {
-                    onLogout();
-                  } else {
-                    setActiveTab(item.id);
-                  }
-                };
-
-                return (
-                  <button
-                    key={item.id}
-                    onClick={onClick}
-                    className={`flex flex-col items-center justify-center w-full h-full transition-colors ${
-                      item.id === "logout"
-                        ? "text-red-500"
-                        : isActive
-                        ? "text-amber-800"
-                        : "text-stone-500"
-                    }`}
-                  >
-                    <Icon size={24} />
+                    <input
+                      type="checkbox"
+                      checked={task.completed}
+                      onChange={() => toggleTask(task.id)}
+                      className="w-5 h-5"
+                    />
                     <span
-                      className={`text-xs font-medium mt-1 ${
-                        isActive ? "font-bold" : ""
+                      className={`flex-1 ${
+                        task.completed ? "line-through text-stone-400" : ""
                       }`}
                     >
-                      {item.label}
+                      {task.nama}
                     </span>
-                  </button>
-                );
-              })}
-            </nav>
-          </div>
-        );
-      };
-
-      // --- KOMPONEN MANAGER ---
-
-      const StatCard = ({ title, value, icon, color }) => {
-        const Icon = icon;
-        return (
-          <div
-            className={`flex items-start p-5 ${theme.colors.card} ${theme.rounding.card} shadow-md`}
-          >
-            <div className={`p-3 rounded-full mr-4 ${color.bg} ${color.text}`}>
-              <Icon size={24} />
-            </div>
-            <div>
-              <p className={`${theme.colors.textSecondary} text-sm uppercase`}>
-                {title}
-              </p>
-              <p className={`text-3xl font-bold ${theme.colors.textPrimary}`}>
-                {value}
-              </p>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         );
       };
 
-      const ManagerHome = ({ dbAbsensi, dbKaryawan, dbRoster }) => {
-        const todayAbsen = dbAbsensi.filter((a) => a.tanggal === TODAY);
+      // --- DASHBOARD MANAGER ---
 
-        const allIds = Object.keys(dbRoster);
-        const todayOnShift = allIds.filter((id) => {
-          const roster = dbRoster[id];
-          if (!roster) return false;
-          const shift = roster[TODAY];
-          return !!shift && shift !== "OFF";
-        }).length;
+      const ManagerDashboard = ({ dbAbsensi, onBack }) => {
+        const [selectedDate, setSelectedDate] = useState(TODAY);
 
-        const checkedIn = todayAbsen.filter((a) => a.checkIn).length;
-        const luarArea = todayAbsen.filter(
-          (a) => a.checkIn && a.checkIn.alasanLuarArea
-        ).length;
-        const belumCheckout = todayAbsen.filter(
-          (a) => a.checkIn && !a.checkOut
-        ).length;
-
-        const notifikasi = todayAbsen
-          .filter((a) => a.checkIn && a.checkIn.alasanLuarArea)
-          .map((a) => ({
-            nama: a.namaKaryawan,
-            pesan:
-              "Check-in di luar area. Alasan: " + a.checkIn.alasanLuarArea,
-          }));
+        const recordsForDate = dbAbsensi.filter(
+          (a) => a.tanggal === selectedDate
+        );
 
         return (
-          <div className="p-6 space-y-6">
-            <h1
-              className={`text-3xl font-bold ${theme.colors.textPrimary}`}
+          <div className="p-4 space-y-4">
+            <button
+              onClick={onBack}
+              className="inline-flex items-center gap-2 text-stone-600 hover:text-stone-900 mb-2"
             >
-              Dashboard Manajer
-            </h1>
+              <ChevronLeft size={20} /> Kembali
+            </button>
+            <div
+              className={`p-5 ${theme.colors.card} ${theme.rounding.card} shadow-md`}
+            >
+              <h3 className={`text-xl font-bold ${theme.colors.textPrimary}`}>
+                Dashboard Absensi
+              </h3>
+              <p className={theme.colors.textSecondary}>
+                Rekap absensi harian karyawan PayBoss Cafe
+              </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-              <StatCard
-                title="Karyawan Masuk"
-                value={checkedIn + " / " + todayOnShift}
-                icon={LogIn}
-                color={{ bg: "bg-green-100", text: "text-green-700" }}
-              />
-              <StatCard
-                title="Absen Luar Area"
-                value={luarArea}
-                icon={AlertTriangle}
-                color={{ bg: "bg-yellow-100", text: "text-yellow-700" }}
-              />
-              <StatCard
-                title="Belum Check-out"
-                value={belumCheckout}
-                icon={Clock}
-                color={{ bg: "bg-blue-100", text: "text-blue-700" }}
-              />
-              <StatCard
-                title="Total Karyawan"
-                value={dbKaryawan.length}
-                icon={Users}
-                color={{ bg: "bg-stone-100", text: "text-stone-700" }}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div
-                className={`lg:col-span-2 p-6 ${theme.colors.card} ${theme.rounding.card} shadow-md`}
-              >
-                <h3
-                  className={`text-xl font-bold mb-4 ${theme.colors.textPrimary}`}
-                >
-                  Notifikasi Hari Ini
-                </h3>
-                <div className="space-y-3 max-h-60 overflow-y-auto">
-                  {notifikasi.length === 0 && (
-                    <p className={theme.colors.textSecondary}>
-                      Tidak ada notifikasi penting hari ini.
-                    </p>
-                  )}
-                  {notifikasi.map((notif, i) => (
-                    <div
-                      key={i}
-                      className="flex items-start gap-3 p-3 bg-yellow-50 rounded-lg"
-                    >
-                      <AlertTriangle
-                        size={20}
-                        className="text-yellow-600 mt-1 flex-shrink-0"
-                      />
-                      <div>
-                        <p className="font-semibold text-yellow-800">
-                          {notif.nama}
-                        </p>
-                        <p className="text-sm text-yellow-700">
-                          {notif.pesan}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+              <div className="mt-4 flex flex-col sm:flex-row gap-3 items-start sm:items-end">
+                <div className="flex flex-col">
+                  <label
+                    className={`text-sm mb-1 ${theme.colors.textSecondary}`}
+                  >
+                    Tanggal
+                  </label>
+                  <input
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    className={`border ${theme.colors.border} ${theme.rounding.input} p-2`}
+                  />
                 </div>
+                <p className={`${theme.colors.textSecondary} text-sm`}>
+                  Total data: {recordsForDate.length}
+                </p>
               </div>
 
-              <div
-                className={`p-6 ${theme.colors.card} ${theme.rounding.card} shadow-md`}
-              >
-                <h3
-                  className={`text-xl font-bold mb-4 ${theme.colors.textPrimary}`}
-                >
-                  Ringkasan Shift
-                </h3>
-                <div className="space-y-3">
-                  {[1, 2, 3].map((shiftCode) => {
-                    const shift = shiftDetails[shiftCode];
-                    const ShiftIcon = shift.ikon;
-                    const total = allIds.filter((id) => {
-                      const roster = dbRoster[id];
-                      return roster && roster[TODAY] === shiftCode;
-                    }).length;
-                    const masuk = todayAbsen.filter(
-                      (a) => a.shift === shift.nama && a.checkIn
-                    ).length;
-
-                    return (
-                      <div
-                        key={shiftCode}
-                        className="flex items-center gap-3"
-                      >
-                        <ShiftIcon size={24} className={shift.color} />
-                        <div className="flex-1">
-                          <p
-                            className={`font-semibold ${theme.colors.textPrimary}`}
-                          >
-                            {shift.nama}
-                          </p>
-                          <p className={`text-sm ${theme.colors.textSecondary}`}>
-                            {shift.waktu}
-                          </p>
-                        </div>
-                        <span className="text-lg font-bold">
-                          {masuk} / {total}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
+              <div className="mt-4 overflow-auto max-h-[60vh]">
+                <table className="min-w-full text-sm">
+                  <thead>
+                    <tr className="bg-stone-100 text-left">
+                      <th className="px-3 py-2 border">ID</th>
+                      <th className="px-3 py-2 border">Nama</th>
+                      <th className="px-3 py-2 border">Posisi</th>
+                      <th className="px-3 py-2 border">Shift</th>
+                      <th className="px-3 py-2 border">Check-in</th>
+                      <th className="px-3 py-2 border">Check-out</th>
+                      <th className="px-3 py-2 border">Status</th>
+                      <th className="px-3 py-2 border">Alasan Luar Area</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recordsForDate.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan="8"
+                          className="text-center py-4 text-stone-500"
+                        >
+                          Belum ada data absensi untuk tanggal ini.
+                        </td>
+                      </tr>
+                    ) : (
+                      recordsForDate.map((rec, idx) => (
+                        <tr key={idx} className="border-b">
+                          <td className="px-3 py-2 border">{rec.idKaryawan}</td>
+                          <td className="px-3 py-2 border">
+                            {rec.namaKaryawan}
+                          </td>
+                          <td className="px-3 py-2 border">{rec.posisi}</td>
+                          <td className="px-3 py-2 border text-center">
+                            {rec.shift}
+                          </td>
+                          <td className="px-3 py-2 border">
+                            {rec.checkIn
+                              ? formatTime(rec.checkIn.waktu)
+                              : "-"}
+                          </td>
+                          <td className="px-3 py-2 border">
+                            {rec.checkOut
+                              ? formatTime(rec.checkOut.waktu)
+                              : "-"}
+                          </td>
+                          <td className="px-3 py-2 border">{rec.status || ""}</td>
+                          <td className="px-3 py-2 border">
+                            {rec.checkIn?.alasanLuarArea || "-"}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
         );
       };
 
-      const ManagerKaryawan = ({ dbKaryawan, setDbKaryawan }) => {
-        const [showModal, setShowModal] = useState(false);
-        const [selectedKaryawan, setSelectedKaryawan] = useState(null);
+      // --- AUTH / LOGIN ---
 
-        const emptyForm = {
-          id: "",
-          nama: "",
-          posisi: "",
-          password: "",
-          tanggalLahir: "",
-          fotoUrl: "",
-          noWhatsapp: "",
-          email: "",
-          alamat: "",
-          statusPernikahan: "",
-          kontakDarurat: "",
-          fotoInisial: "",
-        };
+      const Landing = ({ onSelect }) => (
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-100 via-stone-100 to-amber-50 p-4">
+          <div
+            className={`w-full max-w-lg ${theme.colors.card} ${theme.rounding.card} shadow-2xl p-8 space-y-6`}
+          >
+            <div className="flex items-center gap-3">
+              <Coffee size={36} />
+              <div>
+                <h1 className="text-2xl font-extrabold text-stone-800">
+                  PayBoss Cafe
+                </h1>
+                <p className="text-stone-500 text-sm">
+                  Sistem Absensi & Monitoring Shift
+                </p>
+              </div>
+            </div>
 
-        const [formData, setFormData] = useState(emptyForm);
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+              <Button onClick={() => onSelect("karyawan")}>
+                <User size={20} /> Login Karyawan
+              </Button>
+              <Button variant="secondary" onClick={() => onSelect("manager")}>
+                <ShieldCheck size={20} /> Login Manager
+              </Button>
+            </div>
 
-        const openModal = (karyawan = null) => {
-          if (karyawan) {
-            setFormData({ ...emptyForm, ...karyawan });
-            setSelectedKaryawan(karyawan);
-          } else {
-            const last = dbKaryawan[dbKaryawan.length - 1];
-            const lastId = last ? last.id : "PB251100";
-            const num = parseInt(lastId.replace("PB", ""), 10) || 251100;
-            const nextId = "PB" + (num + 1);
-            setFormData({ ...emptyForm, id: nextId });
-            setSelectedKaryawan(null);
-          }
-          setShowModal(true);
-        };
+            <div className="text-xs text-stone-400 pt-4 border-t border-stone-100">
+              Dibuat untuk PayBoss Cafe • GPS + Selfie • Tersinkronisasi dengan
+              Google Sheet
+            </div>
+          </div>
+        </div>
+      );
 
-        const closeModal = () => {
-          setShowModal(false);
-          setSelectedKaryawan(null);
-        };
-
-        const updateField = (field, value) => {
-          setFormData((prev) => ({ ...prev, [field]: value }));
-        };
+      const LoginForm = ({ type, onLogin, onBack }) => {
+        const [id, setId] = useState("");
+        const [password, setPassword] = useState("");
+        const [error, setError] = useState("");
 
         const handleSubmit = (e) => {
           e.preventDefault();
-          if (!formData.id || !formData.nama) {
-            alert("ID dan Nama wajib diisi.");
-            return;
-          }
-
-          if (selectedKaryawan) {
-            const newList = dbKaryawan.map((k) =>
-              k.id === selectedKaryawan.id ? { ...formData } : k
-            );
-            setDbKaryawan(newList);
-            kirimKaryawanListKeSheet(newList);
-          } else {
-            const newList = dbKaryawan.concat({ ...formData });
-            setDbKaryawan(newList);
-            kirimKaryawanListKeSheet(newList);
-          }
-
-          closeModal();
-        };
-
-        const handleDelete = (id) => {
-          if (
-            window.confirm("Apakah Anda yakin ingin menghapus karyawan ini?")
-          ) {
-            const newList = dbKaryawan.filter((k) => k.id !== id);
-            setDbKaryawan(newList);
-            kirimKaryawanListKeSheet(newList);
-          }
+          setError("");
+          onLogin({ id: id.trim(), password: password.trim(), type, setError });
         };
 
         return (
-          <div className="p-6 space-y-4">
-            <div className="flex justify-between items-center mb-2">
-              <h1
-                className={`text-3xl font-bold ${theme.colors.textPrimary}`}
-              >
-                Manajemen Karyawan
-              </h1>
-              <Button
-                onClick={() => openModal()}
-                variant="primary"
-                className="w-auto"
-              >
-                <Plus size={20} /> Tambah Karyawan
-              </Button>
-            </div>
-
+          <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-100 via-stone-100 to-amber-50 p-4">
             <div
-              className={`overflow-x-auto ${theme.colors.card} ${theme.rounding.card} shadow-md`}
+              className={`w-full max-w-md ${theme.colors.card} ${theme.rounding.card} shadow-2xl p-8 space-y-6`}
             >
-              <table className="w-full table-auto">
-                <thead className={`border-b ${theme.colors.border}`}>
-                  <tr>
-                    <th
-                      className={`p-4 text-left text-sm font-semibold ${theme.colors.textSecondary}`}
-                    >
-                      Karyawan
-                    </th>
-                    <th
-                      className={`p-4 text-left text-sm font-semibold ${theme.colors.textSecondary}`}
-                    >
-                      Posisi
-                    </th>
-                    <th
-                      className={`p-4 text-left text-sm font-semibold ${theme.colors.textSecondary}`}
-                    >
-                      Kontak
-                    </th>
-                    <th
-                      className={`p-4 text-left text-sm font-semibold ${theme.colors.textSecondary}`}
-                    >
-                      Aksi
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {dbKaryawan.map((k, index) => {
-                    const avatarInitial =
-                      k.fotoInisial ||
-                      (k.nama && k.nama.length > 0 ? k.nama[0] : "?");
-                    return (
-                      <tr
-                        key={k.id}
-                        className={`border-t ${theme.colors.border} ${
-                          index % 2 === 0 ? "bg-stone-50" : "bg-white"
-                        }`}
-                      >
-                        <td className="p-4">
-                          <div className="flex items-center gap-3">
-                            {k.fotoUrl ? (
-                              <img
-                                src={k.fotoUrl}
-                                alt={k.nama}
-                                className="w-10 h-10 rounded-full object-cover border"
-                              />
-                            ) : (
-                              <div className="w-10 h-10 rounded-full bg-amber-700 text-white flex items-center justify-center text-sm font-bold">
-                                {avatarInitial}
-                              </div>
-                            )}
-                            <div>
-                              <p className="font-semibold">{k.nama}</p>
-                              <p className="text-xs text-stone-500">
-                                ID:{" "}
-                                <span className="font-mono">{k.id}</span>
-                              </p>
-                            </div>
-                          </div>
-                        </td>
-                        <td
-                          className={`p-4 text-sm ${theme.colors.textSecondary}`}
-                        >
-                          {k.posisi}
-                        </td>
-                        <td className="p-4 text-sm">
-                          <p>{k.noWhatsapp || "-"}</p>
-                          <p className="text-xs text-stone-500">
-                            {k.email || ""}
-                          </p>
-                        </td>
-                        <td className="p-4">
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => openModal(k)}
-                              className="text-blue-600 hover:text-blue-800"
-                            >
-                              <Edit size={18} />
-                            </button>
-                            <button
-                              onClick={() => handleDelete(k.id)}
-                              className="text-red-600 hover:text-red-800"
-                            >
-                              <Trash2 size={18} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-            {showModal && (
-              <Modal
-                title={
-                  selectedKaryawan ? "Edit Data Karyawan" : "Tambah Karyawan"
-                }
-                onClose={closeModal}
-              >
-                <form onSubmit={handleSubmit} className="space-y-3">
-                  <Input
-                    placeholder="ID Karyawan"
-                    value={formData.id}
-                    onChange={(e) => updateField("id", e.target.value)}
-                    className="font-mono"
-                  />
-                  <Input
-                    placeholder="Nama Lengkap"
-                    value={formData.nama}
-                    onChange={(e) => updateField("nama", e.target.value)}
-                  />
-                  <Input
-                    placeholder="Posisi (misal: Pramusaji, Chef)"
-                    value={formData.posisi}
-                    onChange={(e) => updateField("posisi", e.target.value)}
-                  />
-                  <Input
-                    type="password"
-                    placeholder="Password Login"
-                    value={formData.password}
-                    onChange={(e) =>
-                      updateField("password", e.target.value)
-                    }
-                  />
-                  <Input
-                    type="date"
-                    placeholder="Tanggal Lahir"
-                    value={formData.tanggalLahir}
-                    onChange={(e) =>
-                      updateField("tanggalLahir", e.target.value)
-                    }
-                  />
-                  <Input
-                    placeholder="URL Foto (opsional)"
-                    value={formData.fotoUrl}
-                    onChange={(e) => updateField("fotoUrl", e.target.value)}
-                  />
-                  {formData.fotoUrl && (
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={formData.fotoUrl}
-                        alt="Preview"
-                        className="w-16 h-16 rounded-full object-cover border"
-                      />
-                      <span className="text-xs text-stone-500">
-                        Preview foto
-                      </span>
-                    </div>
-                  )}
-                  <Input
-                    placeholder="Inisial Foto (contoh: DA)"
-                    value={formData.fotoInisial}
-                    onChange={(e) =>
-                      updateField("fotoInisial", e.target.value)
-                    }
-                  />
-                  <Input
-                    placeholder="Nomor WhatsApp"
-                    value={formData.noWhatsapp}
-                    onChange={(e) =>
-                      updateField("noWhatsapp", e.target.value)
-                    }
-                  />
-                  <Input
-                    type="email"
-                    placeholder="Email"
-                    value={formData.email}
-                    onChange={(e) => updateField("email", e.target.value)}
-                  />
-                  <TextArea
-                    placeholder="Alamat Lengkap"
-                    value={formData.alamat}
-                    onChange={(e) => updateField("alamat", e.target.value)}
-                    rows={3}
-                  />
-                  <Input
-                    placeholder="Status Pernikahan"
-                    value={formData.statusPernikahan}
-                    onChange={(e) =>
-                      updateField("statusPernikahan", e.target.value)
-                    }
-                  />
-                  <Input
-                    placeholder="Kontak Darurat (nama & nomor)"
-                    value={formData.kontakDarurat}
-                    onChange={(e) =>
-                      updateField("kontakDarurat", e.target.value)
-                    }
-                  />
-
-                  <Button type="submit" variant="accent" className="mt-2">
-                    Simpan
-                  </Button>
-                </form>
-              </Modal>
-            )}
-          </div>
-        );
-      };
-
-      const ManagerRoster = ({ dbKaryawan, dbRoster, setDbRoster }) => {
-        const [week, setWeek] = useState(getNext7Days(TODAY));
-
-        const handleShiftChange = (karyawanId, dateString, newShift) => {
-          setDbRoster((prevRoster) => {
-            const updated = { ...prevRoster };
-            if (!updated[karyawanId]) updated[karyawanId] = {};
-            updated[karyawanId][dateString] =
-              newShift === "OFF" ? "OFF" : parseInt(newShift, 10);
-            return updated;
-          });
-        };
-
-        const navigateWeek = (direction) => {
-          const newStartDate = new Date(week[0].getTime());
-          newStartDate.setDate(newStartDate.getDate() + direction * 7);
-          setWeek(getNext7Days(formatDateYYYYMMDD(newStartDate)));
-        };
-
-        return (
-          <div className="p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h1
-                className={`text-3xl font-bold ${theme.colors.textPrimary}`}
-              >
-                Manajemen Roster
-              </h1>
-              <div className="flex items-center gap-2">
-                <Button
-                  onClick={() => navigateWeek(-1)}
-                  variant="light"
-                  className="w-auto p-2"
-                >
-                  <ChevronLeft size={20} />
-                </Button>
-                <span className="font-semibold text-lg w-48 text-center">
-                  {week[0].toLocaleDateString("id-ID", {
-                    day: "numeric",
-                    month: "short",
-                  })}{" "}
-                  -{" "}
-                  {week[6].toLocaleDateString("id-ID", {
-                    day: "numeric",
-                    month: "short",
-                  })}
-                </span>
-                <Button
-                  onClick={() => navigateWeek(1)}
-                  variant="light"
-                  className="w-auto p-2"
-                >
-                  <ChevronRight size={20} />
-                </Button>
-              </div>
-            </div>
-
-            <p className={theme.colors.textSecondary}>
-              Roster drag-and-drop belum tersedia. Silakan gunakan pilihan
-              shift di bawah untuk mengatur jadwal.
-            </p>
-
-            <div
-              className={`mt-4 overflow-x-auto ${theme.colors.card} ${theme.rounding.card} shadow-md`}
-            >
-              <table className="w-full min-w-[800px] table-auto">
-                <thead>
-                  <tr className={`border-b ${theme.colors.border}`}>
-                    <th
-                      className={`p-3 text-left font-semibold ${theme.colors.textSecondary} sticky left-0 bg-white`}
-                    >
-                      Karyawan
-                    </th>
-                    {week.map((day) => (
-                      <th
-                        key={day.toISOString()}
-                        className={`p-3 text-center font-semibold ${theme.colors.textSecondary}`}
-                      >
-                        <p>
-                          {day.toLocaleDateString("id-ID", {
-                            weekday: "short",
-                          })}
-                        </p>
-                        <p>{day.getDate()}</p>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {dbKaryawan.map((k, index) => (
-                    <tr
-                      key={k.id}
-                      className={`border-t ${theme.colors.border} ${
-                        index % 2 === 0 ? "bg-stone-50" : "bg-white"
-                      }`}
-                    >
-                      <td
-                        className={`p-3 font-medium sticky left-0 ${
-                          index % 2 === 0 ? "bg-stone-50" : "bg-white"
-                        }`}
-                      >
-                        <p>{k.nama}</p>
-                        <p className={`text-sm ${theme.colors.textSecondary}`}>
-                          {k.posisi}
-                        </p>
-                      </td>
-                      {week.map((day) => {
-                        const dayString = formatDateYYYYMMDD(day);
-                        const rosterForUser = dbRoster[k.id] || {};
-                        const currentShift =
-                          typeof rosterForUser[dayString] === "undefined"
-                            ? "OFF"
-                            : rosterForUser[dayString];
-
-                        const baseClass = `w-full p-2 ${theme.rounding.input} border ${theme.colors.border} font-medium `;
-
-                        let colorClass = "bg-gray-100 text-gray-700";
-                        if (currentShift === 1) {
-                          colorClass = "bg-blue-100 text-blue-700";
-                        } else if (currentShift === 2) {
-                          colorClass = "bg-orange-100 text-orange-700";
-                        } else if (currentShift === 3) {
-                          colorClass = "bg-indigo-100 text-indigo-700";
-                        }
-
-                        return (
-                          <td key={dayString} className="p-2 text-center">
-                            <select
-                              value={currentShift}
-                              onChange={(e) =>
-                                handleShiftChange(
-                                  k.id,
-                                  dayString,
-                                  e.target.value
-                                )
-                              }
-                              className={baseClass + colorClass}
-                            >
-                              <option value="OFF">OFF</option>
-                              <option value="1">Pagi (1)</option>
-                              <option value="2">Siang (2)</option>
-                              <option value="3">Malam (3)</option>
-                            </select>
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        );
-      };
-
-      const ManagerLaporan = ({ dbAbsensi }) => {
-        const [filterTanggal, setFilterTanggal] = useState(TODAY);
-        const [filterKaryawan, setFilterKaryawan] = useState("");
-
-        const filteredData = dbAbsensi.filter((a) => {
-          const byTanggal = !filterTanggal || a.tanggal === filterTanggal;
-          const byKaryawan = !filterKaryawan || a.idKaryawan === filterKaryawan;
-          return byTanggal && byKaryawan;
-        });
-
-        const mockExportCSV = () => {
-          console.log("Mock Export CSV:", filteredData);
-          alert(
-            "Data (mock) diekspor ke konsol. Di aplikasi nyata, ini akan mendownload file CSV."
-          );
-        };
-
-        return (
-          <div className="p-6 space-y-4">
-            <div className="flex justify-between items-center mb-2">
-              <h1
-                className={`text-3xl font-bold ${theme.colors.textPrimary}`}
-              >
-                Laporan Absensi
-              </h1>
-              <Button
-                onClick={mockExportCSV}
-                variant="accent"
-                className="w-auto"
-              >
-                <FileText size={20} /> Ekspor ke CSV
-              </Button>
-            </div>
-
-            <div
-              className={`grid grid-cols-1 md:grid-cols-2 gap-4 p-4 mb-2 ${theme.colors.card} ${theme.rounding.card} shadow-sm`}
-            >
-              <Input
-                type="date"
-                value={filterTanggal}
-                onChange={(e) => setFilterTanggal(e.target.value)}
-              />
-              <Input
-                placeholder="Filter by ID Karyawan (cth: PB251101)"
-                value={filterKaryawan}
-                onChange={(e) => setFilterKaryawan(e.target.value)}
-              />
-            </div>
-
-            <div
-              className={`overflow-x-auto ${theme.colors.card} ${theme.rounding.card} shadow-md`}
-            >
-              <table className="w-full min-w-[800px] table-auto">
-                <thead className={`border-b ${theme.colors.border}`}>
-                  <tr>
-                    <th
-                      className={`p-3 text-left text-sm font-semibold ${theme.colors.textSecondary}`}
-                    >
-                      Tanggal
-                    </th>
-                    <th
-                      className={`p-3 text-left text-sm font-semibold ${theme.colors.textSecondary}`}
-                    >
-                      Nama
-                    </th>
-                    <th
-                      className={`p-3 text-left text-sm font-semibold ${theme.colors.textSecondary}`}
-                    >
-                      Posisi
-                    </th>
-                    <th
-                      className={`p-3 text-left text-sm font-semibold ${theme.colors.textSecondary}`}
-                    >
-                      Shift
-                    </th>
-                    <th
-                      className={`p-3 text-left text-sm font-semibold ${theme.colors.textSecondary}`}
-                    >
-                      Check-in
-                    </th>
-                    <th
-                      className={`p-3 text-left text-sm font-semibold ${theme.colors.textSecondary}`}
-                    >
-                      Check-out
-                    </th>
-                    <th
-                      className={`p-3 text-left text-sm font-semibold ${theme.colors.textSecondary}`}
-                    >
-                      Lokasi
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredData.map((a, index) => (
-                    <tr
-                      key={a.id}
-                      className={`border-t ${theme.colors.border} ${
-                        index % 2 === 0 ? "bg-stone-50" : "bg-white"
-                      }`}
-                    >
-                      <td className="p-3 text-sm">{a.tanggal}</td>
-                      <td className="p-3 font-medium">{a.namaKaryawan}</td>
-                      <td
-                        className={`p-3 text-sm ${theme.colors.textSecondary}`}
-                      >
-                        {a.posisi}
-                      </td>
-                      <td className="p-3 text-sm">{a.shift}</td>
-                      <td className="p-3 text-sm">
-                        {a.checkIn
-                          ? formatTime(a.checkIn.waktu)
-                          : "-"}
-                      </td>
-                      <td className="p-3 text-sm">
-                        {a.checkOut
-                          ? formatTime(a.checkOut.waktu)
-                          : "-"}
-                      </td>
-                      <td className="p-3 text-sm">
-                        {a.checkIn && a.checkIn.alasanLuarArea ? (
-                          <span className="font-medium text-yellow-700">
-                            Luar Area
-                          </span>
-                        ) : (
-                          <span className="font-medium text-green-700">
-                            Dalam Area
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {filteredData.length === 0 && (
-                <p
-                  className={`p-6 text-center ${theme.colors.textSecondary}`}
-                >
-                  Tidak ada data absensi yang sesuai dengan filter.
-                </p>
-              )}
-            </div>
-          </div>
-        );
-      };
-
-      const ManagerDashboard = ({
-        onLogout,
-        dbKaryawan,
-        setDbKaryawan,
-        dbRoster,
-        setDbRoster,
-        dbAbsensi,
-      }) => {
-        const [activePage, setActivePage] = useState("home");
-
-        const navItems = [
-          { id: "home", label: "Dashboard", icon: BarChart2 },
-          { id: "karyawan", label: "Karyawan", icon: Users },
-          { id: "roster", label: "Roster", icon: Calendar },
-          { id: "laporan", label: "Laporan", icon: FileText },
-        ];
-
-        const renderContent = () => {
-          if (activePage === "home") {
-            return (
-              <ManagerHome
-                dbAbsensi={dbAbsensi}
-                dbKaryawan={dbKaryawan}
-                dbRoster={dbRoster}
-              />
-            );
-          }
-          if (activePage === "karyawan") {
-            return (
-              <ManagerKaryawan
-                dbKaryawan={dbKaryawan}
-                setDbKaryawan={setDbKaryawan}
-              />
-            );
-          }
-          if (activePage === "roster") {
-            return (
-              <ManagerRoster
-                dbKaryawan={dbKaryawan}
-                dbRoster={dbRoster}
-                setDbRoster={setDbRoster}
-              />
-            );
-          }
-          if (activePage === "laporan") {
-            return <ManagerLaporan dbAbsensi={dbAbsensi} />;
-          }
-          return (
-            <ManagerHome
-              dbAbsensi={dbAbsensi}
-              dbKaryawan={dbKaryawan}
-              dbRoster={dbRoster}
-            />
-          );
-        };
-
-        return (
-          <div
-            className={`flex w-full min-h-screen ${theme.colors.background}`}
-          >
-            <nav
-              className={`hidden md:flex w-64 flex-col ${theme.colors.card} border-r ${theme.colors.border} p-5`}
-            >
-              <div className="flex items-center gap-2 mb-10">
-                <Coffee size={32} className="text-amber-800" />
-                <h1
-                  className={`text-2xl font-bold ${theme.colors.textPrimary}`}
-                >
-                  PayBoss<span className="text-amber-800">Cafe</span>
-                </h1>
-              </div>
-
-              <div className="flex-grow space-y-2">
-                {navItems.map((item) => {
-                  const isActive = activePage === item.id;
-                  const Icon = item.icon;
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => setActivePage(item.id)}
-                      className={`flex w-full items-center gap-3 p-3 ${theme.rounding.button} font-medium transition-colors ${
-                        isActive
-                          ? "bg-amber-800 text-white"
-                          : "text-stone-600 hover:bg-stone-100"
-                      }`}
-                    >
-                      <Icon size={20} /> {item.label}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <Button onClick={onLogout} variant="danger" className="w-full">
-                <LogOut size={20} /> Logout Manager
-              </Button>
-            </nav>
-
-            <main className="flex-grow overflow-y-auto">{renderContent()}</main>
-
-            {/* Bottom Nav (Mobile) */}
-            <nav
-              className={`md:hidden fixed bottom-0 left-0 right-0 h-20 bg-white shadow-lg border-t ${theme.colors.border} flex justify-around items-center`}
-            >
-              {navItems.map((item) => {
-                const isActive = activePage === item.id;
-                const Icon = item.icon;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => setActivePage(item.id)}
-                    className={`flex flex-col items-center justify-center w-full h-full transition-colors ${
-                      isActive ? "text-amber-800" : "text-stone-500"
-                    }`}
-                  >
-                    <Icon size={24} />
-                    <span
-                      className={`text-xs font-medium mt-1 ${
-                        isActive ? "font-bold" : ""
-                      }`}
-                    >
-                      {item.label}
-                    </span>
-                  </button>
-                );
-              })}
               <button
-                onClick={onLogout}
-                className="flex flex-col items-center justify-center w-full h-full transition-colors text-red-500"
+                onClick={onBack}
+                className="inline-flex items-center gap-2 text-stone-500 hover:text-stone-800 text-sm"
               >
-                <LogOut size={24} />
-                <span className="text-xs font-medium mt-1">Logout</span>
+                <ChevronLeft size={18} /> Kembali
               </button>
-            </nav>
-          </div>
-        );
-      };
 
-      // --- LOGIN PAGE ---
-
-      const LoginPage = ({ onEmployeeLogin, onManagerLogin }) => {
-        const [activeTab, setActiveTab] = useState("karyawan");
-
-        const [idKaryawan, setIdKaryawan] = useState("PB251102");
-        const [passKaryawan, setPassKaryawan] = useState("ilham123");
-
-        const [idManager, setIdManager] = useState("admin");
-        const [passManager, setPassManager] = useState("payboss123");
-
-        const [error, setError] = useState(null);
-
-        const handleEmployeeSubmit = (e) => {
-          e.preventDefault();
-          setError(null);
-          const success = onEmployeeLogin(idKaryawan, passKaryawan);
-          if (!success) {
-            setError("ID Karyawan atau Password salah.");
-          }
-        };
-
-        const handleManagerSubmit = (e) => {
-          e.preventDefault();
-          setError(null);
-          const success = onManagerLogin(idManager, passManager);
-          if (!success) {
-            setError("Username atau Password Manajer salah.");
-          }
-        };
-
-        const renderKaryawanLogin = () => (
-          <motion.form
-            key="karyawan"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            onSubmit={handleEmployeeSubmit}
-            className="space-y-4"
-          >
-            <Input
-              placeholder="ID Karyawan (cth: PB251101)"
-              value={idKaryawan}
-              onChange={(e) => setIdKaryawan(e.target.value)}
-              icon={<User size={18} />}
-            />
-            <Input
-              type="password"
-              placeholder="Password"
-              value={passKaryawan}
-              onChange={(e) => setPassKaryawan(e.target.value)}
-              icon={<ShieldCheck size={18} />}
-            />
-            <Button type="submit" variant="primary" className="mt-4">
-              <LogIn size={20} /> Login Karyawan
-            </Button>
-          </motion.form>
-        );
-
-        const renderManagerLogin = () => (
-          <motion.form
-            key="manager"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            onSubmit={handleManagerSubmit}
-            className="space-y-4"
-          >
-            <Input
-              placeholder="Username Manajer"
-              value={idManager}
-              onChange={(e) => setIdManager(e.target.value)}
-              icon={<User size={18} />}
-            />
-            <Input
-              type="password"
-              placeholder="Password Manajer"
-              value={passManager}
-              onChange={(e) => setPassManager(e.target.value)}
-              icon={<ShieldCheck size={18} />}
-            />
-            <Button type="submit" variant="secondary" className="mt-4">
-              <LogIn size={20} /> Login Manajer
-            </Button>
-          </motion.form>
-        );
-
-        return (
-          <div
-            className={`flex items-center justify-center min-h-screen ${theme.colors.background} p-4`}
-          >
-            <div
-              className={`w-full max-w-md ${theme.colors.card} ${theme.rounding.card} shadow-2xl overflow-hidden`}
-            >
-              <div className={`p-8 text-center ${theme.colors.primary} text-white`}>
-                <motion.div
-                  initial={{ scale: 0.5 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.2, type: "spring" }}
-                >
-                  <Coffee size={48} className="mx-auto text-amber-300" />
-                </motion.div>
-                <h1 className="text-3xl font-bold mt-2">PayBoss Cafe</h1>
-                <p className="text-stone-300">Sistem Absensi Karyawan</p>
-              </div>
-
-              <div className="flex">
-                <button
-                  className={`w-1/2 p-4 font-semibold text-center ${
-                    activeTab === "karyawan"
-                      ? "bg-white text-amber-800 border-b-4 border-amber-800"
-                      : "bg-stone-50 text-stone-600"
-                  }`}
-                  onClick={() => {
-                    setActiveTab("karyawan");
-                    setError(null);
-                  }}
-                >
-                  Karyawan
-                </button>
-                <button
-                  className={`w-1/2 p-4 font-semibold text-center ${
-                    activeTab === "manager"
-                      ? "bg-white text-amber-800 border-b-4 border-amber-800"
-                      : "bg-stone-50 text-stone-600"
-                  }`}
-                  onClick={() => {
-                    setActiveTab("manager");
-                    setError(null);
-                  }}
-                >
-                  Manajer
-                </button>
-              </div>
-
-              <div className="p-8">
-                {error && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-center text-sm"
-                  >
-                    {error}
-                  </motion.div>
+              <div className="flex items-center gap-3 mt-2">
+                {type === "karyawan" ? (
+                  <User size={32} />
+                ) : (
+                  <ShieldCheck size={32} />
                 )}
-
-                <AnimatePresence mode="wait">
-                  {activeTab === "karyawan"
-                    ? renderKaryawanLogin()
-                    : renderManagerLogin()}
-                </AnimatePresence>
+                <div>
+                  <h2 className="text-xl font-bold text-stone-800">
+                    {type === "karyawan"
+                      ? "Login Karyawan"
+                      : "Login Manager"}
+                  </h2>
+                  <p className="text-stone-500 text-sm">
+                    Masukkan ID dan password PayBoss Anda
+                  </p>
+                </div>
               </div>
+
+              <form onSubmit={handleSubmit} className="space-y-4 mt-2">
+                <Input
+                  placeholder="ID Karyawan (mis. PB251101)"
+                  value={id}
+                  onChange={(e) => setId(e.target.value)}
+                  icon={<User size={18} />}
+                  required
+                />
+                <Input
+                  type="password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  icon={<LockIcon />}
+                  required
+                />
+                {error && (
+                  <p className="text-red-500 text-sm text-center">{error}</p>
+                )}
+                <Button type="submit">
+                  <LogIn size={20} /> Masuk
+                </Button>
+              </form>
             </div>
           </div>
         );
@@ -2707,127 +1466,257 @@
 
       // --- APP UTAMA ---
 
-      function App() {
-        const [dbKaryawan, setDbKaryawan] = useState(() =>
-          loadFromStorage("payboss_dbKaryawan", initialDbKaryawan)
-        );
-        const [dbRoster, setDbRoster] = useState(() =>
-          loadFromStorage("payboss_dbRoster", initialDbRoster)
-        );
-        const [dbJobDesk] = useState(jobDeskTemplates);
-        const [dbAbsensi, setDbAbsensi] = useState(() =>
-          loadFromStorage("payboss_dbAbsensi", [
-            {
-              id: "att_PB251101_" + TODAY,
-              idKaryawan: "PB251101",
-              namaKaryawan: "Dayat",
-              posisi: "Koordinator",
-              tanggal: TODAY,
-              shift: "OFF",
-              checkIn: null,
-              checkOut: null,
-              jobDeskProgress: [],
-              status: "Libur",
-            },
-          ])
-        );
+      const App = () => {
+        const [view, setView] = useState("landing"); // landing | login-karyawan | login-manager | home-karyawan | jobdesk | manager
+        const [currentUser, setCurrentUser] = useState(null);
+        const [dbAbsensi, setDbAbsensi] = useState([]);
+        const [dbRoster] = useState(initialDbRoster);
+        const [loadingAbsensi, setLoadingAbsensi] = useState(true);
+        const [attendanceModal, setAttendanceModal] = useState({
+          open: false,
+          type: null,
+          todayShift: null,
+        });
 
-        const [currentUser, setCurrentUser] = useState(null); // null, "manager", atau objek {id,...}
-
+        // --- LOAD ABSENSI DARI GOOGLE SHEET SAAT APP PERTAMA KALI DIBUKA ---
         useEffect(() => {
-          saveToStorage("payboss_dbKaryawan", dbKaryawan);
-        }, [dbKaryawan]);
+          let intervalId;
 
-        useEffect(() => {
-          saveToStorage("payboss_dbRoster", dbRoster);
-        }, [dbRoster]);
+          const refreshAbsensi = async () => {
+            setLoadingAbsensi(true);
+            const data = await loadAbsensiDariSheet();
+            if (data) {
+              setDbAbsensi(data);
+            }
+            setLoadingAbsensi(false);
+          };
 
-        useEffect(() => {
-          saveToStorage("payboss_dbAbsensi", dbAbsensi);
-        }, [dbAbsensi]);
+          // load pertama kali
+          refreshAbsensi();
 
-        const managerCredentials = { username: "admin", password: "payboss123" };
+          // auto-refresh tiap 60 detik
+          intervalId = setInterval(refreshAbsensi, 60 * 1000);
 
-        const handleEmployeeLogin = (id, password) => {
-          const user = dbKaryawan.find(
-            (k) => k.id === id && k.password === password
-          );
-          if (user) {
-            setCurrentUser({ id: user.id, role: "employee" });
-            return true;
-          }
-          return false;
+          // refresh ketika tab kembali aktif
+          const handleVisibility = () => {
+            if (document.visibilityState === "visible") {
+              refreshAbsensi();
+            }
+          };
+          document.addEventListener("visibilitychange", handleVisibility);
+
+          return () => {
+            clearInterval(intervalId);
+            document.removeEventListener("visibilitychange", handleVisibility);
+          };
+        }, []);
+
+        const handleSelectRole = (role) => {
+          setView(role === "karyawan" ? "login-karyawan" : "login-manager");
         };
 
-        const handleManagerLogin = (username, password) => {
-          if (
-            username === managerCredentials.username &&
-            password === managerCredentials.password
-          ) {
-            setCurrentUser({ role: "manager" });
-            return true;
+        const findKaryawanById = (id) =>
+          initialDbKaryawan.find((k) => k.id.toLowerCase() === id.toLowerCase());
+
+        const handleLogin = ({ id, password, type, setError }) => {
+          if (type === "karyawan") {
+            const k = findKaryawanById(id);
+            if (!k || k.password !== password) {
+              setError("ID atau password karyawan salah.");
+              return;
+            }
+            setCurrentUser({ ...k, role: "karyawan" });
+            setView("home-karyawan");
+          } else {
+            // manager: login sederhana (bisa diganti sesuai kebutuhan)
+            if (id === "manager" && password === "manager123") {
+              setCurrentUser({
+                id: "manager",
+                nama: "Manager PayBoss",
+                posisi: "Manager",
+                role: "manager",
+              });
+              setView("manager");
+            } else {
+              setError("ID atau password manager salah.");
+            }
           }
-          return false;
         };
 
         const handleLogout = () => {
           setCurrentUser(null);
+          setView("landing");
         };
 
+        const openAttendanceModal = (type, todayShift) => {
+          setAttendanceModal({ open: true, type, todayShift });
+        };
+
+        const closeAttendanceModal = () => {
+          setAttendanceModal({ open: false, type: null, todayShift: null });
+        };
+
+        const handleAttendanceComplete = (attendanceData) => {
+          if (!currentUser) return;
+
+          setDbAbsensi((prev) => {
+            const existingIndex = prev.findIndex(
+              (a) => a.idKaryawan === currentUser.id && a.tanggal === TODAY
+            );
+
+            if (attendanceModal.type === "checkIn") {
+              const newRecord = {
+                id:
+                  existingIndex >= 0
+                    ? prev[existingIndex].id
+                    : Date.now().toString(),
+                idKaryawan: currentUser.id,
+                namaKaryawan: currentUser.nama,
+                posisi: currentUser.posisi,
+                tanggal: TODAY,
+                shift: attendanceModal.todayShift?.nama || "",
+                checkIn: {
+                  waktu: attendanceData.waktu,
+                  alasanLuarArea: attendanceData.alasanLuarArea,
+                  lat: attendanceData.lat,
+                  lng: attendanceData.lng,
+                  jarak: attendanceData.jarak,
+                },
+                checkOut:
+                  existingIndex >= 0 ? prev[existingIndex].checkOut : null,
+                jobDeskProgress:
+                  existingIndex >= 0
+                    ? prev[existingIndex].jobDeskProgress || []
+                    : [],
+                status: "Hadir",
+              };
+
+              if (existingIndex >= 0) {
+                const updated = [...prev];
+                updated[existingIndex] = newRecord;
+                return updated;
+              }
+              return [...prev, newRecord];
+            } else {
+              if (existingIndex < 0) {
+                return prev;
+              }
+              const updated = [...prev];
+              updated[existingIndex] = {
+                ...updated[existingIndex],
+                checkOut: {
+                  waktu: attendanceData.waktu,
+                },
+              };
+              return updated;
+            }
+          });
+        };
+
+        // --- RENDER VIEW ---
+
+        if (view === "landing") {
+          return <Landing onSelect={handleSelectRole} />;
+        }
+
+        if (view === "login-karyawan" || view === "login-manager") {
+          return (
+            <LoginForm
+              type={view === "login-karyawan" ? "karyawan" : "manager"}
+              onLogin={handleLogin}
+              onBack={() => setView("landing")}
+            />
+          );
+        }
+
         if (!currentUser) {
-          return (
-            <LoginPage
-              onEmployeeLogin={handleEmployeeLogin}
-              onManagerLogin={handleManagerLogin}
-            />
-          );
-        }
-
-        if (currentUser.role === "manager") {
-          return (
-            <ManagerDashboard
-              onLogout={handleLogout}
-              dbKaryawan={dbKaryawan}
-              setDbKaryawan={setDbKaryawan}
-              dbRoster={dbRoster}
-              setDbRoster={setDbRoster}
-              dbAbsensi={dbAbsensi}
-            />
-          );
-        }
-
-        // Karyawan: cari data terbaru berdasarkan ID
-        const userObj =
-          dbKaryawan.find((k) => k.id === currentUser.id) || null;
-
-        if (!userObj) {
-          return (
-            <div className="p-6">
-              <p className="text-red-600">
-                Data karyawan tidak ditemukan. Silakan login ulang.
-              </p>
-              <Button onClick={handleLogout} className="mt-4 w-40">
-                Kembali ke Login
-              </Button>
-            </div>
-          );
+          return <Landing onSelect={handleSelectRole} />;
         }
 
         return (
-          <EmployeeDashboard
-            user={userObj}
-            onLogout={handleLogout}
-            dbAbsensi={dbAbsensi}
-            setDbAbsensi={setDbAbsensi}
-            dbRoster={dbRoster}
-            setDbRoster={setDbRoster}
-            dbJobDesk={dbJobDesk}
-          />
-        );
-      }
+          <div className="min-h-screen flex flex-col bg-stone-100">
+            <header className="flex items-center justify-between px-4 py-3 bg-stone-800 text-white">
+              <div className="flex items-center gap-2">
+                <Coffee size={24} />
+                <div>
+                  <h1 className="font-bold text-lg">PayBoss Cafe</h1>
+                  <p className="text-xs text-stone-300">
+                    Sistem Absensi & Monitoring Shift
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="text-right">
+                  <p className="text-sm font-semibold">
+                    {currentUser.nama || currentUser.id}
+                  </p>
+                  <p className="text-xs text-stone-300">
+                    {currentUser.role === "manager"
+                      ? "Manager"
+                      : currentUser.posisi}
+                  </p>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-1 text-xs bg-red-600 hover:bg-red-700 px-3 py-1 rounded-full"
+                >
+                  <LogOut size={16} /> Keluar
+                </button>
+              </div>
+            </header>
 
-      const root = ReactDOM.createRoot(document.getElementById("root"));
-      root.render(<App />);
+            {loadingAbsensi && (
+              <div className="flex items-center justify-center py-2 text-xs text-stone-500 gap-2">
+                <Spinner size={12} /> Sinkronisasi data absensi dari Google
+                Sheet...
+              </div>
+            )}
+
+            <main className="flex-1">
+              {currentUser.role === "karyawan" && view === "home-karyawan" && (
+                <KaryawanHome
+                  user={currentUser}
+                  dbAbsensi={dbAbsensi}
+                  setDbAbsensi={setDbAbsensi}
+                  dbRoster={dbRoster}
+                  onNavigate={(v) => setView(v === "jobdesk" ? "jobdesk" : "home-karyawan")}
+                  onShowModal={openAttendanceModal}
+                />
+              )}
+
+              {currentUser.role === "karyawan" && view === "jobdesk" && (
+                <KaryawanJobDesk
+                  user={currentUser}
+                  dbAbsensi={dbAbsensi}
+                  setDbAbsensi={setDbAbsensi}
+                  onBack={() => setView("home-karyawan")}
+                />
+              )}
+
+              {currentUser.role === "manager" && view === "manager" && (
+                <ManagerDashboard
+                  dbAbsensi={dbAbsensi}
+                  onBack={() => {
+                    handleLogout();
+                  }}
+                />
+              )}
+            </main>
+
+            {attendanceModal.open && currentUser && (
+              <AttendanceFlow
+                user={currentUser}
+                type={attendanceModal.type}
+                todayShift={attendanceModal.todayShift}
+                onClose={closeAttendanceModal}
+                onComplete={handleAttendanceComplete}
+              />
+            )}
+          </div>
+        );
+      };
+
+      ReactDOM.createRoot(document.getElementById("root")).render(<App />);
     </script>
   </body>
 </html>
