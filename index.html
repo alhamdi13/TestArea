@@ -21,7 +21,7 @@
     body {
       margin: 0;
       padding: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: var(--bg);
       min-height: 100vh;
       display: flex;
@@ -601,8 +601,9 @@
     const BASE_LAT = -2.1717546572371975;
     const BASE_LNG = 115.40299759147925;
     const ALLOWED_RADIUS_M = 200; // 200 meter
-    // TODO: ganti URL di bawah dengan URL Web App Apps Script kamu
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxOHwN1-GyfwWrQLucTf-X0Db_9HefScgxd5g2h35-ntTNyGQZ4NePhZ39OfeZqRvdM/exec';
+
+    // URL Web App Google Apps Script (API ke Google Sheet)
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxOHwN1-GyfwWrQLucTf-X0Db_9HefScgxd5g2h35-ntTNyGQZ4NePhZ39OfeZqRvdM/exec";
 
     function calculateDistanceMeters(lat1, lon1, lat2, lon2) {
       const R = 6371000; // radius bumi dalam meter
@@ -615,91 +616,89 @@
       const a =
         Math.sin(dPhi / 2) * Math.sin(dPhi / 2) +
         Math.cos(phi1) * Math.cos(phi2) *
-          Math.sin(dLambda / 2) * Math.sin(dLambda / 2);
+        Math.sin(dLambda / 2) * Math.sin(dLambda / 2);
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
       return R * c;
     }
 
-    const form = document.getElementById('attendance-form');
-    const nameInput = document.getElementById('employee-name');
-    const idInput = document.getElementById('employee-id');
-    const roleInput = document.getElementById('employee-role');
-    const shiftInput = document.getElementById('shift');
+    const form = document.getElementById("attendance-form");
+    const nameInput = document.getElementById("employee-name");
+    const idInput = document.getElementById("employee-id");
+    const roleInput = document.getElementById("employee-role");
+    const shiftInput = document.getElementById("shift");
 
-    const btnModeOnsite = document.getElementById('btn-mode-onsite');
-    const btnModeOutarea = document.getElementById('btn-mode-outarea');
-    const outareaInfo = document.getElementById('outarea-info');
-    const outareaReasonGroup = document.getElementById('outarea-reason-group');
-    const outareaReasonInput = document.getElementById('outarea-reason');
+    const btnModeOnsite = document.getElementById("btn-mode-onsite");
+    const btnModeOutarea = document.getElementById("btn-mode-outarea");
+    const outareaInfo = document.getElementById("outarea-info");
+    const outareaReasonGroup = document.getElementById("outarea-reason-group");
+    const outareaReasonInput = document.getElementById("outarea-reason");
 
-    const btnLocation = document.getElementById('btn-location');
-    const locationStatus = document.getElementById('location-status');
-    const latValue = document.getElementById('lat-value');
-    const lngValue = document.getElementById('lng-value');
-    const accValue = document.getElementById('acc-value');
-    const distValue = document.getElementById('dist-value');
-    const latHidden = document.getElementById('lat-hidden');
-    const lngHidden = document.getElementById('lng-hidden');
-    const accHidden = document.getElementById('acc-hidden');
+    const btnLocation = document.getElementById("btn-location");
+    const locationStatus = document.getElementById("location-status");
+    const latValue = document.getElementById("lat-value");
+    const lngValue = document.getElementById("lng-value");
+    const accValue = document.getElementById("acc-value");
+    const distValue = document.getElementById("dist-value");
+    const latHidden = document.getElementById("lat-hidden");
+    const lngHidden = document.getElementById("lng-hidden");
+    const accHidden = document.getElementById("acc-hidden");
 
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const selfiePreview = document.getElementById('selfie-preview');
-    const btnStartCamera = document.getElementById('btn-start-camera');
-    const btnCapture = document.getElementById('btn-capture');
-    const btnRetake = document.getElementById('btn-retake');
-    const cameraHint = document.getElementById('camera-hint');
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const selfiePreview = document.getElementById("selfie-preview");
+    const btnStartCamera = document.getElementById("btn-start-camera");
+    const btnCapture = document.getElementById("btn-capture");
+    const btnRetake = document.getElementById("btn-retake");
+    const cameraHint = document.getElementById("camera-hint");
 
-    const btnSubmit = document.getElementById('btn-submit');
-    const resultPanel = document.getElementById('result-panel');
-    const resultOutput = document.getElementById('result-output');
-    const todayDateEl = document.getElementById('today-date');
+    const btnSubmit = document.getElementById("btn-submit");
+    const resultPanel = document.getElementById("result-panel");
+    const resultOutput = document.getElementById("result-output");
+    const todayDateEl = document.getElementById("today-date");
 
     let locationData = null;
     let photoDataUrl = null;
     let mediaStream = null;
     let isOutOfAreaMode = false;
 
-    // Tanggal hari ini
     function setTodayBadge() {
       const now = new Date();
-      const formatter = new Intl.DateTimeFormat('id-ID', {
-        weekday: 'short',
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
+      const formatter = new Intl.DateTimeFormat("id-ID", {
+        weekday: "short",
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
       });
       todayDateEl.textContent = formatter.format(now);
     }
 
     setTodayBadge();
 
-    // Cek lingkungan (test case untuk debugging)
     function runEnvironmentChecks() {
       const tests = [
         {
-          name: 'Geolocation support',
-          passed: 'geolocation' in navigator,
+          name: "Geolocation support",
+          passed: "geolocation" in navigator,
         },
         {
-          name: 'Camera (mediaDevices.getUserMedia)',
+          name: "Camera (mediaDevices.getUserMedia)",
           passed: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
         },
         {
-          name: 'Secure context (https/localhost)',
-          passed: location.protocol === 'https:' || location.hostname === 'localhost',
+          name: "Secure context (https/localhost)",
+          passed: location.protocol === "https:" || location.hostname === "localhost",
         },
       ];
 
       console.table(tests);
 
-      const summaryLines = tests.map((t) => `${t.name}: ${t.passed ? 'OK' : 'TIDAK TERSEDIA'}`);
+      const summaryLines = tests.map((t) => `${t.name}: ${t.passed ? "OK" : "TIDAK TERSEDIA"}`);
 
-      resultPanel.classList.remove('hidden');
+      resultPanel.classList.remove("hidden");
       resultOutput.textContent =
-        'Cek lingkungan (otomatis saat load halaman):\n' +
-        summaryLines.join('\n') +
-        '\n\nCatatan: Jika kamera gagal, pastikan semua status di atas "OK".\nData absensi akan muncul di bawah log ini setiap kali kirim.';
+        "Cek lingkungan (otomatis saat load halaman):\n" +
+        summaryLines.join("\n") +
+        "\n\nCatatan: Jika kamera gagal, pastikan semua status di atas \"OK\".\nData absensi akan muncul di bawah log ini setiap kali kirim.";
     }
 
     runEnvironmentChecks();
@@ -713,76 +712,74 @@
       const insideRadiusOk = !!(locationData && locationData.insideRadius);
 
       if (isOutOfAreaMode) {
-        // Mode luar area: wajib data dasar + lokasi + alasan
         btnSubmit.disabled = !(hasBasic && hasLocation && hasOutareaReason);
       } else {
-        // Mode on site: wajib data dasar + lokasi + selfie + dalam radius
         btnSubmit.disabled = !(hasBasic && hasLocation && hasPhoto && insideRadiusOk);
       }
     }
 
     [nameInput, idInput, roleInput, shiftInput].forEach((el) => {
-      el.addEventListener('input', updateSubmitState);
-      el.addEventListener('change', updateSubmitState);
+      el.addEventListener("input", updateSubmitState);
+      el.addEventListener("change", updateSubmitState);
     });
 
-    outareaReasonInput.addEventListener('input', updateSubmitState);
+    outareaReasonInput.addEventListener("input", updateSubmitState);
 
     function setMode(outArea) {
       isOutOfAreaMode = outArea;
 
       if (outArea) {
-        btnModeOutarea.classList.add('btn-mode-active');
-        btnModeOnsite.classList.remove('btn-mode-active');
-        outareaReasonGroup.classList.remove('hidden');
-        outareaInfo.classList.add('error');
+        btnModeOutarea.classList.add("btn-mode-active");
+        btnModeOnsite.classList.remove("btn-mode-active");
+        outareaReasonGroup.classList.remove("hidden");
+        outareaInfo.classList.add("error");
         outareaInfo.innerHTML =
           '<span class="label">Info:</span>' +
-          '<span><strong>Mode ABSEN DI LUAR AREA.</strong> Selfie boleh gagal / tidak tersedia, ' +
-          'namun lokasi &amp; alasan wajib diisi. Absensi ini akan tercatat sebagai out-of-area override.</span>';
+          "<span><strong>Mode ABSEN DI LUAR AREA.</strong> Selfie boleh gagal / tidak tersedia, " +
+          "namun lokasi &amp; alasan wajib diisi. Absensi ini akan tercatat sebagai out-of-area override.</span>";
       } else {
-        btnModeOnsite.classList.add('btn-mode-active');
-        btnModeOutarea.classList.remove('btn-mode-active');
-        outareaReasonGroup.classList.add('hidden');
-        outareaInfo.classList.remove('error');
+        btnModeOnsite.classList.add("btn-mode-active");
+        btnModeOutarea.classList.remove("btn-mode-active");
+        outareaReasonGroup.classList.add("hidden");
+        outareaInfo.classList.remove("error");
         outareaInfo.innerHTML =
           '<span class="label">Info:</span>' +
-          '<span>Mode normal (On Site). Selfie &amp; GPS di titik kerja wajib sebelum kirim absensi.</span>';
+          "<span>Mode normal (On Site). Selfie &amp; GPS di titik kerja wajib sebelum kirim absensi.</span>";
       }
 
       updateSubmitState();
     }
 
-    // Default: On Site
     setMode(false);
 
-    btnModeOnsite.addEventListener('click', () => setMode(false));
-    btnModeOutarea.addEventListener('click', () => setMode(true));
+    btnModeOnsite.addEventListener("click", () => setMode(false));
+    btnModeOutarea.addEventListener("click", () => setMode(true));
 
-    // LOKASI (Geolocation API + Radius 200m)
-    btnLocation.addEventListener('click', () => {
-      if (!('geolocation' in navigator)) {
-        locationStatus.classList.remove('success');
-        locationStatus.classList.add('error');
+    btnLocation.addEventListener("click", () => {
+      if (!("geolocation" in navigator)) {
+        locationStatus.classList.remove("success");
+        locationStatus.classList.add("error");
         locationStatus.innerHTML =
           '<span class="label">Status:</span> Browser tidak mendukung GPS. Coba gunakan HP / browser lain.';
         return;
       }
 
-      locationStatus.classList.remove('error');
-      locationStatus.classList.remove('success');
+      locationStatus.classList.remove("error");
+      locationStatus.classList.remove("success");
       locationStatus.innerHTML =
         '<span class="label">Status:</span> Mengambil lokasi... mohon tunggu dan pastikan sinyal GPS bagus.';
 
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          const { latitude, longitude, accuracy } = position.coords;
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude;
+          const accuracy = position.coords.accuracy;
           const distance = calculateDistanceMeters(latitude, longitude, BASE_LAT, BASE_LNG);
 
           locationData = {
-            latitude,
-            longitude,
-            accuracy,
+            latitude: latitude,
+            longitude: longitude,
+            accuracy: accuracy,
             distanceMeters: distance,
             insideRadius: distance <= ALLOWED_RADIUS_M,
             timestamp: new Date().toISOString(),
@@ -790,52 +787,56 @@
 
           latValue.textContent = latitude.toFixed(6);
           lngValue.textContent = longitude.toFixed(6);
-          accValue.textContent = accuracy ? accuracy.toFixed(1) + ' m' : 'N/A';
-          distValue.textContent = distance ? distance.toFixed(1) + ' m' : 'N/A';
+          accValue.textContent = accuracy ? accuracy.toFixed(1) + " m" : "N/A";
+          distValue.textContent = distance ? distance.toFixed(1) + " m" : "N/A";
 
           latHidden.value = latitude;
           lngHidden.value = longitude;
           accHidden.value = accuracy;
 
           if (locationData.insideRadius) {
-            locationStatus.classList.add('success');
-            locationStatus.classList.remove('error');
+            locationStatus.classList.add("success");
+            locationStatus.classList.remove("error");
             locationStatus.innerHTML =
               '<span class="label">Status:</span><strong> Lokasi berhasil diambil.</strong> ' +
-              'Anda berada di dalam radius kerja (≈ ' + distance.toFixed(1) +
-              ' m dari titik referensi). Absensi On Site diperbolehkan.';
+              "Anda berada di dalam radius kerja (≈ " +
+              distance.toFixed(1) +
+              " m dari titik referensi). Absensi On Site diperbolehkan.";
           } else {
-            locationStatus.classList.add('error');
-            locationStatus.classList.remove('success');
+            locationStatus.classList.add("error");
+            locationStatus.classList.remove("success");
             locationStatus.innerHTML =
               '<span class="label">Status:</span><strong> Lokasi berhasil diambil, namun di luar area.</strong> ' +
-              'Jarak dari titik referensi ≈ ' + distance.toFixed(1) +
-              ' m (&gt; ' + ALLOWED_RADIUS_M + ' m). Absensi On Site tidak dapat digunakan. ' +
+              "Jarak dari titik referensi ≈ " +
+              distance.toFixed(1) +
+              " m (&gt; " +
+              ALLOWED_RADIUS_M +
+              " m). Absensi On Site tidak dapat digunakan. " +
               'Silakan gunakan mode <strong>Absen di Luar Area</strong> dan isi alasan.';
           }
 
           updateSubmitState();
         },
         (error) => {
-          console.error('Geolocation error:', error);
+          console.error("Geolocation error:", error);
           locationData = null;
-          latValue.textContent = '—';
-          lngValue.textContent = '—';
-          accValue.textContent = '—';
-          distValue.textContent = '—';
-          latHidden.value = '';
-          lngHidden.value = '';
-          accHidden.value = '';
+          latValue.textContent = "—";
+          lngValue.textContent = "—";
+          accValue.textContent = "—";
+          distValue.textContent = "—";
+          latHidden.value = "";
+          lngHidden.value = "";
+          accHidden.value = "";
 
-          locationStatus.classList.add('error');
-          locationStatus.classList.remove('success');
-          let message = 'Gagal mengambil lokasi.';
+          locationStatus.classList.add("error");
+          locationStatus.classList.remove("success");
+          let message = "Gagal mengambil lokasi.";
           if (error.code === error.PERMISSION_DENIED) {
-            message += ' Akses lokasi ditolak. Cek pengaturan browser & izinkan lokasi.';
+            message += " Akses lokasi ditolak. Cek pengaturan browser & izinkan lokasi.";
           } else if (error.code === error.POSITION_UNAVAILABLE) {
-            message += ' Sinyal GPS lemah atau tidak tersedia.';
+            message += " Sinyal GPS lemah atau tidak tersedia.";
           } else if (error.code === error.TIMEOUT) {
-            message += ' Waktu permintaan lokasi habis. Coba ambil lagi.';
+            message += " Waktu permintaan lokasi habis. Coba ambil lagi.";
           }
           locationStatus.innerHTML = '<span class="label">Status:</span> ' + message;
 
@@ -845,20 +846,19 @@
           enableHighAccuracy: true,
           timeout: 15000,
           maximumAge: 0,
-        },
+        }
       );
     });
 
-    // KAMERA (getUserMedia)
     async function startCamera() {
       try {
         if (mediaStream) {
-          return; // sudah aktif
+          return;
         }
 
         const constraints = {
           video: {
-            facingMode: 'user',
+            facingMode: "user",
           },
         };
 
@@ -866,31 +866,31 @@
         mediaStream = stream;
         video.srcObject = stream;
 
-        video.classList.remove('hidden');
-        selfiePreview.classList.add('hidden');
+        video.classList.remove("hidden");
+        selfiePreview.classList.add("hidden");
         btnCapture.disabled = false;
         btnRetake.disabled = true;
 
         cameraHint.innerHTML =
           '<span class="dot-rec"></span><span>Kamera aktif. Posisikan wajah di lingkaran, lalu tekan "Ambil Selfie".</span>';
       } catch (err) {
-        console.error('Error membuka kamera:', err);
+        console.error("Error membuka kamera:", err);
 
-        video.classList.add('hidden');
-        selfiePreview.classList.add('hidden');
+        video.classList.add("hidden");
+        selfiePreview.classList.add("hidden");
         btnCapture.disabled = true;
         btnRetake.disabled = true;
         cameraHint.innerHTML =
           '<span class="dot-rec"></span>' +
-          '<span>Gagal membuka kamera. Periksa izin kamera & jalankan via HTTPS/localhost.</span>';
+          "<span>Gagal membuka kamera. Periksa izin kamera & jalankan via HTTPS/localhost.</span>";
 
         alert(
-          'Tidak dapat mengakses kamera.\n\n' +
-            'Kemungkinan penyebab:\n' +
-            '- Izin kamera ditolak\n' +
-            '- Halaman tidak dibuka via HTTPS/localhost\n' +
-            '- Tidak ada device kamera\n\n' +
-            'Detail teknis: ' + (err.message || err.name),
+          "Tidak dapat mengakses kamera.\n\n" +
+          "Kemungkinan penyebab:\n" +
+          "- Izin kamera ditolak\n" +
+          "- Halaman tidak dibuka via HTTPS/localhost\n" +
+          "- Tidak ada device kamera\n\n" +
+          "Detail teknis: " + (err.message || err.name)
         );
       }
     }
@@ -903,16 +903,16 @@
       video.srcObject = null;
     }
 
-    btnStartCamera.addEventListener('click', () => {
+    btnStartCamera.addEventListener("click", () => {
       if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) {
-        alert('Browser tidak mendukung kamera. Coba gunakan HP / browser Chrome/Edge versi terbaru.');
+        alert("Browser tidak mendukung kamera. Coba gunakan HP / browser Chrome/Edge versi terbaru.");
         return;
       }
 
-      if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+      if (location.protocol !== "https:" && location.hostname !== "localhost") {
         alert(
-          'Kamera hanya bisa diakses jika halaman ini dibuka via HTTPS atau localhost.\n' +
-            'Contoh:\n- Upload ke hosting dengan https\n- Atau jalankan lewat Live Server (http://localhost:...)',
+          "Kamera hanya bisa diakses jika halaman ini dibuka via HTTPS atau localhost.\n" +
+          "Contoh:\n- Upload ke hosting dengan https\n- Atau jalankan lewat Live Server (http://localhost:...)"
         );
         return;
       }
@@ -920,7 +920,7 @@
       startCamera();
     });
 
-    btnCapture.addEventListener('click', () => {
+    btnCapture.addEventListener("click", () => {
       if (!mediaStream) {
         alert('Kamera belum aktif. Tekan "Nyalakan Kamera" dulu.');
         return;
@@ -929,38 +929,37 @@
       const videoWidth = video.videoWidth;
       const videoHeight = video.videoHeight;
       if (!videoWidth || !videoHeight) {
-        alert('Kamera belum siap. Tunggu sebentar lalu coba lagi.');
+        alert("Kamera belum siap. Tunggu sebentar lalu coba lagi.");
         return;
       }
 
       canvas.width = videoWidth;
       canvas.height = videoHeight;
 
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext("2d");
       ctx.drawImage(video, 0, 0, videoWidth, videoHeight);
 
-      photoDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+      photoDataUrl = canvas.toDataURL("image/jpeg", 0.8);
 
       selfiePreview.src = photoDataUrl;
-      selfiePreview.classList.remove('hidden');
-      video.classList.add('hidden');
+      selfiePreview.classList.remove("hidden");
+      video.classList.add("hidden");
       btnRetake.disabled = false;
 
       cameraHint.innerHTML =
         '<span class="dot-rec" style="background:#22c55e;box-shadow:0 0 0 4px rgba(34,197,94,0.6);"></span>' +
         '<span>Selfie tersimpan. Jika kurang jelas, tekan "Ulangi".</span>';
 
-      // Matikan kamera setelah ambil foto untuk hemat baterai
       stopCamera();
       btnCapture.disabled = true;
 
       updateSubmitState();
     });
 
-    btnRetake.addEventListener('click', () => {
+    btnRetake.addEventListener("click", () => {
       photoDataUrl = null;
-      selfiePreview.src = '';
-      selfiePreview.classList.add('hidden');
+      selfiePreview.src = "";
+      selfiePreview.classList.add("hidden");
       btnRetake.disabled = true;
       cameraHint.innerHTML =
         '<span class="dot-rec"></span><span>Aktifkan kamera lagi lalu ambil selfie baru.</span>';
@@ -968,33 +967,30 @@
       updateSubmitState();
     });
 
-    // SUBMIT ABSENSI
-    form.addEventListener('submit', async (event) => {
+    form.addEventListener("submit", async (event) => {
       event.preventDefault();
 
       if (!isOutOfAreaMode) {
-        // Mode On Site: wajib selfie + lokasi dalam radius
         if (!photoDataUrl || !locationData) {
-          alert('Mode On Site: Selfie & lokasi wajib diambil sebelum kirim absensi.');
+          alert("Mode On Site: Selfie & lokasi wajib diambil sebelum kirim absensi.");
           return;
         }
         if (!locationData.insideRadius) {
           alert(
-            'Mode On Site hanya diperbolehkan jika Anda berada di dalam radius ' +
-              ALLOWED_RADIUS_M +
-              ' meter dari titik PayBoss Cafe.\n' +
-              'Silakan gunakan mode "Absen di Luar Area" jika Anda berada di luar radius.',
+            "Mode On Site hanya diperbolehkan jika Anda berada di dalam radius " +
+            ALLOWED_RADIUS_M +
+            " meter dari titik PayBoss Cafe.\n" +
+            'Silakan gunakan mode "Absen di Luar Area" jika Anda berada di luar radius.'
           );
           return;
         }
       } else {
-        // Mode Luar Area: wajib lokasi + alasan (radius boleh di luar)
         if (!locationData) {
-          alert('Mode Luar Area: Lokasi tetap wajib diambil untuk bukti titik absensi.');
+          alert("Mode Luar Area: Lokasi tetap wajib diambil untuk bukti titik absensi.");
           return;
         }
         if (!outareaReasonInput.value.trim()) {
-          alert('Mode Luar Area: Alasan absen di luar area wajib diisi.');
+          alert("Mode Luar Area: Alasan absen di luar area wajib diisi.");
           return;
         }
       }
@@ -1006,61 +1002,59 @@
         employeeRole: roleInput.value,
         shift: shiftInput.value,
         timestamp: now.toISOString(),
-        localTime: now.toLocaleString('id-ID'),
-        mode: isOutOfAreaMode ? 'OUT_OF_AREA' : 'ONSITE',
+        localTime: now.toLocaleString("id-ID"),
+        mode: isOutOfAreaMode ? "OUT_OF_AREA" : "ONSITE",
         isOutOfArea: isOutOfAreaMode,
         outOfAreaReason: isOutOfAreaMode ? outareaReasonInput.value.trim() : null,
         location: locationData,
-        photo: photoDataUrl || null, // di mode luar area bisa null
+        photo: photoDataUrl || null
       };
 
-      // Simpan ke localStorage sebagai contoh (backup lokal)
       try {
-        const existing = JSON.parse(localStorage.getItem('payboss_attendance') || '[]');
+        const existing = JSON.parse(localStorage.getItem("payboss_attendance") || "[]");
         existing.push(attendanceRecord);
-        localStorage.setItem('payboss_attendance', JSON.stringify(existing));
+        localStorage.setItem("payboss_attendance", JSON.stringify(existing));
       } catch (err) {
-        console.warn('Gagal menyimpan ke localStorage (boleh diabaikan):', err);
+        console.warn("Gagal menyimpan ke localStorage (boleh diabaikan):", err);
       }
 
-      // Kirim ke Google Sheet via Google Apps Script Web App
       try {
         await fetch(APPS_SCRIPT_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(attendanceRecord),
         });
-        console.log('Data absensi terkirim ke Apps Script');
+        console.log("Data absensi terkirim ke Apps Script");
       } catch (err) {
-        console.error('Gagal mengirim ke Google Sheet:', err);
+        console.error("Gagal mengirim ke Google Sheet:", err);
       }
 
-      resultPanel.classList.remove('hidden');
-      const previousText = resultOutput.textContent || '';
-      const newLog = '\n\n=== ABSENSI BARU ===\n' + JSON.stringify(attendanceRecord, null, 2);
+      resultPanel.classList.remove("hidden");
+      const previousText = resultOutput.textContent || "";
+      const newLog = "\n\n=== ABSENSI BARU ===\n" + JSON.stringify(attendanceRecord, null, 2);
       resultOutput.textContent = previousText + newLog;
 
       if (isOutOfAreaMode) {
-        const distanceInfo = locationData && typeof locationData.distanceMeters === 'number'
-          ? '\nJarak dari titik referensi ≈ ' + locationData.distanceMeters.toFixed(1) + ' m.'
-          : '';
+        const distanceInfo =
+          locationData && typeof locationData.distanceMeters === "number"
+            ? "\nJarak dari titik referensi ≈ " + locationData.distanceMeters.toFixed(1) + " m."
+            : "";
         alert(
-          'Absensi berhasil direkam sebagai ABSEN DI LUAR AREA.' +
-            '\nPastikan pengelola melakukan verifikasi manual terhadap data ini.' +
-            distanceInfo,
+          "Absensi berhasil direkam sebagai ABSEN DI LUAR AREA.\n" +
+          "Pastikan pengelola melakukan verifikasi manual terhadap data ini." +
+          distanceInfo
         );
       } else {
         alert(
-          'Absensi On Site dengan selfie berhasil direkam secara lokal.\n' +
-            'Integrasikan ke backend (misal Google Sheet) untuk penyimpanan permanen.',
+          "Absensi On Site dengan selfie berhasil direkam.\n" +
+          "Data juga dikirim ke Google Sheet melalui Apps Script."
         );
       }
 
       updateSubmitState();
     });
 
-    // Tutup kamera jika user meninggalkan halaman
-    window.addEventListener('beforeunload', () => {
+    window.addEventListener("beforeunload", () => {
       stopCamera();
     });
   </script>
