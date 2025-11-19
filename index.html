@@ -38,90 +38,107 @@
             font-weight: bold;
             text-decoration: none;
         }
-        
-        /* --- SEARCH & AUTOCOMPLETE STYLES (DIPERBARUI) --- */
-        .search-container {
-            display: flex;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 5px 10px;
-            position: relative; /* Penting untuk posisi dropdown saran */
-        }
 
-        .search-input {
-            background: transparent;
+        /* --- STYLE PENCARIAN BARU --- */
+        .search-trigger-btn {
+            background: none;
             border: none;
-            color: white;
-            padding: 5px;
-            outline: none;
-            width: 0;
-            transition: width 0.3s ease;
-            opacity: 0;
-        }
-
-        .search-input.active {
-            width: 150px;
-            opacity: 1;
-        }
-        
-        .search-input::placeholder {
-            color: rgba(255,255,255, 0.6);
-        }
-
-        .search-btn {
-            background: transparent;
-            border: none;
-            color: #D2B48C;
-            font-size: 1.2rem;
+            font-size: 1.5rem;
             cursor: pointer;
-            padding: 5px;
+            color: #D2B48C;
+            transition: transform 0.2s;
+            margin-left: auto; /* Dorong ke kanan */
+            margin-right: 15px;
+        }
+        
+        .search-trigger-btn:hover {
+            transform: scale(1.1);
+            color: white;
         }
 
-        /* Kotak Saran (Autocomplete Dropdown) */
-        .search-suggestions {
+        .search-content {
+            align-items: stretch !important; /* Agar lebar penuh */
+            text-align: left;
+            min-height: 50vh;
+            justify-content: flex-start !important;
+        }
+
+        .search-box-wrapper {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        #search-input {
+            width: 100%;
+            padding: 15px 15px 15px 45px;
+            font-size: 1.1rem;
+            border: 2px solid #8B4513;
+            border-radius: 12px;
+            box-sizing: border-box;
+            outline: none;
+        }
+        
+        #search-input:focus {
+            border-color: #A0522D;
+            box-shadow: 0 0 8px rgba(139, 69, 19, 0.3);
+        }
+
+        .search-icon-inside {
             position: absolute;
-            top: 100%;
-            right: 0; /* Rata kanan agar rapi */
-            width: 200px; /* Lebar dropdown */
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            display: none; /* Sembunyi default */
-            flex-direction: column;
-            overflow: hidden;
-            z-index: 2000;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+            color: #888;
+        }
+
+        .search-results-list {
+            overflow-y: auto;
+            max-height: 50vh;
             margin-top: 10px;
         }
 
-        .search-suggestions.show {
+        .search-item-result {
             display: flex;
-        }
-
-        .suggestion-item {
-            padding: 10px 15px;
-            color: #3E2723;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
             border-bottom: 1px solid #eee;
             cursor: pointer;
-            font-size: 0.9rem;
-            text-align: left;
             transition: background 0.2s;
         }
 
-        .suggestion-item:last-child {
-            border-bottom: none;
+        .search-item-result:hover {
+            background-color: #f5f5f5;
         }
 
-        .suggestion-item:hover {
-            background: #f0f0f0;
-            color: #8B4513;
+        .result-name {
+            font-weight: bold;
+            color: #3E2723;
+            font-size: 1rem;
         }
         
-        .suggestion-match {
-            font-weight: bold;
-            color: #8B4513;
+        .result-category {
+            font-size: 0.8rem;
+            color: #888;
+            background: #eee;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 8px;
         }
-        /* --- END SEARCH STYLES --- */
+
+        .result-price {
+            color: #8B4513;
+            font-weight: bold;
+        }
+
+        .no-results {
+            text-align: center;
+            color: #888;
+            padding: 20px;
+            font-style: italic;
+        }
+        /* --- AKHIR STYLE PENCARIAN --- */
 
         /* Menu Page Styles */
         .menu-slider-container {
@@ -135,17 +152,20 @@
         .menu-slider {
             display: flex;
             width: 100%;
+            /* Lebar diatur oleh JS */
             height: 100%;
             transition: transform 0.5s ease-in-out;
         }
 
         .menu-slide {
             width: 100%;
+            /* Lebar diatur oleh JS */
             height: 100%;
             position: relative;
             display: flex;
             flex-direction: column;
             flex-shrink: 0;
+            /* Penting untuk slider */
         }
 
         .slide-image {
@@ -177,12 +197,15 @@
             z-index: 2;
             text-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
             font-size: 8rem;
+            /* Ukuran emoji tetap di sini */
         }
 
+        /* --- CSS BARU UNTUK GAMBAR MENU --- */
         .slide-image img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            /* Membuat gambar pas tanpa penyok */
             position: relative;
             z-index: 2;
             transition: transform 0.6s ease;
@@ -191,6 +214,8 @@
         .menu-slide:hover .slide-image img {
             transform: scale(1.05);
         }
+
+        /* --- AKHIR CSS BARU --- */
 
         .slide-sold-out {
             position: absolute;
@@ -221,6 +246,7 @@
             text-align: center;
             position: relative;
             box-sizing: border-box;
+            /* Pastikan padding tidak merusak layout */
         }
 
         .slide-title {
@@ -279,6 +305,33 @@
             right: 30px;
         }
 
+        .slide-indicators {
+            position: absolute;
+            bottom: calc(40% + 20px);
+            /* DIUBAH: Pindah ke atas kotak konten */
+            left: 50%;
+            transform: translateX(-50%);
+            display: none;
+            /* DIUBAH: Indikator dihilangkan */
+            gap: 15px;
+            z-index: 100;
+        }
+
+        .slide-indicator {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid white;
+        }
+
+        .slide-indicator.active {
+            background: white;
+            transform: scale(1.2);
+        }
+
         .category-selector {
             position: absolute;
             top: 30px;
@@ -292,6 +345,7 @@
             border-radius: 25px;
             backdrop-filter: blur(10px);
             overflow-x: auto;
+            /* Untuk mobile */
             max-width: 90%;
         }
 
@@ -317,6 +371,16 @@
             background: #8B4513;
             color: white;
             box-shadow: 0 4px 15px rgba(139, 69, 19, 0.4);
+        }
+
+        .slide-variants {
+            background: rgba(139, 69, 19, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-size: 1rem;
+            color: #8B4513;
+            font-weight: bold;
         }
 
         .order-slide-btn {
@@ -399,13 +463,9 @@
                 height: 50%;
                 padding: 20px;
             }
-            
-            .search-input.active {
-                width: 120px; /* Smaller on mobile */
-            }
         }
 
-        /* LANDSCAPE MODE */
+        /* LANDSCAPE MODE: layout dua kolom agar lebih menarik */
         @media (orientation: landscape) {
             .nav-bar {
                 padding: 10px 16px;
@@ -433,6 +493,19 @@
                 padding: 4rem;
             }
 
+            .slide-description {
+                text-align: left;
+            }
+
+            .slide-price {
+                margin-top: 0.75rem;
+                margin-bottom: 1.75rem;
+            }
+
+            .order-slide-btn {
+                align-self: flex-start;
+            }
+
             .category-selector {
                 top: 8%;
                 left: 40%;
@@ -440,12 +513,38 @@
                 max-width: 80%;
                 justify-content: center;
             }
+
+            .slide-nav.prev {
+                left: 15px;
+            }
+
+            .slide-nav.next {
+                right: 15px;
+            }
         }
-        
+
+        /* Landscape khusus HP (tinggi pendek) */
         @media (orientation: landscape) and (max-height: 600px) {
             .slide-content {
                 padding: 1.5rem;
                 overflow-y: auto;
+            }
+
+            .slide-title {
+                font-size: clamp(1.4rem, 2.6vw, 2rem);
+            }
+
+            .slide-description {
+                font-size: 0.95rem;
+            }
+
+            .slide-price {
+                font-size: 1.4rem;
+            }
+
+            .order-slide-btn {
+                padding: 10px 24px;
+                font-size: 0.95rem;
             }
         }
 
@@ -466,6 +565,7 @@
             width: 60px;
             height: 60px;
             display: flex;
+            /* Diubah dari none */
             align-items: center;
             justify-content: center;
             transition: all 0.3s ease;
@@ -505,6 +605,7 @@
             z-index: 1500;
             display: flex;
             flex-direction: column;
+            /* Agar footer menempel di bawah */
         }
 
         .cart-sidebar.open {
@@ -524,11 +625,27 @@
             flex-shrink: 0;
         }
 
+        .cart-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        .close-cart {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 5px;
+        }
+
         .cart-items {
             padding: 20px;
             overflow-y: auto;
             flex-grow: 1;
+            /* Membuat daftar item memanjang */
             min-height: 100px;
+            /* Tinggi minimum agar tidak kolaps */
         }
 
         .cart-item {
@@ -557,6 +674,18 @@
             margin-bottom: 5px;
         }
 
+        .cart-item-details {
+            font-size: 0.9rem;
+            color: #888;
+        }
+
+        .cart-item-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+        }
+
         .cart-item-price {
             font-weight: bold;
             color: #8B4513;
@@ -573,6 +702,10 @@
             font-size: 0.8rem;
         }
 
+        .remove-item:hover {
+            background: #c82333;
+        }
+
         .cart-total {
             padding: 20px;
             border-top: 2px solid #8B4513;
@@ -580,6 +713,10 @@
             position: sticky;
             bottom: 0;
             flex-shrink: 0;
+        }
+
+        .total-breakdown {
+            margin-bottom: 20px;
         }
 
         .total-line {
@@ -609,6 +746,10 @@
             font-weight: bold;
             cursor: pointer;
             transition: background 0.3s ease;
+        }
+
+        .checkout-btn:hover:not(:disabled) {
+            background: #A0522D;
         }
 
         .checkout-btn:disabled {
@@ -648,7 +789,14 @@
             overflow-y: auto;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
-        
+
+        .modal-content h3 {
+            margin-top: 0;
+            margin-bottom: 25px;
+            color: #3E2723;
+            font-size: 1.5rem;
+        }
+
         .form-group {
             margin-bottom: 20px;
             text-align: left;
@@ -671,6 +819,12 @@
             box-sizing: border-box;
         }
 
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #8B4513;
+        }
+
         .payment-options {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -688,15 +842,28 @@
             text-align: center;
         }
 
+        .payment-option:hover {
+            border-color: #8B4513;
+            background: #fff;
+        }
+
         .payment-option.selected {
             border-color: #8B4513;
             background: #fff;
             box-shadow: 0 0 0 2px rgba(139, 69, 19, 0.2);
         }
-        
+
+        .payment-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
         .qr-code {
             width: 250px;
+            /* Ukuran Diperbesar */
             height: 250px;
+            /* Ukuran Diperbesar */
             background: #f0f0f0;
             margin: 20px auto;
             display: flex;
@@ -706,6 +873,7 @@
             border-radius: 10px;
             flex-direction: column;
             overflow: hidden;
+            /* Pastikan gambar pas */
         }
 
         .qr-code img {
@@ -721,12 +889,27 @@
             margin: 20px 0;
             text-align: left;
         }
-        
+
+        .receipt-info h4 {
+            margin: 0 0 15px 0;
+            color: #3E2723;
+            text-align: center;
+        }
+
         .receipt-line {
             display: flex;
             justify-content: space-between;
             margin-bottom: 8px;
             font-size: 0.95rem;
+        }
+
+        .receipt-line.total {
+            font-weight: bold;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+            margin-top: 10px;
+            color: #8B4513;
+            font-size: 1.1rem;
         }
 
         .modal-buttons {
@@ -746,6 +929,11 @@
             cursor: pointer;
         }
 
+        .btn-cancel:hover {
+            background: #5a6268;
+        }
+
+        /* Quantity Controls */
         .quantity-controls {
             display: flex;
             align-items: center;
@@ -770,63 +958,91 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: background 0.3s ease;
             line-height: 1;
+        }
+
+        .qty-btn:hover {
+            background: #A0522D;
+        }
+
+        .qty-display {
+            font-weight: bold;
+            font-size: 1.5rem;
+            min-width: 40px;
+            text-align: center;
+            color: #3E2723;
         }
     </style>
 </head>
 
 <body>
-    <!-- Navigation -->
     <nav class="nav-bar">
         <a href="#" class="nav-brand">☕ Payboss Cafe</a>
-        
-        <!-- Container Pencarian + Saran -->
-        <div class="search-container">
-            <input type="text" id="search-input" class="search-input" placeholder="Cari menu..." autocomplete="off">
-            <button class="search-btn" onclick="toggleSearch()">🔍</button>
-            
-            <!-- AUTOCOMPLETE DROPDOWN -->
-            <div id="search-suggestions" class="search-suggestions">
-                <!-- Saran akan muncul di sini -->
-            </div>
-        </div>
+        <!-- TOMBOL PENCARIAN BARU -->
+        <button class="search-trigger-btn" onclick="openSearch()">
+            🔍
+        </button>
     </nav>
 
-    <!-- Menu Page -->
     <div id="menu-page">
         <div class="menu-slider-container">
-            <!-- Category Selector -->
             <div class="category-selector" id="category-selector">
-                <!-- Kategori dimuat oleh JS -->
-            </div>
-            <!-- Menu Slider -->
+                </div>
             <div class="menu-slider" id="menu-slider">
-                <!-- Slides will be generated by JavaScript -->
-            </div>
-            <!-- Navigation Buttons -->
-            <button class="slide-nav prev" onclick="previousSlide()">‹</button>
-            <button class="slide-nav next" onclick="nextSlide()">›</button>
+                </div>
+            <button class="slide-nav prev" onclick="previousSlide()">
+                ‹
+            </button>
+            <button class="slide-nav next" onclick="nextSlide()">
+                ›
+            </button>
+            <div class="slide-indicators" id="slide-indicators">
+                </div>
         </div>
     </div>
 
-    <!-- Cart Toggle Button -->
     <button class="cart-toggle" id="cart-toggle" onclick="toggleCart()">
         🛒
         <span class="cart-count" id="cart-count">0</span>
     </button>
 
-    <!-- Cart Sidebar -->
+    <!-- MODAL PENCARIAN BARU -->
+    <div class="modal" id="search-modal">
+        <div class="modal-content search-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin:0; font-size: 1.3rem;">Cari Menu</h3>
+                <button class="close-cart" onclick="closeModal('search-modal')" style="color: #3E2723; background:none; font-size: 2rem;">×</button>
+            </div>
+            
+            <div class="search-box-wrapper">
+                <span class="search-icon-inside">🔍</span>
+                <input type="text" id="search-input" placeholder="Ketik menu (contoh: Nasi)..." autocomplete="off">
+            </div>
+
+            <div id="search-results" class="search-results-list">
+                <!-- Hasil pencarian akan muncul di sini -->
+            </div>
+        </div>
+    </div>
+    <!-- AKHIR MODAL PENCARIAN -->
+
     <div class="cart-sidebar" id="cart-sidebar">
         <div class="cart-header">
             <h3>🛒 Keranjang Belanja</h3>
-            <button class="close-cart" style="background:none;border:none;color:white;font-size:1.5rem;" onclick="toggleCart()">×</button>
+            <button class="close-cart" onclick="toggleCart()">×</button>
         </div>
-        <div class="cart-items" id="cart-items"></div>
+        <div class="cart-items" id="cart-items">
+            </div>
         <div class="cart-total">
             <div class="total-breakdown">
                 <div class="total-line">
                     <span>Subtotal:</span>
                     <span id="cart-subtotal">Rp 0</span>
+                </div>
+                <div class="total-line" style="display: none;">
+                    <span>Pajak (10%):</span>
+                    <span id="cart-tax">Rp 0</span>
                 </div>
                 <div class="total-line final">
                     <span>Total:</span>
@@ -837,7 +1053,6 @@
         </div>
     </div>
 
-    <!-- Checkout Modal -->
     <div class="modal" id="checkout-modal">
         <div class="modal-content">
             <h3>📋 Informasi Pemesanan</h3>
@@ -851,9 +1066,33 @@
                     <select id="table-number" required>
                         <option value="">Pilih Meja</option>
                         <option value="1">Meja 1</option>
-                        <!-- Disingkat untuk contoh, kode asli Anda tetap aman -->
                         <option value="2">Meja 2</option>
                         <option value="3">Meja 3</option>
+                        <option value="4">Meja 4</option>
+                        <option value="5">Meja 5</option>
+                        <option value="6">Meja 6</option>
+                        <option value="7">Meja 7</option>
+                        <option value="8">Meja 8</option>
+                        <option value="9">Meja 9</option>
+                        <option value="10">Meja 10</option>
+                        <option value="11">Meja 11</option>
+                        <option value="12">Meja 12</option>
+                        <option value="13">Meja 13</option>
+                        <option value="14">Meja 14</option>
+                        <option value="15">Meja 15</option>
+                        <option value="16">Meja 16</option>
+                        <option value="17">Meja 17</option>
+                        <option value="18">Meja 18</option>
+                        <option value="19">Meja 19</option>
+                        <option value="20">Meja 20</option>
+                        <option value="21">Meja 21</option>
+                        <option value="22">Meja 22</option>
+                        <option value="23">Meja 23</option>
+                        <option value="24">Meja 24</option>
+                        <option value="25">Meja 25</option>
+                        <option value="26">Meja 26</option>
+                        <option value="27">Meja 27</option>
+                        <option value="27">Meja 28</option>
                         <option value="Take Away">Take Away</option>
                     </select>
                 </div>
@@ -865,13 +1104,20 @@
         </div>
     </div>
 
-    <!-- Payment Modal -->
     <div class="modal" id="payment-modal">
         <div class="modal-content">
             <h3>💳 Pilih Metode Pembayaran</h3>
             <div class="receipt-info">
                 <h4>📋 Detail Pesanan</h4>
                 <div id="payment-items"></div>
+                <div class="receipt-line">
+                    <span>Subtotal:</span>
+                    <span id="payment-subtotal"></span>
+                </div>
+                <div class="receipt-line" style="display: none;">
+                    <span>Pajak (10%):</span>
+                    <span id="payment-tax"></span>
+                </div>
                 <div class="receipt-line total">
                     <span>Total Bayar:</span>
                     <span id="payment-total"></span>
@@ -881,20 +1127,24 @@
                 <div class="payment-option" onclick="selectPayment('qris', this)">
                     <span class="payment-icon">📱</span>
                     <div><strong>QRIS</strong></div>
+                    <div style="font-size: 0.9rem; color: #666;">Scan & Bayar</div>
                 </div>
                 <div class="payment-option" onclick="selectPayment('cash', this)">
                     <span class="payment-icon">💵</span>
                     <div><strong>Cash</strong></div>
+                    <div style="font-size: 0.9rem; color: #666;">Bayar Tunai</div>
                 </div>
             </div>
             <div id="qris-section" style="display: none;">
-                <p><strong>Scan QR Code</strong></p>
+                <p><strong>Scan QR Code untuk melakukan pembayaran</strong></p>
                 <div class="qr-code">
-                     <img src="https://i.imgur.com/Pc4W6zN.jpeg" alt="QRIS">
+                    <img src="https://i.imgur.com/Pc4W6zN.jpeg" alt="QRIS Payboss Cafe">
                 </div>
             </div>
             <div id="cash-section" style="display: none;">
-                <p>Bayar di kasir.</p>
+                <p><strong>Pembayaran Tunai</strong></p>
+                <p style="color: #666;">Silakan bayar di kasir dengan jumlah yang tertera di atas.</p>
+                <p style="color: #8B4513; font-weight: bold;">Pesanan akan diproses setelah pembayaran dikonfirmasi kasir.</p>
             </div>
             <div class="modal-buttons">
                 <button class="checkout-btn" id="confirm-payment-btn" onclick="confirmPayment()" style="display: none;">
@@ -905,40 +1155,83 @@
         </div>
     </div>
 
-    <!-- Success Modal -->
     <div class="modal" id="success-modal">
         <div class="modal-content">
             <h3>✅ Pesanan Berhasil!</h3>
             <div style="font-size: 4rem; margin: 20px 0;">🎉</div>
-            <div class="receipt-info">
-                <div class="receipt-line">
-                    <span>Antrian:</span>
-                    <strong id="success-queue-number" style="font-size: 1.2rem;"></strong>
+            <div class="receipt-info" style="margin-top: 20px; text-align: left; background: #fff; padding: 0;">
+                <h4 style="text-align: center; font-size: 1.2rem; color: #3E2723; margin-bottom: 15px;">Dine In Order</h4>
+                <div class="receipt-line" style="font-size: 0.9rem;">
+                    <span>Nama Pelanggan:</span>
+                    <strong id="success-customer"></strong>
                 </div>
+                <div class="receipt-line" style="font-size: 0.9rem;">
+                    <span>Tanggal:</span>
+                    <strong id="success-date" style="text-align: right;"></strong>
+                </div>
+                <div class="receipt-line" style="font-size: 0.9rem;">
+                    <span>No. Antrian:</span>
+                    <strong id="success-queue-number" style="font-size: 1.1rem; color: #8B4513;"></strong>
+                </div>
+                <div class="receipt-line" style="font-size: 0.9rem;">
+                    <span>Order ID:</span>
+                    <strong id="order-id" style="text-transform: uppercase;"></strong>
+                </div>
+                <div class="receipt-line" style="font-size: 0.9rem;">
+                    <span>Meja:</span>
+                    <strong id="success-table"></strong>
+                </div>
+                <hr style="border: 0; border-top: 1px dashed #ccc; margin: 15px 0;">
+                <div class="receipt-line" style="margin-bottom: 10px;">
+                    <strong style="color: #3E2723;">Order</strong>
+                    <strong style="color: #3E2723;">Total Order: <span id="success-total-items">0</span></strong>
+                </div>
+                <div id="success-receipt-items" style="padding-left: 10px;"></div>
+                <hr style="border: 0; border-top: 1px solid #ddd; margin: 15px 0;">
                 <div class="receipt-line">
-                    <span>Total:</span>
-                    <strong id="success-total"></strong>
+                    <span>Sub Total</span>
+                    <span id="success-subtotal"></span>
+                </div>
+                <div class="receipt-line" style="display: none;">
+                    <span>PPN 10%</span>
+                    <span id="success-tax"></span>
+                </div>
+                <div class="receipt-line total" style="font-size: 1.2rem; margin-top: 10px;">
+                    <span>Total Payment</span>
+                    <span id="success-total"></span>
+                </div>
+                <div class="receipt-line" style="font-size: 0.9rem; margin-top: 5px;">
+                    <span>Payment Method</span>
+                    <span id="success-payment-method" style="text-transform: uppercase; font-weight: bold;"></span>
                 </div>
             </div>
-            <button class="checkout-btn" onclick="closeModal('success-modal'); resetCart();">Tutup</button>
-        </div>
+            <div style="background: #d4edda; padding: 15px; border-radius: 8px; margin: 25px 0 20px 0;">
+                <p style="margin: 0; color: #155724; font-weight: 500;">
+                    Pesanan Anda sedang disiapkan. Silakan tunggu.
+                </p>
+            </div>
+            
+            <div class="modal-buttons">
+                <button class="checkout-btn" id="print-receipt-btn">🖨️ Cetak Struk (via RawBT)</button>
+                <button type="button" class="btn-cancel" onclick="closeModal('success-modal'); resetCart();">Tutup</button>
+            </div>
+            </div>
     </div>
 
-    <!-- Item Options Modal -->
     <div class="modal" id="item-options-modal">
         <div class="modal-content">
             <h3 id="modal-item-name">Nama Item</h3>
-            <p id="modal-item-description" style="color: #666;">Deskripsi</p>
+            <p id="modal-item-description" style="color: #666; margin-top: -15px;">Deskripsi item.</p>
             <div class="form-group" id="modal-variant-group">
                 <label for="modal-item-variant">Pilih Varian:</label>
                 <select id="modal-item-variant" onchange="updateModalPriceAndQuantity()"></select>
             </div>
             <div class="quantity-controls">
-                <button class="qty-btn" onclick="updateModalQuantity(-1)">-</button>
+                <button class="qty-btn" id="modal-qty-minus" onclick="updateModalQuantity(-1)">-</button>
                 <span id="modal-qty-display" class="qty-display">1</span>
-                <button class="qty-btn" onclick="updateModalQuantity(1)">+</button>
+                <button class="qty-btn" id="modal-qty-plus" onclick="updateModalQuantity(1)">+</button>
             </div>
-            <div class="slide-price" id="modal-item-price">Rp 0</div>
+            <div class="slide-price" id="modal-item-price" style="margin-bottom: 20px;">Rp 0</div>
             <div class="modal-buttons">
                 <button class="checkout-btn" onclick="addItemFromModal()">Tambah ke Keranjang</button>
                 <button type="button" class="btn-cancel" onclick="closeModal('item-options-modal')">Batal</button>
@@ -948,7 +1241,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, getDoc, query, orderBy, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, getDoc, Timestamp, query, orderBy, where, getDocs, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB0nHqdAw_dV9pHcQ_cSnWtNsn4CwwwUNc",
@@ -971,111 +1264,18 @@
         let currentMenuItems = [];
         let currentModalItem = null;
         let currentModalQuantity = 1;
-        let isSearching = false;
 
         document.addEventListener('DOMContentLoaded', function () {
             initializeAppLogic();
             setupSwipeAndKeyListeners();
-            setupSearchListener();
+
+            // [--- TAMBAHAN CETAK STRUK ---]
+            document.getElementById('print-receipt-btn').addEventListener('click', printCustomerReceipt);
             
-            // Listener Klik Luar (untuk menutup saran)
-            document.addEventListener('click', function(e) {
-                const searchContainer = document.querySelector('.search-container');
-                const suggestionsBox = document.getElementById('search-suggestions');
-                if (!searchContainer.contains(e.target)) {
-                    suggestionsBox.classList.remove('show');
-                }
-            });
+            // [--- EVENT LISTENER UNTUK PENCARIAN ---]
+            const searchInput = document.getElementById('search-input');
+            searchInput.addEventListener('input', handleSearchInput);
         });
-
-        // --- FITUR PENCARIAN & AUTOCOMPLETE ---
-        window.toggleSearch = function() {
-            const input = document.getElementById('search-input');
-            input.classList.toggle('active');
-            if (input.classList.contains('active')) {
-                input.focus();
-            } else {
-                input.value = '';
-                document.getElementById('search-suggestions').classList.remove('show');
-                performSearch('');
-            }
-        }
-
-        function setupSearchListener() {
-            const input = document.getElementById('search-input');
-            
-            input.addEventListener('input', (e) => {
-                const keyword = e.target.value;
-                updateSuggestions(keyword);
-                performSearch(keyword);
-            });
-            
-            input.addEventListener('focus', (e) => {
-                if(e.target.value.trim().length > 0) {
-                    updateSuggestions(e.target.value);
-                }
-            });
-        }
-
-        function updateSuggestions(keyword) {
-            const suggestionsBox = document.getElementById('search-suggestions');
-            keyword = keyword.toLowerCase().trim();
-
-            if (keyword.length < 1) {
-                suggestionsBox.classList.remove('show');
-                return;
-            }
-
-            // Filter menu yang cocok
-            const matches = allMenuItems.filter(item => 
-                item.name.toLowerCase().includes(keyword)
-            ).slice(0, 5); // Batasi maks 5 saran
-
-            if (matches.length > 0) {
-                suggestionsBox.innerHTML = matches.map(item => {
-                    // Highlight teks yang cocok (Bold)
-                    const regex = new RegExp(`(${keyword})`, 'gi');
-                    const highlightedName = item.name.replace(regex, '<span class="suggestion-match">$1</span>');
-                    return `<div class="suggestion-item" onclick="selectSuggestion('${item.name}')">${highlightedName}</div>`;
-                }).join('');
-                suggestionsBox.classList.add('show');
-            } else {
-                suggestionsBox.classList.remove('show');
-            }
-        }
-
-        // Fungsi saat saran diklik
-        window.selectSuggestion = function(name) {
-            const input = document.getElementById('search-input');
-            input.value = name;
-            document.getElementById('search-suggestions').classList.remove('show');
-            performSearch(name); // Langsung cari item spesifik
-        }
-
-        function performSearch(keyword) {
-            keyword = keyword.toLowerCase().trim();
-            const categorySelector = document.getElementById('category-selector');
-
-            if (keyword === '') {
-                isSearching = false;
-                categorySelector.style.display = 'flex';
-                switchCategory(currentCategory || (allMenuItems.length > 0 ? allMenuItems[0].category : ''));
-                return;
-            }
-
-            isSearching = true;
-            categorySelector.style.display = 'none';
-
-            currentMenuItems = allMenuItems.filter(item => 
-                item.name.toLowerCase().includes(keyword)
-            );
-
-            currentSlide = 0;
-            renderMenuSlider();
-            
-            document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
-        }
-        // --- AKHIR FITUR PENCARIAN ---
 
         function initializeAppLogic() {
             const menuQuery = query(collection(db, 'menu'), orderBy('name'));
@@ -1083,20 +1283,117 @@
             onSnapshot(menuQuery, (snapshot) => {
                 allMenuItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderCategoryButtons();
-                
-                if (!isSearching) {
-                    if (!currentCategory && allMenuItems.length > 0) {
-                        const firstCategory = allMenuItems[0].category || 'lainnya';
-                        switchCategory(firstCategory);
-                    } else {
-                        switchCategory(currentCategory);
-                    }
+                if (!currentCategory && allMenuItems.length > 0) {
+                    const firstCategory = allMenuItems[0].category || 'lainnya';
+                    switchCategory(firstCategory);
+                } else {
+                    switchCategory(currentCategory);
                 }
             }, (error) => {
-                console.error("Error mengambil data: ", error);
+                console.error("Error mengambil data menu: ", error);
+                document.getElementById('menu-slider').innerHTML = '<div style="color:white; text-align:center; padding: 50px;">Gagal memuat menu. Periksa koneksi internet Anda.</div>';
             });
+
             updateCartDisplay();
         }
+
+        // --- LOGIKA PENCARIAN BARU ---
+        window.openSearch = function() {
+            document.getElementById('search-modal').classList.add('active');
+            setTimeout(() => {
+                document.getElementById('search-input').focus();
+            }, 100);
+        }
+
+        function handleSearchInput(e) {
+            const term = e.target.value.toLowerCase();
+            const resultsContainer = document.getElementById('search-results');
+            resultsContainer.innerHTML = '';
+
+            if (term.length < 2) {
+                if (term.length === 0) resultsContainer.innerHTML = '';
+                return;
+            }
+
+            const matches = allMenuItems.filter(item => 
+                item.name.toLowerCase().includes(term)
+            );
+
+            if (matches.length === 0) {
+                resultsContainer.innerHTML = `<div class="no-results">Tidak ada menu dengan nama "${e.target.value}"</div>`;
+                return;
+            }
+
+            matches.forEach(item => {
+                // Hitung harga terendah untuk ditampilkan
+                let priceDisplay = "Harga Tdk Tersedia";
+                if (item.priceOptions && item.priceOptions.length > 0) {
+                    const prices = item.priceOptions.map(p => p.price);
+                    const minPrice = Math.min(...prices);
+                    priceDisplay = `Mulai Rp ${minPrice.toLocaleString('id-ID')}`;
+                } else if (item.price) {
+                    priceDisplay = `Rp ${item.price.toLocaleString('id-ID')}`;
+                }
+
+                const div = document.createElement('div');
+                div.className = 'search-item-result';
+                div.onclick = () => selectItemFromSearch(item);
+                
+                div.innerHTML = `
+                    <div>
+                        <div class="result-name">${item.name} <span class="result-category">${item.category || 'Lainnya'}</span></div>
+                        ${!item.isAvailable ? '<span style="color:red; font-size:0.8rem;">HABIS</span>' : ''}
+                    </div>
+                    <div class="result-price">${priceDisplay}</div>
+                `;
+                resultsContainer.appendChild(div);
+            });
+        }
+
+        window.selectItemFromSearch = function(item) {
+            if (item.isAvailable === false) {
+                showNotification("Maaf, item ini sedang habis.", true);
+                return;
+            }
+            
+            // Tutup modal search
+            closeModal('search-modal');
+            
+            // Buka modal opsi item (menggunakan logika yang sama dengan klik dari slider)
+            // Kita sesuaikan fungsi showItemOptions agar bisa menerima objek item langsung
+            prepareAndOpenItemModal(item);
+        }
+
+        // Fungsi pembantu baru untuk membuka modal (refactoring dari showItemOptions)
+        function prepareAndOpenItemModal(item) {
+            currentModalItem = item;
+            currentModalQuantity = 1;
+
+            document.getElementById('modal-item-name').textContent = item.name;
+            document.getElementById('modal-item-description').textContent = item.description || '';
+
+            const variantGroup = document.getElementById('modal-variant-group');
+            const variantSelect = document.getElementById('modal-item-variant');
+
+            if (item.priceOptions && item.priceOptions.length > 1) {
+                variantGroup.style.display = 'block';
+                variantSelect.innerHTML = '';
+
+                item.priceOptions.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = `${option.name}|${option.price}`;
+                    optionElement.textContent = `${option.name} - Rp ${option.price.toLocaleString('id-ID')}`;
+                    variantSelect.appendChild(optionElement);
+                });
+            } else {
+                variantGroup.style.display = 'none';
+                variantSelect.innerHTML = '';
+            }
+
+            updateModalPriceAndQuantity();
+            document.getElementById('item-options-modal').classList.add('active');
+        }
+        // --- AKHIR LOGIKA PENCARIAN ---
 
         function renderCategoryButtons() {
             const container = document.getElementById('category-selector');
@@ -1111,22 +1408,28 @@
                 const button = document.createElement('button');
                 button.className = 'category-btn';
                 button.dataset.category = category;
-                
-                let emoji = '';
-                if (category === 'snacks') emoji = '🍟 ';
-                else if (category === 'coffee') emoji = '☕ ';
-                else if (category === 'non-coffee') emoji = '🥤 ';
-                else if (category === 'Food') emoji = '🍛 ';
-                
-                button.textContent = emoji + category.charAt(0).toUpperCase() + category.slice(1);
+                button.textContent = category.charAt(0).toUpperCase() + category.slice(1);
+
+                if (category === 'snacks') button.textContent = '🍟 ' + button.textContent;
+                if (category === 'Food') button.textContent = '🍛 ' + button.textContent;
+                if (category === 'pastry') button.textContent = '🥐 ' + button.textContent;
+                if (category === 'coffee') button.textContent = '☕ ' + button.textContent;
+                if (category === 'kopi susu') button.textContent = '☕︎ ' + button.textContent;
+                if (category === 'hot kopi') button.textContent = '☕ ˖ ' + button.textContent;
+                if (category === 'Mocktail') button.textContent = '🍹 ' + button.textContent;
+                if (category === 'tea') button.textContent = '🍵 ' + button.textContent;
+                if (category === 'dessert') button.textContent = '🥣 ' + button.textContent;
+                if (category === 'rokok') button.textContent = '🚬 ' + button.textContent;
+                if (category === 'non-coffee') button.textContent = '🥤 ' + button.textContent;
+
                 button.onclick = () => switchCategory(category);
                 container.appendChild(button);
             });
+
             updateActiveCategoryButton();
         }
 
         function updateActiveCategoryButton() {
-            if(isSearching) return;
             const categoryButtons = document.querySelectorAll('.category-btn');
             categoryButtons.forEach(btn => {
                 if (btn.dataset.category === currentCategory) {
@@ -1137,13 +1440,7 @@
             });
         }
 
-        window.switchCategory = function(category) {
-            document.getElementById('search-input').value = '';
-            document.getElementById('search-input').classList.remove('active');
-            document.getElementById('search-suggestions').classList.remove('show'); // Tutup saran
-            document.getElementById('category-selector').style.display = 'flex';
-            isSearching = false;
-
+        function switchCategory(category) {
             currentCategory = category;
             currentMenuItems = allMenuItems.filter(item => (item.category || 'lainnya') === category);
             currentSlide = 0;
@@ -1153,12 +1450,12 @@
 
         function renderMenuSlider() {
             const slider = document.getElementById('menu-slider');
+            if (!slider) return;
+
             slider.innerHTML = '';
 
             if (currentMenuItems.length === 0) {
-                slider.innerHTML = `<div style="color:white; text-align:center; padding: 50px; width: 100%;">
-                    ${isSearching ? 'Menu tidak ditemukan.' : 'Tidak ada item di kategori ini.'}
-                </div>`;
+                slider.innerHTML = `<div style="color:white; text-align:center; padding: 50px; width: 100%;">Tidak ada item di kategori ini.</div>`;
                 slider.style.width = '100%';
                 return;
             }
@@ -1177,38 +1474,128 @@
         function createMenuSlide(item, index) {
             const slide = document.createElement('div');
             slide.className = 'menu-slide';
+
             const isAvailable = item.isAvailable !== false;
 
-            let imageHtml = item.imageUrl ? 
-                `<img src="${item.imageUrl}" alt="${item.name}">` : 
-                `<span class="emoji">${item.emoji || '🍽️'}</span>`;
+            let imageHtml = '';
+            if (item.imageUrl && item.imageUrl.trim() !== '') {
+                imageHtml = `<img src="${item.imageUrl}" alt="${item.name}">`;
+            } else {
+                imageHtml = `<span class="emoji">${item.emoji || '🍽️'}</span>`;
+            }
 
-            let priceText = 'Harga tidak tersedia';
+            const soldOutHtml = !isAvailable ? `<div class="slide-sold-out">HABIS</div>` : '';
+
+            let priceDisplayHtml = '';
             if (item.priceOptions && item.priceOptions.length > 0) {
-                priceText = (item.priceOptions.length > 1 ? 'Mulai ' : '') + 
-                           `Rp ${item.priceOptions[0].price.toLocaleString('id-ID')}`;
+                const firstPrice = item.priceOptions[0].price;
+                const pricePrefix = item.priceOptions.length > 1 ? 'Mulai dari ' : '';
+                priceDisplayHtml = `<div class="slide-price">${pricePrefix}Rp ${firstPrice.toLocaleString('id-ID')}</div>`;
             } else if (item.price) {
-                priceText = `Rp ${item.price.toLocaleString('id-ID')}`;
+                priceDisplayHtml = `<div class="slide-price">Rp ${item.price.toLocaleString('id-ID')}</div>`;
+            } else {
+                priceDisplayHtml = `<div class="slide-price">Harga tidak tersedia</div>`;
             }
 
             slide.innerHTML = `
                 <div class="slide-image">
                     ${imageHtml}
-                    ${!isAvailable ? '<div class="slide-sold-out">HABIS</div>' : ''}
+                    ${soldOutHtml}
                 </div>
                 <div class="slide-content">
                     <div class="slide-title">${item.name}</div>
                     <div class="slide-description">${item.description || ''}</div>
-                    <div class="slide-price">${priceText}</div>
+                    ${priceDisplayHtml}
                     <button class="order-slide-btn" onclick="showItemOptions(${index})" ${!isAvailable ? 'disabled' : ''}>
                         ${!isAvailable ? 'HABIS' : '🛒 Pesan Sekarang'}
                     </button>
                 </div>
             `;
+
             return slide;
         }
 
-        // --- LOGIKA SLIDER & MODAL ---
+        window.showItemOptions = function (itemIndex) {
+            const item = currentMenuItems[itemIndex];
+            if (!item) return;
+            // Menggunakan fungsi helper baru agar konsisten dengan search
+            prepareAndOpenItemModal(item);
+        }
+
+        window.updateModalQuantity = function (amount) {
+            currentModalQuantity += amount;
+            if (currentModalQuantity < 1) {
+                currentModalQuantity = 1;
+            }
+            updateModalPriceAndQuantity();
+        }
+
+        window.updateModalPriceAndQuantity = function () {
+            if (!currentModalItem) return;
+
+            let selectedPrice = 0;
+            const variantSelect = document.getElementById('modal-item-variant');
+
+            if (currentModalItem.priceOptions && currentModalItem.priceOptions.length > 1) {
+                const selectedValue = variantSelect.value;
+                selectedPrice = parseFloat(selectedValue.split('|')[1]);
+            } else if (currentModalItem.priceOptions && currentModalItem.priceOptions.length === 1) {
+                selectedPrice = currentModalItem.priceOptions[0].price;
+            } else if (currentModalItem.price) {
+                selectedPrice = currentModalItem.price;
+            }
+
+            document.getElementById('modal-qty-display').textContent = currentModalQuantity;
+
+            const totalPrice = (selectedPrice || 0) * currentModalQuantity;
+            document.getElementById('modal-item-price').textContent = `Rp ${totalPrice.toLocaleString('id-ID')}`;
+        }
+
+        window.addItemFromModal = function () {
+            if (!currentModalItem) return;
+
+            const variantSelect = document.getElementById('modal-item-variant');
+            const itemName = currentModalItem.name;
+
+            let selectedVariantName = '';
+            let selectedPrice = 0;
+
+            if (currentModalItem.priceOptions && currentModalItem.priceOptions.length > 1) {
+                const selectedValue = variantSelect.value;
+                const parts = selectedValue.split('|');
+                selectedVariantName = parts[0];
+                selectedPrice = parseFloat(parts[1]);
+            } else if (currentModalItem.priceOptions && currentModalItem.priceOptions.length === 1) {
+                selectedVariantName = currentModalItem.priceOptions[0].name;
+                selectedPrice = currentModalItem.priceOptions[0].price;
+                if (selectedVariantName.toLowerCase() === 'default' || selectedVariantName.toLowerCase() === 'reguler') {
+                    selectedVariantName = '';
+                }
+            } else if (currentModalItem.price) {
+                selectedPrice = currentModalItem.price;
+            }
+
+            const itemKey = selectedVariantName ? `${itemName} (${selectedVariantName})` : itemName;
+
+            const existingItem = cart.find(cartItem => cartItem.key === itemKey);
+
+            if (existingItem) {
+                existingItem.quantity += currentModalQuantity;
+            } else {
+                cart.push({
+                    key: itemKey,
+                    name: itemName,
+                    variant: selectedVariantName,
+                    price: selectedPrice,
+                    quantity: currentModalQuantity
+                });
+            }
+
+            updateCartDisplay();
+            closeModal('item-options-modal');
+            showNotification(`${currentModalQuantity}x ${itemKey} ditambahkan ke keranjang!`);
+        }
+
         window.updateSliderPosition = function () {
             const slider = document.getElementById('menu-slider');
             if (!slider || currentMenuItems.length === 0) return;
@@ -1218,232 +1605,407 @@
 
         window.nextSlide = function () {
             if (currentMenuItems.length === 0) return;
-            currentSlide = (currentSlide < currentMenuItems.length - 1) ? currentSlide + 1 : 0;
+            if (currentSlide < currentMenuItems.length - 1) {
+                currentSlide++;
+            } else {
+                currentSlide = 0;
+            }
             updateSliderPosition();
         }
 
         window.previousSlide = function () {
             if (currentMenuItems.length === 0) return;
-            currentSlide = (currentSlide > 0) ? currentSlide - 1 : currentMenuItems.length - 1;
+            if (currentSlide > 0) {
+                currentSlide--;
+            } else {
+                currentSlide = currentMenuItems.length - 1;
+            }
             updateSliderPosition();
         }
 
-        window.showItemOptions = function (itemIndex) {
-            const item = currentMenuItems[itemIndex];
-            if (!item) return;
-            currentModalItem = item;
-            currentModalQuantity = 1;
+        window.goToSlide = function (index) {
+            currentSlide = index;
+            updateSliderPosition();
+        }
 
-            document.getElementById('modal-item-name').textContent = item.name;
-            document.getElementById('modal-item-description').textContent = item.description || '';
-            
-            const variantGroup = document.getElementById('modal-variant-group');
-            const variantSelect = document.getElementById('modal-item-variant');
-            
-            if (item.priceOptions && item.priceOptions.length > 1) {
-                variantGroup.style.display = 'block';
-                variantSelect.innerHTML = '';
-                item.priceOptions.forEach(opt => {
-                    const optEl = document.createElement('option');
-                    optEl.value = `${opt.name}|${opt.price}`;
-                    optEl.textContent = `${opt.name} - Rp ${opt.price.toLocaleString('id-ID')}`;
-                    variantSelect.appendChild(optEl);
-                });
-            } else {
-                variantGroup.style.display = 'none';
-                variantSelect.innerHTML = '';
+        function setupSwipeAndKeyListeners() {
+            document.addEventListener('keydown', function (e) {
+                if (document.getElementById('item-options-modal').classList.contains('active') ||
+                    document.getElementById('checkout-modal').classList.contains('active') ||
+                    document.getElementById('payment-modal').classList.contains('active') ||
+                    document.getElementById('success-modal').classList.contains('active') ||
+                    document.getElementById('search-modal').classList.contains('active')) {
+                    return;
+                }
+
+                if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    previousSlide();
+                } else if (e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    nextSlide();
+                }
+            });
+
+            let startX = 0;
+            let endX = 0;
+            const slider = document.getElementById('menu-slider');
+
+            slider.addEventListener('touchstart', function (e) {
+                startX = e.touches[0].clientX;
+            }, { passive: true });
+
+            slider.addEventListener('touchend', function (e) {
+                endX = e.changedTouches[0].clientX;
+                handleSwipe();
+            });
+
+            function handleSwipe() {
+                const threshold = 50;
+                const diff = startX - endX;
+
+                if (Math.abs(diff) > threshold) {
+                    if (diff > 0) {
+                        nextSlide();
+                    } else {
+                        previousSlide();
+                    }
+                }
             }
-            updateModalPriceAndQuantity();
-            document.getElementById('item-options-modal').classList.add('active');
         }
 
-        window.updateModalQuantity = function(amount) {
-            currentModalQuantity = Math.max(1, currentModalQuantity + amount);
-            updateModalPriceAndQuantity();
+        window.toggleCart = function () {
+            document.getElementById('cart-sidebar').classList.toggle('open');
         }
 
-        window.updateModalPriceAndQuantity = function() {
-            if (!currentModalItem) return;
-            let price = 0;
-            const variantSelect = document.getElementById('modal-item-variant');
-            
-            if (currentModalItem.priceOptions && currentModalItem.priceOptions.length > 1) {
-                price = parseFloat(variantSelect.value.split('|')[1]);
-            } else if (currentModalItem.priceOptions && currentModalItem.priceOptions.length === 1) {
-                price = currentModalItem.priceOptions[0].price;
-            } else {
-                price = currentModalItem.price || 0;
-            }
-            
-            document.getElementById('modal-qty-display').textContent = currentModalQuantity;
-            document.getElementById('modal-item-price').textContent = `Rp ${(price * currentModalQuantity).toLocaleString('id-ID')}`;
-        }
+        function updateCartDisplay() {
+            const cartItemsContainer = document.getElementById('cart-items');
+            const cartCount = document.getElementById('cart-count');
+            const cartSubtotal = document.getElementById('cart-subtotal');
+            const cartTax = document.getElementById('cart-tax');
+            const cartTotal = document.getElementById('cart-total');
+            const checkoutBtn = document.querySelector('.cart-total .checkout-btn');
 
-        window.addItemFromModal = function() {
-            if (!currentModalItem) return;
-            const variantSelect = document.getElementById('modal-item-variant');
-            let variantName = '', price = 0;
+            if (!cartItemsContainer) return;
 
-            if (currentModalItem.priceOptions && currentModalItem.priceOptions.length > 1) {
-                [variantName, price] = variantSelect.value.split('|');
-                price = parseFloat(price);
-            } else if (currentModalItem.priceOptions?.length === 1) {
-                variantName = currentModalItem.priceOptions[0].name;
-                price = currentModalItem.priceOptions[0].price;
-            } else {
-                price = currentModalItem.price;
-            }
-            if(variantName.toLowerCase() === 'default') variantName = '';
-
-            const key = variantName ? `${currentModalItem.name} (${variantName})` : currentModalItem.name;
-            const existing = cart.find(i => i.key === key);
-
-            if (existing) existing.quantity += currentModalQuantity;
-            else cart.push({ key, name: currentModalItem.name, variant: variantName, price, quantity: currentModalQuantity });
-
-            updateCartDisplay();
-            closeModal('item-options-modal');
-            showNotification("Item ditambahkan!");
-        }
-
-        window.closeModal = function(id) {
-            document.getElementById(id).classList.remove('active');
-        }
-
-        // --- CART & CHECKOUT LOGIC ---
-        window.toggleCart = () => document.getElementById('cart-sidebar').classList.toggle('open');
-
-        window.updateCartDisplay = function() {
-            const container = document.getElementById('cart-items');
-            container.innerHTML = '';
-            let subtotal = 0, count = 0;
+            cartItemsContainer.innerHTML = '';
+            let subtotal = 0;
+            let itemCount = 0;
 
             if (cart.length === 0) {
-                container.innerHTML = '<p style="text-align:center;padding:20px;color:#888">Keranjang kosong</p>';
-                document.querySelector('.cart-total .checkout-btn').disabled = true;
+                cartItemsContainer.innerHTML = `
+                    <div style="text-align: center; color: #666; padding: 40px 20px;">
+                        <div style="font-size: 3rem; margin-bottom: 15px;">🛒</div>
+                        <p>Keranjang masih kosong</p>
+                    </div>
+                `;
+                checkoutBtn.disabled = true;
             } else {
-                cart.forEach((item, idx) => {
-                    subtotal += item.price * item.quantity;
-                    count += item.quantity;
-                    container.innerHTML += `
+                cart.forEach((item, index) => {
+                    const itemTotal = item.price * item.quantity;
+                    subtotal += itemTotal;
+                    itemCount += item.quantity;
+
+                    cartItemsContainer.innerHTML += `
                         <div class="cart-item">
                             <div class="cart-item-info">
                                 <div class="cart-item-name">${item.name}</div>
-                                ${item.variant ? `<div class="cart-item-variant">${item.variant}</div>` : ''}
+                                ${item.variant ? `<div class="cart-item-variant">Varian: ${item.variant}</div>` : ''}
                                 <div class="cart-item-details">${item.quantity} x Rp ${item.price.toLocaleString('id-ID')}</div>
                             </div>
-                            <button class="remove-item" onclick="removeFromCart(${idx})">Hapus</button>
-                        </div>`;
+                            <div class="cart-item-actions">
+                                <div class="cart-item-price">Rp ${itemTotal.toLocaleString('id-ID')}</div>
+                                <button class="remove-item" onclick="removeFromCart(${index})">Hapus</button>
+                            </div>
+                        </div>
+                    `;
                 });
-                document.querySelector('.cart-total .checkout-btn').disabled = false;
+                checkoutBtn.disabled = false;
             }
-            document.getElementById('cart-count').textContent = count;
-            document.getElementById('cart-subtotal').textContent = `Rp ${subtotal.toLocaleString('id-ID')}`;
-            document.getElementById('cart-total').textContent = `Rp ${subtotal.toLocaleString('id-ID')}`;
+
+            const tax = 0;
+            const total = subtotal + tax;
+
+            cartCount.textContent = itemCount;
+            cartSubtotal.textContent = `Rp ${subtotal.toLocaleString('id-ID')}`;
+            cartTax.textContent = `Rp ${tax.toLocaleString('id-ID')}`;
+            cartTotal.textContent = `Rp ${total.toLocaleString('id-ID')}`;
         }
 
-        window.removeFromCart = (idx) => {
-            cart.splice(idx, 1);
+        window.removeFromCart = function (index) {
+            const item = cart[index];
+            if (item) {
+                cart.splice(index, 1);
+                updateCartDisplay();
+                showNotification(`${item.key} dihapus dari keranjang.`);
+            }
+        }
+
+        window.resetCart = function () {
+            cart = [];
+            selectedPaymentMethod = null;
             updateCartDisplay();
+            document.getElementById('checkout-form').reset();
+
+            document.querySelectorAll('.payment-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            document.getElementById('qris-section').style.display = 'none';
+            document.getElementById('cash-section').style.display = 'none';
+            document.getElementById('confirm-payment-btn').style.display = 'none';
+            document.getElementById('confirm-payment-btn').disabled = false;
         }
 
-        window.showCheckout = () => document.getElementById('checkout-modal').classList.add('active');
+        window.showCheckout = function () {
+            if (cart.length === 0) {
+                showNotification('Keranjang masih kosong!', true);
+                return;
+            }
+            document.getElementById('checkout-modal').classList.add('active');
+        }
 
-        window.processCheckout = function(e) {
-            e.preventDefault();
-            const subtotal = cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
-            
-            const itemsDiv = document.getElementById('payment-items');
-            itemsDiv.innerHTML = cart.map(i => `
-                <div class="receipt-line">
-                    <span>${i.key} x${i.quantity}</span>
-                    <span>Rp ${(i.price * i.quantity).toLocaleString('id-ID')}</span>
-                </div>`).join('');
-                
-            document.getElementById('payment-total').textContent = `Rp ${subtotal.toLocaleString('id-ID')}`;
+        window.processCheckout = function (event) {
+            event.preventDefault();
+
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const tax = 0;
+            const total = subtotal + tax;
+
+            const paymentItems = document.getElementById('payment-items');
+            paymentItems.innerHTML = '';
+            cart.forEach(item => {
+                paymentItems.innerHTML += `
+                    <div class="receipt-line">
+                        <span>${item.key} x${item.quantity}</span>
+                        <span>Rp ${(item.price * item.quantity).toLocaleString('id-ID')}</span>
+                    </div>
+                `;
+            });
+
+            document.getElementById('payment-subtotal').textContent = `Rp ${subtotal.toLocaleString('id-ID')}`;
+            document.getElementById('payment-tax').textContent = `Rp ${tax.toLocaleString('id-ID')}`;
+            document.getElementById('payment-total').textContent = `Rp ${total.toLocaleString('id-ID')}`;
+
             closeModal('checkout-modal');
             document.getElementById('payment-modal').classList.add('active');
         }
 
-        window.selectPayment = function(method, el) {
+        window.selectPayment = function (method, element) {
             selectedPaymentMethod = method;
-            document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
-            el.classList.add('selected');
+
+            document.querySelectorAll('.payment-option').forEach(option => option.classList.remove('selected'));
+            if (element) {
+                element.classList.add('selected');
+            }
+
             document.getElementById('qris-section').style.display = method === 'qris' ? 'block' : 'none';
             document.getElementById('cash-section').style.display = method === 'cash' ? 'block' : 'none';
             document.getElementById('confirm-payment-btn').style.display = 'block';
         }
 
-        window.confirmPayment = async function() {
-            const btn = document.getElementById('confirm-payment-btn');
-            btn.disabled = true;
-            btn.textContent = 'Memproses...';
+        window.confirmPayment = async function () {
+            if (!selectedPaymentMethod) {
+                showNotification('Pilih metode pembayaran terlebih dahulu!', true);
+                return;
+            }
+
+            const confirmBtn = document.getElementById('confirm-payment-btn');
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = 'Memproses...';
+
+            const customerName = document.getElementById('customer-name').value;
+            const tableNumber = document.getElementById('table-number').value;
+
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const tax = 0;
+            const total = subtotal + tax;
+
+            const baseOrderData = {
+                customer: customerName,
+                table: tableNumber,
+                items: cart.map(item => ({
+                    name: item.name,
+                    variant: item.variant || null,
+                    qty: item.quantity,
+                    price: item.price
+                })),
+                subtotal: subtotal,
+                tax: tax,
+                total: total,
+                status: 'pending',
+                paymentMethod: selectedPaymentMethod,
+                createdAt: serverTimestamp()
+            };
+
+            let newQueueNumber = 0;
 
             try {
-                const subtotal = cart.reduce((s, i) => s + (i.price * i.quantity), 0);
                 const counterRef = doc(db, "counters", "dailyOrder");
-                
-                const queueNo = await runTransaction(db, async (t) => {
-                    const docSnap = await t.get(counterRef);
+
+                newQueueNumber = await runTransaction(db, async (transaction) => {
+                    const counterDoc = await transaction.get(counterRef);
                     const today = new Date().toISOString().split('T')[0];
-                    let next = 1;
-                    if (docSnap.exists() && docSnap.data().lastResetDate === today) {
-                        next = docSnap.data().currentNumber + 1;
-                        t.update(counterRef, { currentNumber: next });
+
+                    let newNumber;
+                    if (!counterDoc.exists() || counterDoc.data().lastResetDate !== today) {
+                        newNumber = 1;
+                        transaction.set(counterRef, {
+                            currentNumber: 1,
+                            lastResetDate: today
+                        });
                     } else {
-                        t.set(counterRef, { currentNumber: 1, lastResetDate: today });
+                        newNumber = counterDoc.data().currentNumber + 1;
+                        transaction.update(counterRef, {
+                            currentNumber: newNumber
+                        });
                     }
-                    return next;
+
+                    return newNumber;
                 });
 
-                await addDoc(collection(db, "orders"), {
-                    customer: document.getElementById('customer-name').value,
-                    table: document.getElementById('table-number').value,
-                    items: cart,
-                    total: subtotal,
-                    paymentMethod: selectedPaymentMethod,
-                    queueNumber: queueNo,
-                    createdAt: serverTimestamp(),
-                    status: 'pending'
+                const finalOrderData = {
+                    ...baseOrderData,
+                    queueNumber: newQueueNumber
+                };
+
+                const orderDoc = await addDoc(collection(db, "orders"), finalOrderData);
+
+                const now = new Date();
+                const formattedDate = now.toLocaleString('id-ID', {
+                    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
                 });
 
-                document.getElementById('success-queue-number').textContent = `#${queueNo}`;
-                document.getElementById('success-total').textContent = `Rp ${subtotal.toLocaleString('id-ID')}`;
+                let totalItems = 0;
+                cart.forEach(item => { totalItems += item.quantity; });
+
+                document.getElementById('success-queue-number').textContent = `#${newQueueNumber}`;
+                document.getElementById('order-id').textContent = `#${orderDoc.id.substring(0, 10)}`;
+                document.getElementById('success-customer').textContent = customerName;
+                document.getElementById('success-table').textContent = `${tableNumber}`;
+                document.getElementById('success-date').textContent = formattedDate;
+                document.getElementById('success-total-items').textContent = totalItems;
+
+                const successItemsContainer = document.getElementById('success-receipt-items');
+                successItemsContainer.innerHTML = '';
+                cart.forEach(item => {
+                    successItemsContainer.innerHTML += `
+                        <div class="receipt-line" style="font-size: 0.9rem;">
+                            <span>${item.quantity} x ${item.key}</span>
+                            <span>Rp ${(item.price * item.quantity).toLocaleString('id-ID')}</span>
+                        </div>
+                    `;
+                });
+
+                document.getElementById('success-subtotal').textContent = `Rp ${subtotal.toLocaleString('id-ID')}`;
+                document.getElementById('success-tax').textContent = `Rp ${tax.toLocaleString('id-ID')}`;
+                document.getElementById('success-total').textContent = `Rp ${total.toLocaleString('id-ID')}`;
+                document.getElementById('success-payment-method').textContent = selectedPaymentMethod;
+
                 closeModal('payment-modal');
                 document.getElementById('success-modal').classList.add('active');
-                
-            } catch (e) {
-                console.error(e);
-                alert('Gagal memproses pesanan');
-                btn.disabled = false;
+
+                showNotification('Pesanan berhasil dikirim!');
+
+            } catch (error) {
+                console.error("Error mengirim pesanan atau transaksi: ", error);
+                showNotification('Gagal mengirim pesanan. Coba lagi.', true);
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = 'Konfirmasi Pembayaran';
             }
         }
 
-        window.resetCart = function() {
-            cart = [];
-            selectedPaymentMethod = null;
-            updateCartDisplay();
-            document.getElementById('checkout-form').reset();
-            document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
-        }
 
-        function setupSwipeAndKeyListeners() {
-            let startX = 0;
-            const slider = document.getElementById('menu-slider');
-            slider.addEventListener('touchstart', e => startX = e.touches[0].clientX, {passive: true});
-            slider.addEventListener('touchend', e => {
-                if (startX - e.changedTouches[0].clientX > 50) nextSlide();
-                else if (e.changedTouches[0].clientX - startX > 50) previousSlide();
+        // [--- TAMBAHAN CETAK STRUK ---]
+        function printCustomerReceipt() {
+            const customer = document.getElementById('success-customer').textContent;
+            const table = document.getElementById('success-table').textContent;
+            const date = document.getElementById('success-date').textContent;
+            const total = document.getElementById('success-total').textContent; 
+            const queueNumber = document.getElementById('success-queue-number').textContent;
+
+            const receiptWidth = 32; 
+            const pad = (str, len, char = ' ') => String(str).padEnd(len, char);
+            const padLeft = (str, len, char = ' ') => String(str).padStart(len, char);
+            
+            let receiptText = '';
+
+            receiptText += "         PAY BOSS CAFE\n";
+            receiptText += " Jl. Tanjung Permai No 2 RT 07\n";
+            receiptText += "    Pembataan.Murung Pudak.\n";
+            receiptText += "            Tabalong\n";
+            receiptText += "    Reservasi: 0811-5194-456\n";
+            receiptText += "--------------------------------\n";
+            
+            receiptText += `Meja: ${table}\n`;
+            receiptText += `Pelanggan: ${customer}\n`;
+            receiptText += `No. Antrian: ${queueNumber}\n`;
+            receiptText += `Waktu: ${date}\n`;
+            receiptText += "--------------------------------\n";
+
+            cart.forEach(item => {
+                let itemName = `${item.quantity}x ${item.key}`;
+                
+                if (itemName.length > receiptWidth) {
+                    receiptText += pad(itemName.substring(0, receiptWidth), receiptWidth) + "\n";
+                    receiptText += pad("  " + itemName.substring(receiptWidth), receiptWidth) + "\n";
+                } else {
+                    receiptText += pad(itemName, receiptWidth) + "\n";
+                }
+                
+                const itemTotal = item.price * item.quantity;
+                receiptText += padLeft(`Rp ${itemTotal.toLocaleString('id-ID')}`, receiptWidth) + "\n";
             });
+            receiptText += "--------------------------------\n";
+
+            const totalText = total.trim(); 
+            receiptText += pad("GRAND TOTAL", 18) + padLeft(totalText, 14) + "\n";
+            receiptText += "--------------------------------\n";
+
+            receiptText += "      Wifi : Pay Boss Cafe\n";
+            receiptText += "     Pasword : P4yB0sSC4F3\n";
+            receiptText += "--------------------------------\n";
+            receiptText += "Terimakasih atas kunjungan anda.\n";
+            receiptText += "    Instagram: Payboss.cafe\n";
+            receiptText += "\n\n\n"; 
+
+            const encodedReceiptText = encodeURIComponent(receiptText);
+            const rawBtUrl = `rawbt:${encodedReceiptText}`;
+            const printWindow = window.open(rawBtUrl, '_blank');
+            
+            if (!printWindow) {
+                showNotification("Gagal membuka RawBT. Izinkan popup untuk aplikasi ini.", true);
+            }
         }
 
-        function showNotification(msg) {
+        window.closeModal = function (modalId) {
+            document.getElementById(modalId).classList.remove('active');
+
+            if (modalId === 'item-options-modal') {
+                currentModalItem = null;
+                currentModalQuantity = 1;
+            }
+            
+            // Reset search input ketika modal search ditutup
+            if (modalId === 'search-modal') {
+                document.getElementById('search-input').value = '';
+                document.getElementById('search-results').innerHTML = '';
+            }
+        }
+
+        function showNotification(message, isError = false) {
             const el = document.createElement('div');
-            el.className = 'notification show';
-            el.textContent = msg;
+            el.className = 'notification';
+            el.textContent = message;
+            if (isError) el.style.backgroundColor = '#A52A2A';
             document.body.appendChild(el);
-            setTimeout(() => el.remove(), 3000);
+            setTimeout(() => el.classList.add('show'), 10);
+            setTimeout(() => {
+                el.classList.remove('show');
+                setTimeout(() => el.remove(), 500);
+            }, 3000);
         }
     </script>
 </body>
+
 </html>
