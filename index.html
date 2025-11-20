@@ -3,336 +3,753 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Absensi Cafe Payboss - GPS & Face Rec</title>
+    <title>Sistem Absensi GPS Cafe Payboss</title>
+    <!-- Tailwind CSS untuk Styling Cepat & Responsif -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Face API untuk deteksi wajah -->
-    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
-    <!-- SweetAlert untuk notifikasi cantik -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Font Awesome untuk Ikon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
     <style>
-        /* Kunci tampilan agar tidak bisa di-scroll berlebih */
-        body { overscroll-behavior: none; }
-        .camera-container { position: relative; overflow: hidden; border-radius: 1rem; }
-        video { transform: scaleX(-1); object-fit: cover; width: 100%; height: 100%; }
-        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: scaleX(-1); }
-        .overlay-box { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f3f4f6;
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* Custom Gradient */
+        .bg-gradient-brand {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        /* Animasi */
+        @keyframes slideIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .animate-slide-in {
+            animation: slideIn 0.4s ease-out forwards;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(46, 204, 113, 0); }
+            100% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
+        }
+        .gps-pulse {
+            animation: pulse-ring 2s infinite;
+        }
+        /* Hide Scrollbar for clean UI */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        /* Mobile Optimizations */
+        .touch-target {
+            min-height: 48px;
+            min-width: 48px;
+        }
     </style>
 </head>
-<body class="bg-gray-100 font-sans min-h-screen flex flex-col">
+<body class="text-gray-800 h-screen flex flex-col overflow-hidden">
 
-    <!-- Header -->
-    <div class="bg-blue-800 text-white p-4 shadow-lg sticky top-0 z-50">
-        <div class="max-w-md mx-auto flex justify-between items-center">
-            <div>
-                <h1 class="font-bold text-lg">Cafe Payboss</h1>
-                <p class="text-xs opacity-80">Sistem Absensi Validasi Ganda</p>
-            </div>
-            <div class="text-right">
-                <div id="serverTime" class="font-mono font-bold text-xl">--:--</div>
-                <div id="serverDate" class="text-xs">Memuat waktu...</div>
-            </div>
-        </div>
+    <!-- APP CONTAINER -->
+    <div id="app" class="flex-1 relative flex flex-col overflow-hidden">
+        <!-- Content will be injected here by JS -->
     </div>
 
-    <!-- Main Content -->
-    <div class="flex-1 p-4 max-w-md mx-auto w-full space-y-4">
-        
-        <!-- Status Panel -->
-        <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-sm font-semibold text-gray-600">Status Lokasi</span>
-                <span id="gpsStatus" class="text-xs px-2 py-1 rounded-full bg-yellow-100 text-yellow-800 font-bold">Mencari...</span>
-            </div>
-            <div class="text-xs text-gray-500 space-y-1">
-                <p>Lat: <span id="latVal">-</span></p>
-                <p>Lng: <span id="lngVal">-</span></p>
-                <p>Akurasi: <span id="accVal">-</span> meter</p>
-            </div>
-        </div>
-
-        <!-- Input Form -->
-        <div class="bg-white rounded-xl p-4 shadow-sm space-y-3">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Nama Karyawan</label>
-                <select id="employeeName" class="w-full p-2 border rounded-lg bg-gray-50">
-                    <option value="">-- Pilih Nama --</option>
-                    <option value="Alhamdi">Alhamdi</option>
-                    <option value="Budi">Budi</option>
-                    <option value="Siti">Siti</option>
-                    <!-- Tambahkan nama lain di sini -->
-                </select>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Tipe Absen</label>
-                <div class="grid grid-cols-2 gap-2">
-                    <button onclick="setMode('IN')" id="btnIn" class="p-2 rounded-lg border text-center font-bold bg-blue-50 border-blue-200 text-blue-700">MASUK</button>
-                    <button onclick="setMode('OUT')" id="btnOut" class="p-2 rounded-lg border text-center font-bold bg-gray-50 text-gray-500">PULANG</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Camera Section -->
-        <div class="bg-white rounded-xl p-2 shadow-sm">
-            <div class="text-center mb-2">
-                <p class="text-sm font-bold text-gray-700">Verifikasi Wajah</p>
-                <p id="faceStatus" class="text-xs text-red-500">Wajah tidak terdeteksi</p>
-            </div>
-            
-            <div class="camera-container aspect-[3/4] bg-black relative">
-                <video id="video" autoplay muted playsinline></video>
-                <canvas id="overlay"></canvas>
-                <div id="loadingCamera" class="absolute inset-0 flex items-center justify-center text-white text-sm">
-                    Memuat Kamera & AI...
-                </div>
-            </div>
-        </div>
-
-        <!-- Submit Button -->
-        <button id="btnSubmit" onclick="submitAttendance()" disabled class="w-full bg-gray-400 text-white font-bold py-4 rounded-xl shadow-lg transition-all transform active:scale-95">
-            AMBIL FOTO & ABSEN
-        </button>
-
-    </div>
+    <!-- NOTIFICATION TOAST CONTAINER -->
+    <div id="toast-container" class="fixed top-5 left-1/2 transform -translate-x-1/2 z-50 w-11/12 max-w-md"></div>
 
     <script>
-        // ================= KONFIGURASI =================
-        // Ganti URL ini dengan URL Web App Google Apps Script Anda
-        const GOOGLE_SCRIPT_URL = "PASTE_URL_GOOGLE_SCRIPT_ANDA_DISINI";
+        /* ==========================================================================
+           1. DATA LAYER (MOCK DATABASE FROM CSV)
+           ========================================================================== */
         
-        // Lokasi Cafe Payboss (Ganti dengan koordinat asli)
-        const OFFICE_LOC = { lat: -2.171698, lng: 115.402943, radius: 100 }; // Radius dalam meter
+        // Konfigurasi GPS Cafe Payboss (Sesuai Prompt)
+        const CAFE_CONFIG = {
+            lat: -2.171698,
+            lng: 115.402943,
+            radius: 100, // meter
+            name: "Cafe Payboss"
+        };
 
-        // ================= STATE VARIABLES =================
-        let currentStream = null;
-        let selectedMode = 'IN';
-        let locationValid = false;
-        let faceValid = false;
-        let currentPosition = null;
-        let serverTimeOffset = 0; // Selisih waktu device vs server
+        // Data Awal (Diambil dari CSV yang di-parse ke JSON)
+        const mockDatabase = {
+            employees: [
+                {id: "PB251102", name: "Ilham Ali Naufal", position: "Pramusaji", pass: "Ilhamali12", photo: "https://i.imgur.com/ijK3PRX.jpeg"},
+                {id: "PB251103", name: "Muhammad Zikrillah", position: "Pramusaji", pass: "Zikri12", photo: "https://i.imgur.com/jav9TTA.jpeg"},
+                {id: "PB251104", name: "Renita Aulia Jasmin", position: "Bartender", pass: "Jejess15", photo: "https://i.imgur.com/wqJJoXg.jpeg"},
+                {id: "PB251109", name: "Shada Amalia", position: "Chef", pass: "Shada454545", photo: "https://i.imgur.com/3OdcwMO.jpeg"},
+                {id: "PB251110", name: "Ovy Putri Novia", position: "Chef", pass: "10", photo: "https://i.imgur.com/OiESLaA.jpeg"},
+                {id: "PB251111", name: "Jihan Permata Sari", position: "Kasir", pass: "07", photo: "https://i.imgur.com/1bbNuvK.jpeg"},
+                {id: "PB251116", name: "Komang sri yati utami", position: "Pramusaji", pass: "25", photo: "https://i.imgur.com/846576W.jpeg"}
+            ],
+            jobDesk: [
+                {position: "Barista", task: "Meracik & Menyajikan Minuman Sesuai Resep"},
+                {position: "Barista", task: "Operasional & Perawatan Mesin"},
+                {position: "Barista", task: "Restock Bahan Baku"},
+                {position: "Pramusaji", task: "Menyambut & Mengantar Tamu (Greeter)"},
+                {position: "Pramusaji", task: "Mencatat & Mengulang Pesanan Tamu"},
+                {position: "Pramusaji", task: "Mengantar Makanan/Minuman (Runner)"},
+                {position: "Pramusaji", task: "Clear-up & Reset Meja"},
+                {position: "Kasir", task: "Input Pesanan ke Sistem POS"},
+                {position: "Kasir", task: "Memproses Pembayaran & Kembalian"},
+                {position: "Kasir", task: "Rekap Laporan Kas (Opening/Closing)"},
+                {position: "Chef", task: "Persiapan Bahan Masak (Mise en Place)"},
+                {position: "Chef", task: "Memasak Hidangan Sesuai Tiket"},
+                {position: "Chef", task: "Plating & Penyajian"},
+                {position: "Bartender", task: "Meracik Minuman Non-Kopi"},
+                {position: "Bartender", task: "Menjaga Kebersihan Bar"}
+            ],
+            attendance: [], // Akan diisi saat runtime
+            roster: [
+                // Sample Roster Logic (Simplified)
+                {id: "PB251102", date: new Date().toISOString().split('T')[0], shift: "Pagi", start: "08:00", end: "16:00"},
+                {id: "PB251110", date: new Date().toISOString().split('T')[0], shift: "Siang", start: "16:00", end: "00:00"},
+            ],
+            checklists: []
+        };
 
-        // ================= INISIALISASI =================
-        async function init() {
-            // 1. Sync Waktu Server (Anti-Cheat Jam HP)
-            syncTime();
-            
-            // 2. Load Model Wajah
-            await Promise.all([
-                faceapi.nets.tinyFaceDetector.loadFromUri('https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@0.22.2/weights'),
-            ]);
+        // State Management Sederhana
+        const state = {
+            currentUser: null, // {id, name, role, position, photo}
+            currentView: 'login', // login, manager, employee
+            gps: {
+                valid: false,
+                distance: 0,
+                lat: 0,
+                lng: 0,
+                status: 'checking', // checking, valid, invalid, error
+                message: 'Menunggu GPS...'
+            },
+            activeTab: 'dashboard' 
+        };
 
-            // 3. Start Fitur
-            startCamera();
-            watchLocation();
-            
-            document.getElementById('loadingCamera').style.display = 'none';
+        /* ==========================================================================
+           2. CORE FUNCTIONS (LOGIC)
+           ========================================================================== */
+
+        // --- Utilities ---
+        const formatCurrency = (num) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(num);
+        const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        
+        // --- GPS Logic (Haversine Formula) ---
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371e3; // Radius bumi (meter)
+            const φ1 = lat1 * Math.PI/180;
+            const φ2 = lat2 * Math.PI/180;
+            const Δφ = (lat2-lat1) * Math.PI/180;
+            const Δλ = (lon2-lon1) * Math.PI/180;
+
+            const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                      Math.cos(φ1) * Math.cos(φ2) *
+                      Math.sin(Δλ/2) * Math.sin(Δλ/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return Math.round(R * c);
         }
 
-        // ================= 1. SISTEM WAKTU (ANTI-RESET TANGGAL) =================
-        async function syncTime() {
-            try {
-                // Mengambil waktu dari API publik tepercaya
-                const response = await fetch('https://worldtimeapi.org/api/timezone/Asia/Makassar');
-                const data = await response.json();
-                const serverNow = new Date(data.datetime).getTime();
-                const deviceNow = Date.now();
-                serverTimeOffset = serverNow - deviceNow;
-                
-                setInterval(updateClock, 1000);
-            } catch (e) {
-                console.warn("Gagal sync waktu, menggunakan waktu device (kurang aman)", e);
-                serverTimeOffset = 0; 
-                setInterval(updateClock, 1000);
-            }
-        }
-
-        function getTrustedTime() {
-            return new Date(Date.now() + serverTimeOffset);
-        }
-
-        function updateClock() {
-            const now = getTrustedTime();
-            document.getElementById('serverTime').innerText = now.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'});
-            document.getElementById('serverDate').innerText = now.toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'});
-        }
-
-        // ================= 2. SISTEM GPS (ANTI-FAKE GPS) =================
-        function watchLocation() {
+        function initGPS() {
             if (!navigator.geolocation) {
-                Swal.fire('Error', 'Browser tidak mendukung GPS', 'error');
+                updateGPSStatus('error', 'Browser tidak support GPS');
                 return;
             }
-
+            updateGPSStatus('checking', 'Mencari lokasi...');
+            
             navigator.geolocation.watchPosition(
-                (pos) => {
-                    currentPosition = pos;
-                    const { latitude, longitude, accuracy } = pos.coords;
+                (position) => {
+                    const dist = calculateDistance(
+                        position.coords.latitude, 
+                        position.coords.longitude, 
+                        CAFE_CONFIG.lat, 
+                        CAFE_CONFIG.lng
+                    );
                     
-                    // Validasi Akurasi (Fake GPS seringkali punya akurasi statis atau terlalu presisi/buruk)
-                    document.getElementById('latVal').innerText = latitude.toFixed(6);
-                    document.getElementById('lngVal').innerText = longitude.toFixed(6);
-                    document.getElementById('accVal').innerText = accuracy.toFixed(0);
+                    state.gps.lat = position.coords.latitude;
+                    state.gps.lng = position.coords.longitude;
+                    state.gps.distance = dist;
 
-                    const distance = getDistanceFromLatLonInM(latitude, longitude, OFFICE_LOC.lat, OFFICE_LOC.lng);
-
-                    // Logika Validasi
-                    if (accuracy > 100) {
-                        updateGpsStatus(false, "Sinyal GPS Buruk");
-                    } else if (distance > OFFICE_LOC.radius) {
-                        updateGpsStatus(false, `Diluar Area (${Math.round(distance)}m)`);
+                    if (dist <= CAFE_CONFIG.radius) {
+                        updateGPSStatus('valid', `Lokasi Valid (${dist}m)`);
                     } else {
-                        updateGpsStatus(true, "Di Dalam Area");
+                        updateGPSStatus('invalid', `Diluar Area (${dist}m)`);
                     }
-                    
-                    checkReadyState();
                 },
                 (err) => {
-                    updateGpsStatus(false, "GPS Error/Ditolak");
+                    console.error(err);
+                    let msg = "Gagal akses GPS.";
+                    if(err.code === 1) msg = "Izin GPS ditolak. Mohon izinkan.";
+                    else if(err.code === 2) msg = "Sinyal GPS hilang.";
+                    else if(err.code === 3) msg = "GPS Timeout.";
+                    updateGPSStatus('error', msg);
                 },
-                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 } // Paksa refresh data baru
+                { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
             );
         }
 
-        function updateGpsStatus(isValid, text) {
-            locationValid = isValid;
-            const el = document.getElementById('gpsStatus');
-            el.innerText = text;
-            el.className = isValid 
-                ? "text-xs px-2 py-1 rounded-full bg-green-100 text-green-800 font-bold"
-                : "text-xs px-2 py-1 rounded-full bg-red-100 text-red-800 font-bold";
-        }
-
-        // Hitung jarak (Haversine Formula)
-        function getDistanceFromLatLonInM(lat1, lon1, lat2, lon2) {
-            var R = 6371000; 
-            var dLat = deg2rad(lat2-lat1);
-            var dLon = deg2rad(lon2-lon1); 
-            var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon/2) * Math.sin(dLon/2); 
-            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
-            return R * c;
-        }
-        function deg2rad(deg) { return deg * (Math.PI/180); }
-
-        // ================= 3. FACE DETECTION (ANTI-FOTO PALSU) =================
-        async function startCamera() {
-            const video = document.getElementById('video');
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-                video.srcObject = stream;
-                
-                video.addEventListener('play', () => {
-                    const canvas = document.getElementById('overlay');
-                    const displaySize = { width: video.offsetWidth, height: video.offsetHeight };
-                    faceapi.matchDimensions(canvas, displaySize);
-
-                    setInterval(async () => {
-                        const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions());
-                        
-                        // Cek apakah wajah valid (Confidence > 0.5)
-                        if (detections.length > 0 && detections[0].score > 0.5) {
-                            faceValid = true;
-                            document.getElementById('faceStatus').innerText = "Wajah Terdeteksi ✅";
-                            document.getElementById('faceStatus').className = "text-xs text-green-600 font-bold";
-                            
-                            // Gambar kotak wajah (opsional)
-                            const resizedDetections = faceapi.resizeResults(detections, displaySize);
-                            canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
-                            faceapi.draw.drawDetections(canvas, resizedDetections);
-                        } else {
-                            faceValid = false;
-                            document.getElementById('faceStatus').innerText = "Wajah Tidak Terdeteksi ❌";
-                            document.getElementById('faceStatus').className = "text-xs text-red-500";
-                            canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
-                        }
-                        checkReadyState();
-                    }, 500);
-                });
-            } catch (err) {
-                Swal.fire('Error', 'Gagal akses kamera. Pastikan izin diberikan.', 'error');
-            }
-        }
-
-        // ================= LOGIKA UTAMA =================
-        function setMode(mode) {
-            selectedMode = mode;
-            document.getElementById('btnIn').className = mode === 'IN' ? "p-2 rounded-lg border text-center font-bold bg-blue-50 border-blue-200 text-blue-700" : "p-2 rounded-lg border text-center font-bold bg-gray-50 text-gray-500";
-            document.getElementById('btnOut').className = mode === 'OUT' ? "p-2 rounded-lg border text-center font-bold bg-blue-50 border-blue-200 text-blue-700" : "p-2 rounded-lg border text-center font-bold bg-gray-50 text-gray-500";
-        }
-
-        function checkReadyState() {
-            const btn = document.getElementById('btnSubmit');
-            const name = document.getElementById('employeeName').value;
+        function updateGPSStatus(status, message) {
+            state.gps.status = status;
+            state.gps.valid = (status === 'valid');
+            state.gps.message = message;
             
-            if (locationValid && faceValid && name) {
-                btn.disabled = false;
-                btn.classList.remove('bg-gray-400');
-                btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
-            } else {
-                btn.disabled = true;
-                btn.classList.add('bg-gray-400');
-                btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+            // Re-render komponen GPS jika sedang di view karyawan
+            const gpsEl = document.getElementById('gps-status-card');
+            if (gpsEl && state.currentView === 'employee') {
+                gpsEl.outerHTML = renderGPSCard();
+                updateClockButtonState(); // Update tombol clock in
             }
         }
 
-        async function submitAttendance() {
-            if (GOOGLE_SCRIPT_URL === "PASTE_URL_GOOGLE_SCRIPT_ANDA_DISINI") {
-                Swal.fire('Config Error', 'URL Google Script belum dipasang di kode!', 'warning');
+        // --- Authentication ---
+        function login(id, password, role) {
+            if (role === 'manager') {
+                if (id === 'admin' && password === 'admin123') {
+                    state.currentUser = { id: 'ADMIN', name: 'Manager', role: 'manager' };
+                    state.currentView = 'manager';
+                    renderApp();
+                    showToast('Selamat Datang, Manager!', 'success');
+                } else {
+                    showToast('Login Gagal. Cek ID/Pass.', 'error');
+                }
+            } else {
+                // Cek Database Karyawan
+                const emp = mockDatabase.employees.find(e => e.id === id && e.pass === password);
+                if (emp) {
+                    state.currentUser = { ...emp, role: 'employee' };
+                    state.currentView = 'employee';
+                    renderApp();
+                    initGPS(); // Start GPS monitoring
+                    showToast(`Halo, ${emp.name}!`, 'success');
+                } else {
+                    showToast('Karyawan tidak ditemukan / Password salah', 'error');
+                }
+            }
+        }
+
+        function logout() {
+            state.currentUser = null;
+            state.currentView = 'login';
+            state.gps.status = 'checking';
+            renderApp();
+        }
+
+        // --- Attendance Logic ---
+        function clockIn(note) {
+            if (!state.gps.valid) {
+                showToast('Gagal! Posisi Anda diluar jangkauan.', 'error');
+                return;
+            }
+            
+            const today = new Date().toISOString().split('T')[0];
+            const time = new Date().toLocaleTimeString('id-ID');
+            
+            // Cek Shift (Mock logic)
+            const roster = mockDatabase.roster.find(r => r.id === state.currentUser.id && r.date === today);
+            let status = "Tepat Waktu";
+            if (roster) {
+                const now = new Date();
+                const shiftStart = new Date(`${today}T${roster.start}`);
+                if (now > shiftStart) status = "Terlambat";
+            }
+
+            const record = {
+                date: today,
+                empId: state.currentUser.id,
+                clockIn: time,
+                clockOut: null,
+                status: status,
+                lat: state.gps.lat,
+                lng: state.gps.lng,
+                note: note
+            };
+
+            mockDatabase.attendance.push(record);
+            showToast('Berhasil Clock In!', 'success');
+            renderApp();
+        }
+
+        function clockOut(note) {
+             if (!state.gps.valid) {
+                showToast('Gagal! Posisi Anda diluar jangkauan.', 'error');
                 return;
             }
 
-            // 1. Capture Foto
-            const video = document.getElementById('video');
-            const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            canvas.getContext('2d').drawImage(video, 0, 0);
-            const photoData = canvas.toDataURL('image/jpeg', 0.7); // Compress 0.7
-
-            // 2. Siapkan Data
-            const payload = {
-                timestamp: getTrustedTime().toISOString(),
-                nama: document.getElementById('employeeName').value,
-                status: selectedMode,
-                lat: currentPosition.coords.latitude,
-                lng: currentPosition.coords.longitude,
-                foto: photoData
-            };
-
-            // 3. Kirim ke Google Sheet (via Apps Script)
-            Swal.fire({
-                title: 'Mengirim Data...',
-                text: 'Mohon tunggu sebentar',
-                allowOutsideClick: false,
-                didOpen: () => { Swal.showLoading() }
-            });
-
-            try {
-                // Gunakan 'no-cors' untuk simple request ke Google Script
-                const response = await fetch(GOOGLE_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors', 
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                // Karena mode 'no-cors', kita asumsikan sukses jika tidak error network
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil!',
-                    text: `Absen ${selectedMode} tercatat pada ${getTrustedTime().toLocaleTimeString()}`,
-                    confirmButtonText: 'Oke'
-                }).then(() => {
-                   location.reload(); // Refresh agar bersih
-                });
-
-            } catch (error) {
-                Swal.fire('Gagal', 'Tidak dapat terhubung ke server.', 'error');
-                console.error(error);
+            const today = new Date().toISOString().split('T')[0];
+            const record = mockDatabase.attendance.find(r => r.empId === state.currentUser.id && r.date === today && r.clockOut === null);
+            
+            if (record) {
+                record.clockOut = new Date().toLocaleTimeString('id-ID');
+                record.clockOutNote = note;
+                showToast('Berhasil Clock Out. Hati-hati dijalan!', 'success');
+                renderApp();
             }
         }
 
-        // Jalankan
-        init();
+        /* ==========================================================================
+           3. VIEW RENDERERS (UI COMPONENTS)
+           ========================================================================== */
+
+        function renderApp() {
+            const app = document.getElementById('app');
+            app.innerHTML = '';
+
+            if (state.currentView === 'login') {
+                app.innerHTML = renderLoginView();
+                attachLoginEvents();
+            } else if (state.currentView === 'manager') {
+                app.innerHTML = renderManagerView();
+            } else if (state.currentView === 'employee') {
+                app.innerHTML = renderEmployeeView();
+                // Start Live Clock
+                setInterval(() => {
+                    const el = document.getElementById('live-clock');
+                    if(el) el.innerText = new Date().toLocaleTimeString('id-ID');
+                }, 1000);
+            }
+        }
+
+        // --- LOGIN VIEW ---
+        function renderLoginView() {
+            return `
+                <div class="flex flex-col items-center justify-center h-full p-6 bg-gradient-brand text-white">
+                    <div class="w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden p-8 text-gray-800 animate-slide-in">
+                        <div class="text-center mb-6">
+                            <div class="bg-indigo-100 text-indigo-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                                <i class="fa-solid fa-location-dot"></i>
+                            </div>
+                            <h1 class="text-2xl font-bold text-gray-900">GPS Absensi Cafe</h1>
+                            <p class="text-sm text-gray-500">Cafe Payboss System v2.0</p>
+                        </div>
+
+                        <!-- Role Selector -->
+                        <div class="flex bg-gray-100 rounded-lg p-1 mb-6">
+                            <button id="btn-role-emp" class="flex-1 py-2 text-sm font-medium rounded-md bg-white shadow text-indigo-600 transition-all">Karyawan</button>
+                            <button id="btn-role-mgr" class="flex-1 py-2 text-sm font-medium rounded-md text-gray-500 hover:text-gray-700 transition-all">Manager</button>
+                        </div>
+
+                        <form id="login-form" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">ID Pengguna</label>
+                                <input type="text" id="input-id" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition" placeholder="Contoh: PB251102">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">Password</label>
+                                <input type="password" id="input-pass" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition" placeholder="••••••">
+                            </div>
+                            <button type="submit" class="w-full bg-gradient-brand text-white font-bold py-3 rounded-lg hover:opacity-90 transition shadow-lg transform active:scale-95">
+                                MASUK
+                            </button>
+                        </form>
+                        
+                        <div class="mt-6 text-center text-xs text-gray-400">
+                            <i class="fa-solid fa-lock mr-1"></i> Keamanan GPS Terintegrasi
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function attachLoginEvents() {
+            let role = 'employee';
+            const btnEmp = document.getElementById('btn-role-emp');
+            const btnMgr = document.getElementById('btn-role-mgr');
+            const form = document.getElementById('login-form');
+
+            btnEmp.onclick = (e) => {
+                e.preventDefault();
+                role = 'employee';
+                btnEmp.className = "flex-1 py-2 text-sm font-medium rounded-md bg-white shadow text-indigo-600 transition-all";
+                btnMgr.className = "flex-1 py-2 text-sm font-medium rounded-md text-gray-500 hover:text-gray-700 transition-all";
+                document.getElementById('input-id').placeholder = "Contoh: PB251102";
+            };
+
+            btnMgr.onclick = (e) => {
+                e.preventDefault();
+                role = 'manager';
+                btnMgr.className = "flex-1 py-2 text-sm font-medium rounded-md bg-white shadow text-indigo-600 transition-all";
+                btnEmp.className = "flex-1 py-2 text-sm font-medium rounded-md text-gray-500 hover:text-gray-700 transition-all";
+                document.getElementById('input-id').placeholder = "Username Admin";
+            };
+
+            form.onsubmit = (e) => {
+                e.preventDefault();
+                const id = document.getElementById('input-id').value;
+                const pass = document.getElementById('input-pass').value;
+                login(id, pass, role);
+            };
+        }
+
+        // --- EMPLOYEE VIEW ---
+        function renderEmployeeView() {
+            const today = new Date().toISOString().split('T')[0];
+            const attRecord = mockDatabase.attendance.find(r => r.empId === state.currentUser.id && r.date === today);
+            
+            const hasClockIn = !!attRecord;
+            const hasClockOut = attRecord && attRecord.clockOut;
+
+            // Header
+            let html = `
+                <div class="bg-white shadow-sm z-10">
+                    <div class="flex justify-between items-center p-4 bg-gradient-brand text-white">
+                        <div class="flex items-center space-x-3">
+                            <img src="${state.currentUser.photo}" class="w-10 h-10 rounded-full border-2 border-white object-cover bg-gray-300" alt="Profile">
+                            <div>
+                                <p class="font-bold text-sm">${state.currentUser.name}</p>
+                                <p class="text-xs opacity-80">${state.currentUser.position} | ${state.currentUser.id}</p>
+                            </div>
+                        </div>
+                        <button onclick="logout()" class="text-white opacity-80 hover:opacity-100"><i class="fa-solid fa-right-from-bracket"></i></button>
+                    </div>
+                </div>
+                
+                <div class="flex-1 overflow-y-auto p-4 space-y-4 pb-20">
+            `;
+
+            // 1. GPS Status Card
+            html += renderGPSCard();
+
+            // 2. Live Clock & Date
+            html += `
+                <div class="text-center py-2">
+                    <h2 id="live-clock" class="text-4xl font-bold text-indigo-900 font-mono tracking-widest">--:--:--</h2>
+                    <p class="text-sm text-gray-500 font-medium uppercase tracking-wide">${new Date().toLocaleDateString('id-ID', {weekday:'long', day:'numeric', month:'long', year:'numeric'})}</p>
+                </div>
+            `;
+
+            // 3. Action Buttons (Clock In/Out)
+            html += `<div id="action-container">`;
+            if (!hasClockIn) {
+                html += `
+                    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                        <textarea id="clock-note" class="w-full p-3 border rounded-lg text-sm mb-3" placeholder="Catatan harian (opsional)..."></textarea>
+                        <button id="btn-clock-in" onclick="clockIn(document.getElementById('clock-note').value)" 
+                            class="w-full py-4 rounded-xl text-white font-bold text-lg shadow-lg transition transform active:scale-95 flex items-center justify-center gap-2
+                            ${state.gps.valid ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-400 cursor-not-allowed'}"
+                            ${!state.gps.valid ? 'disabled' : ''}>
+                            <i class="fa-solid fa-fingerprint"></i> CLOCK IN SEKARANG
+                        </button>
+                        ${!state.gps.valid ? '<p class="text-xs text-red-500 text-center mt-2">⚠️ Lokasi belum valid. Pastikan berada di area cafe.</p>' : ''}
+                    </div>
+                `;
+            } else if (!hasClockOut) {
+                html += `
+                     <div class="bg-white rounded-xl p-4 shadow-sm border border-green-100 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-green-500"></div>
+                        <div class="flex justify-between items-start mb-4 pl-2">
+                            <div>
+                                <p class="text-xs text-gray-500">Waktu Masuk</p>
+                                <p class="text-xl font-bold text-gray-800">${attRecord.clockIn}</p>
+                            </div>
+                            <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded font-bold">${attRecord.status}</span>
+                        </div>
+                        <textarea id="clock-out-note" class="w-full p-3 border rounded-lg text-sm mb-3" placeholder="Laporan shift / Catatan pulang..."></textarea>
+                        <button onclick="clockOut(document.getElementById('clock-out-note').value)" 
+                            class="w-full py-3 rounded-xl bg-red-500 text-white font-bold shadow-lg hover:bg-red-600 transition transform active:scale-95">
+                            <i class="fa-solid fa-person-walking-arrow-right"></i> CLOCK OUT
+                        </button>
+                    </div>
+                `;
+            } else {
+                 html += `
+                    <div class="bg-green-50 rounded-xl p-6 text-center border border-green-200">
+                        <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl">
+                            <i class="fa-solid fa-check"></i>
+                        </div>
+                        <h3 class="font-bold text-gray-800">Shift Selesai!</h3>
+                        <p class="text-sm text-gray-600 mb-2">Terima kasih atas kerja kerasmu hari ini.</p>
+                        <div class="flex justify-center gap-4 text-sm">
+                            <div class="text-center">
+                                <p class="text-gray-400 text-xs">Masuk</p>
+                                <p class="font-bold text-gray-800">${attRecord.clockIn}</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-gray-400 text-xs">Pulang</p>
+                                <p class="font-bold text-gray-800">${attRecord.clockOut}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            html += `</div>`;
+
+            // 4. Job Desk Checklist
+            html += `
+                <div class="mt-6">
+                    <h3 class="font-bold text-gray-800 mb-3 px-1">✅ Job Desk Harian</h3>
+                    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            `;
+            
+            // Filter jobdesk by position (Mapping data CSV logika)
+            const myTasks = mockDatabase.jobDesk.filter(j => {
+                // Sederhana: include string match. ex: "Pramusaji" includes "Pramusaji"
+                return state.currentUser.position.includes(j.position) || j.position.includes(state.currentUser.position);
+            });
+
+            if(myTasks.length === 0) {
+                html += `<div class="p-4 text-center text-gray-400 text-sm">Tidak ada tugas spesifik untuk posisi ini.</div>`;
+            } else {
+                myTasks.forEach((job, idx) => {
+                    // Check local state for checklist (simplified)
+                    const isChecked = state.checklists && state.checklists.includes(`${today}-${idx}`);
+                    html += `
+                        <label class="flex items-start p-4 border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition">
+                            <input type="checkbox" class="mt-1 form-checkbox h-5 w-5 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300" 
+                                ${isChecked ? 'checked' : ''} onchange="toggleTask(this)">
+                            <span class="ml-3 text-sm text-gray-700 leading-snug select-none">${job.task}</span>
+                        </label>
+                    `;
+                });
+            }
+            html += `
+                    </div>
+                </div>
+                </div>
+            `; // End main content
+
+            return html;
+        }
+
+        function renderGPSCard() {
+            let colorClass = 'bg-yellow-50 text-yellow-700 border-yellow-200';
+            let icon = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            
+            if (state.gps.status === 'valid') {
+                colorClass = 'bg-green-50 text-green-700 border-green-200';
+                icon = '<i class="fa-solid fa-location-dot gps-pulse"></i>';
+            } else if (state.gps.status === 'invalid') {
+                colorClass = 'bg-red-50 text-red-700 border-red-200';
+                icon = '<i class="fa-solid fa-circle-exclamation"></i>';
+            } else if (state.gps.status === 'error') {
+                colorClass = 'bg-gray-100 text-gray-600 border-gray-300';
+                icon = '<i class="fa-solid fa-ban"></i>';
+            }
+
+            return `
+                <div id="gps-status-card" class="rounded-xl p-4 border flex items-center justify-between shadow-sm transition-all duration-300 ${colorClass}">
+                    <div class="flex items-center gap-3">
+                        <div class="text-xl">${icon}</div>
+                        <div>
+                            <p class="font-bold text-sm uppercase tracking-wide">${state.gps.status === 'valid' ? 'SIAP ABSEN' : 'STATUS GPS'}</p>
+                            <p class="text-xs opacity-90">${state.gps.message}</p>
+                        </div>
+                    </div>
+                    ${state.gps.status === 'error' || state.gps.status === 'invalid' ? 
+                        `<button onclick="initGPS()" class="text-xs bg-white px-2 py-1 rounded border border-current shadow-sm">Refresh</button>` : ''}
+                </div>
+            `;
+        }
+
+        function updateClockButtonState() {
+            // Helper to re-render just the action container part logic would be complex in Vanilla JS string templates.
+            // For simplicity in this Single File, we might just re-render the whole view or rely on the user interacting.
+            // But let's try to update the button class directly if it exists.
+            const btn = document.getElementById('btn-clock-in');
+            if(btn) {
+                if(state.gps.valid) {
+                    btn.disabled = false;
+                    btn.classList.remove('bg-gray-400', 'cursor-not-allowed');
+                    btn.classList.add('bg-green-500', 'hover:bg-green-600');
+                } else {
+                    btn.disabled = true;
+                    btn.classList.add('bg-gray-400', 'cursor-not-allowed');
+                    btn.classList.remove('bg-green-500', 'hover:bg-green-600');
+                }
+            }
+        }
+
+        function toggleTask(el) {
+            // Simplified checklist logic (visual only for demo persistence)
+            if(el.checked) {
+                showToast("Tugas ditandai selesai!", "success");
+            }
+        }
+
+        // --- MANAGER VIEW ---
+        function renderManagerView() {
+            const activeTab = state.activeTab; // dashboard, employees, attendance
+            
+            // Calculate Stats
+            const totalEmp = mockDatabase.employees.length;
+            const todayAtt = mockDatabase.attendance.filter(a => a.date === new Date().toISOString().split('T')[0]);
+            const presentCount = todayAtt.length;
+            const lateCount = todayAtt.filter(a => a.status === 'Terlambat').length;
+
+            let contentHtml = '';
+
+            if (activeTab === 'dashboard') {
+                contentHtml = `
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-indigo-500">
+                            <p class="text-xs text-gray-500 font-bold uppercase">Total Karyawan</p>
+                            <p class="text-2xl font-bold text-indigo-900">${totalEmp}</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-green-500">
+                            <p class="text-xs text-gray-500 font-bold uppercase">Hadir Hari Ini</p>
+                            <p class="text-2xl font-bold text-green-700">${presentCount}</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-red-500">
+                            <p class="text-xs text-gray-500 font-bold uppercase">Terlambat</p>
+                            <p class="text-2xl font-bold text-red-700">${lateCount}</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-yellow-500">
+                            <p class="text-xs text-gray-500 font-bold uppercase">Gaji Estimasi</p>
+                            <p class="text-sm font-bold text-yellow-700 mt-1">Rp 15.4jt</p>
+                        </div>
+                    </div>
+
+                    <!-- Today's Attendance List -->
+                    <h3 class="font-bold text-gray-800 mb-3">Absensi Hari Ini</h3>
+                    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                        ${presentCount === 0 ? '<p class="p-4 text-center text-sm text-gray-400">Belum ada data masuk.</p>' : ''}
+                        ${todayAtt.map(a => {
+                            const emp = mockDatabase.employees.find(e => e.id === a.empId);
+                            return `
+                            <div class="p-4 border-b border-gray-50 flex justify-between items-center">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-600">
+                                        ${emp ? emp.name.substring(0,2).toUpperCase() : 'XX'}
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-bold text-gray-800">${emp ? emp.name : 'Unknown'}</p>
+                                        <p class="text-xs text-gray-500">${a.clockIn} ${a.clockOut ? '- ' + a.clockOut : ''}</p>
+                                    </div>
+                                </div>
+                                <span class="px-2 py-1 text-xs rounded font-bold ${a.status === 'Terlambat' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}">
+                                    ${a.status}
+                                </span>
+                            </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            } else if (activeTab === 'employees') {
+                contentHtml = `
+                     <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-bold text-gray-800">Data Karyawan</h3>
+                        <button class="bg-indigo-600 text-white text-xs px-3 py-2 rounded-lg font-bold shadow hover:bg-indigo-700">+ Tambah</button>
+                    </div>
+                    <div class="space-y-3">
+                        ${mockDatabase.employees.map(e => `
+                            <div class="bg-white p-4 rounded-xl shadow-sm flex items-center gap-4">
+                                <img src="${e.photo}" class="w-12 h-12 rounded-lg object-cover bg-gray-200" alt="">
+                                <div class="flex-1">
+                                    <p class="font-bold text-gray-800">${e.name}</p>
+                                    <p class="text-xs text-indigo-600 font-medium">${e.position}</p>
+                                    <p class="text-xs text-gray-400">ID: ${e.id}</p>
+                                </div>
+                                <button class="text-gray-400 hover:text-indigo-600"><i class="fa-solid fa-pen-to-square"></i></button>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else if (activeTab === 'roster') {
+                contentHtml = `
+                    <div class="bg-white p-4 rounded-xl shadow-sm mb-4">
+                        <h3 class="font-bold text-gray-800 mb-2">Atur Shift</h3>
+                        <p class="text-xs text-gray-500 mb-4">Simulasi pengaturan jadwal shift mingguan.</p>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full text-sm text-left">
+                                <thead class="bg-gray-50 text-gray-500">
+                                    <tr>
+                                        <th class="px-2 py-2">Nama</th>
+                                        <th class="px-2 py-2">Shift</th>
+                                        <th class="px-2 py-2">Jam</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    ${mockDatabase.employees.slice(0,5).map(e => `
+                                        <tr>
+                                            <td class="px-2 py-3 font-medium">${e.name}</td>
+                                            <td class="px-2 py-3">
+                                                <select class="bg-gray-50 border border-gray-200 rounded px-2 py-1 text-xs">
+                                                    <option>Pagi</option>
+                                                    <option>Siang</option>
+                                                    <option>Malam</option>
+                                                    <option>Off</option>
+                                                </select>
+                                            </td>
+                                            <td class="px-2 py-3 text-gray-400 text-xs">08:00 - 16:00</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="flex flex-col h-full">
+                    <!-- Top Bar -->
+                    <div class="bg-white shadow-sm z-10 flex justify-between items-center p-4">
+                        <div>
+                            <h1 class="font-bold text-lg text-gray-800">Panel Manager</h1>
+                            <p class="text-xs text-gray-500">Cafe Payboss</p>
+                        </div>
+                        <button onclick="logout()" class="text-gray-400 hover:text-red-500"><i class="fa-solid fa-right-from-bracket fa-lg"></i></button>
+                    </div>
+
+                    <!-- Main Content Scrollable -->
+                    <div class="flex-1 overflow-y-auto p-4 pb-24">
+                        ${contentHtml}
+                    </div>
+
+                    <!-- Bottom Nav -->
+                    <div class="bg-white border-t border-gray-200 absolute bottom-0 w-full flex justify-around py-3 text-xs font-medium text-gray-400 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+                        <button onclick="setMgrTab('dashboard')" class="flex flex-col items-center ${activeTab==='dashboard' ? 'text-indigo-600' : 'hover:text-gray-600'}">
+                            <i class="fa-solid fa-chart-pie text-xl mb-1"></i> Overview
+                        </button>
+                        <button onclick="setMgrTab('employees')" class="flex flex-col items-center ${activeTab==='employees' ? 'text-indigo-600' : 'hover:text-gray-600'}">
+                            <i class="fa-solid fa-users text-xl mb-1"></i> Karyawan
+                        </button>
+                        <button onclick="setMgrTab('roster')" class="flex flex-col items-center ${activeTab==='roster' ? 'text-indigo-600' : 'hover:text-gray-600'}">
+                            <i class="fa-regular fa-calendar-days text-xl mb-1"></i> Roster
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function setMgrTab(tabName) {
+            state.activeTab = tabName;
+            renderApp();
+        }
+
+        // --- TOAST NOTIFICATION ---
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let bg = 'bg-gray-800';
+            let icon = '<i class="fa-solid fa-info-circle"></i>';
+            
+            if (type === 'success') { bg = 'bg-green-600'; icon = '<i class="fa-solid fa-check-circle"></i>'; }
+            if (type === 'error') { bg = 'bg-red-600'; icon = '<i class="fa-solid fa-triangle-exclamation"></i>'; }
+
+            toast.className = `${bg} text-white px-4 py-3 rounded-lg shadow-xl flex items-center gap-3 text-sm font-medium transform transition-all duration-300 translate-y-5 opacity-0`;
+            toast.innerHTML = `${icon} <span>${message}</span>`;
+            
+            container.appendChild(toast);
+
+            // Animate In
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-5', 'opacity-0');
+            });
+
+            // Remove after 3s
+            setTimeout(() => {
+                toast.classList.add('opacity-0', '-translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        /* ==========================================================================
+           4. INITIALIZATION
+           ========================================================================== */
+        // Start App
+        renderApp();
     </script>
 </body>
 </html>
