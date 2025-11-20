@@ -27,13 +27,19 @@
         /* Animations */
         @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-5px); } 100% { transform: translateY(0px); } }
         .animate-float { animation: float 3s ease-in-out infinite; }
-        .animate-slide-up { animation: slideUp 0.3s ease-out forwards; }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .animate-spin { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="text-gray-800 h-screen flex flex-col overflow-hidden">
 
-    <div id="app" class="flex-1 relative flex flex-col overflow-hidden h-full">
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-white z-[100] flex flex-col items-center justify-center transition-opacity duration-500">
+        <div class="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
+        <p class="text-sm text-gray-500 font-medium animate-pulse">Menghubungkan ke Database...</p>
+    </div>
+
+    <div id="app" class="flex-1 relative flex flex-col overflow-hidden h-full hidden">
         <!-- Content injected via JS -->
     </div>
 
@@ -42,8 +48,11 @@
 
     <script>
         /* ==========================================================================
-           1. DATA & CONFIG
+           1. CONFIG & STATE
            ========================================================================== */
+        // URL Apps Script Anda (Ganti jika perlu, ini yang dari prompt)
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwtZOLyC9HPsA8_SNRxfQwBhk2WvkAtZrOJMWTgKEnYicE6ooujaZqyNsuOwK6CHIFM4A/exec';
+        
         const CAFE_CONFIG = {
             lat: -2.171698,
             lng: 115.402943,
@@ -51,48 +60,13 @@
             name: "Cafe Payboss"
         };
 
-        const mockDatabase = {
-            employees: [
-                {id: "PB251102", name: "Ilham Ali Naufal", position: "Pramusaji", pass: "Ilhamali12", photo: "https://i.imgur.com/ijK3PRX.jpeg"},
-                {id: "PB251103", name: "Muhammad Zikrillah", position: "Pramusaji", pass: "Zikri12", photo: "https://i.imgur.com/jav9TTA.jpeg"},
-                {id: "PB251104", name: "Renita Aulia Jasmin", position: "Bartender", pass: "Jejess15", photo: "https://i.imgur.com/wqJJoXg.jpeg"},
-                {id: "PB251109", name: "Shada Amalia", position: "Chef", pass: "Shada454545", photo: "https://i.imgur.com/3OdcwMO.jpeg"},
-                {id: "PB251110", name: "Ovy Putri Novia", position: "Chef", pass: "10", photo: "https://i.imgur.com/OiESLaA.jpeg"},
-                {id: "PB251111", name: "Jihan Permata Sari", position: "Kasir", pass: "07", photo: "https://i.imgur.com/1bbNuvK.jpeg"},
-                {id: "PB251116", name: "Komang sri yati utami", position: "Pramusaji", pass: "25", photo: "https://i.imgur.com/846576W.jpeg"}
-            ],
-            roster: [
-                // Data awal Roster (Contoh data minggu ini)
-                {id: "PB251102", date: new Date().toISOString().split('T')[0], shift: "Pagi", start: "08:00", end: "16:00"},
-                {id: "PB251110", date: new Date().toISOString().split('T')[0], shift: "Siang", start: "16:00", end: "00:00"},
-            ],
-            announcements: [
-                {title: "Rapat Tim", message: "Jangan lupa rapat tim jam 14:00 hari ini.", date: "2025-11-20"},
-                {title: "Stok Opname", message: "Harap lakukan stok opname sebelum closing.", date: "2025-11-21"}
-            ],
-            attendance: [
-                {date: new Date().toISOString().split('T')[0], empId: "PB251102", clockIn: "07:55", clockOut: null, status: "Tepat Waktu", lat: 0, lng: 0},
-                {date: new Date().toISOString().split('T')[0], empId: "PB251110", clockIn: "16:05", clockOut: null, status: "Terlambat", lat: 0, lng: 0}
-            ],
-            jobDesk: [
-                {position: "Barista", task: "Meracik & Menyajikan Minuman", target: "Rasa, suhu, dan tampilan konsisten (SOP)"},
-                {position: "Barista", task: "Operasional & Perawatan Mesin", target: "Mesin bersih, shot espresso tepat, alat awet"},
-                {position: "Barista", task: "Restock Bahan Baku & Station", target: "Bahan tersedia (susu/kopi/cup) sebelum jam sibuk"},
-                {position: "Barista", task: "Menjaga Kebersihan Area Bar", target: "Bar kering, bersih, dan lolos standar sanitasi"},
-                {position: "Pramusaji", task: "Menyambut & Mengantar Tamu", target: "Ramah, tamu mendapat meja dengan cepat"},
-                {position: "Pramusaji", task: "Mencatat & Mengulang Pesanan", target: "Akurasi 100%, minim kesalahan input/antar"},
-                {position: "Pramusaji", task: "Mengantar Makanan/Minuman", target: "Pesanan sampai di meja yang benar & tepat waktu"},
-                {position: "Pramusaji", task: "Clear-up & Reset Meja", target: "Meja bersih & siap pakai segera setelah tamu pergi"},
-                {position: "Kasir", task: "Input Pesanan ke Sistem POS", target: "Input cepat & data sesuai pesanan tamu"},
-                {position: "Kasir", task: "Memproses Pembayaran", target: "Transaksi lancar, uang kembalian pas"},
-                {position: "Kasir", task: "Rekap Laporan Kas", target: "Selisih Rp 0 (Uang Fisik = Data Sistem)"},
-                {position: "Chef", task: "Persiapan Bahan (Mise en Place)", target: "Bahan sudah potong/siap olah sebelum operasional"},
-                {position: "Chef", task: "Memasak Hidangan Sesuai Tiket", target: "Matang sempurna, rasa konsisten per porsi"},
-                {position: "Chef", task: "Plating & Penyajian", target: "Tampilan makanan estetik & bersih"},
-                {position: "Chef", task: "Menjaga Kebersihan Dapur", target: "Area masak bersih, sampah dibuang rutin"},
-                {position: "Bartender", task: "Meracik Minuman Non-Kopi", target: "Rasa segar, konsisten, garnish menarik"},
-                {position: "Bartender", task: "Menjaga Kebersihan Bar", target: "Glassware bersih, area kering"}
-            ]
+        // Data awal kosong, akan diisi dari Google Sheet
+        let mockDatabase = {
+            employees: [],
+            roster: [],
+            announcements: [],
+            attendance: [],
+            jobDesk: []
         };
 
         const SHIFT_TYPES = {
@@ -110,11 +84,84 @@
             gps: { valid: false, lat: 0, lng: 0, dist: 0, status: 'checking' },
             isClockPageOpen: false,
             checklists: [],
-            rosterStartDate: new Date() // Tanggal awal minggu yang sedang dilihat di Roster
+            rosterStartDate: new Date() 
         };
 
         /* ==========================================================================
-           2. CORE LOGIC
+           2. API INTEGRATION
+           ========================================================================== */
+        async function initApp() {
+            try {
+                // Fetch Data from Google Sheet
+                const response = await fetch(`${API_URL}?action=getData`);
+                const data = await response.json();
+                
+                // Update Local State
+                mockDatabase = data;
+                console.log("Data loaded:", mockDatabase);
+
+                // Hide Loading & Show App
+                document.getElementById('loading-overlay').classList.add('opacity-0');
+                setTimeout(() => {
+                    document.getElementById('loading-overlay').style.display = 'none';
+                    document.getElementById('app').classList.remove('hidden');
+                    render();
+                }, 500);
+            } catch (error) {
+                alert("Gagal mengambil data. Cek koneksi internet.");
+                console.error(error);
+            }
+        }
+
+        async function postData(action, payload) {
+            const toastId = showToast("Menyimpan data...", "info", false);
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', // Important for Google Apps Script simple requests
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action, ...payload })
+                });
+                
+                // Karena mode 'no-cors' tidak mengembalikan respons JSON yang bisa dibaca langsung di browser,
+                // kita asumsikan sukses jika tidak ada error network.
+                // Untuk update real, kita refresh data lokal secara optimis atau fetch ulang.
+                
+                // Optimistic Update Local State (agar UI langsung berubah)
+                const today = payload.date;
+                if (action === 'clockIn') {
+                    mockDatabase.attendance.push({
+                        date: today,
+                        empId: payload.empId,
+                        clockIn: payload.clockIn,
+                        clockOut: null,
+                        status: payload.status,
+                        lat: payload.lat,
+                        lng: payload.lng
+                    });
+                } else if (action === 'clockOut') {
+                    const record = mockDatabase.attendance.find(r => r.empId === payload.empId && r.date === today);
+                    if (record) record.clockOut = payload.clockOut;
+                }
+                
+                // Re-render
+                state.isClockPageOpen = false;
+                render();
+                
+                // Update Toast
+                const container = document.getElementById('toast-container');
+                if(container.lastChild) container.lastChild.remove();
+                showToast("Berhasil disimpan!", "success");
+
+            } catch (error) {
+                console.error(error);
+                showToast("Gagal menyimpan data.", "error");
+            }
+        }
+
+        /* ==========================================================================
+           3. CORE LOGIC
            ========================================================================== */
         function initGPS() {
             if (!navigator.geolocation) return updateGPS('error');
@@ -180,7 +227,7 @@
                 state.view = 'manager';
                 render();
             } else if (role === 'employee') {
-                const emp = mockDatabase.employees.find(e => e.id === id && e.pass === pass);
+                const emp = mockDatabase.employees.find(e => e.id == id && e.pass == pass); // Loose equality for IDs
                 if (emp) {
                     state.user = { ...emp, role: 'employee' };
                     state.view = 'employee';
@@ -194,8 +241,9 @@
 
         function clockAction(type) {
             if (!state.gps.valid) return showToast('Posisi Anda terlalu jauh!', 'error');
+            
             const today = new Date().toISOString().split('T')[0];
-            const time = new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'});
+            const time = new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit', hour12: false}); // Format HH:mm
             
             if (type === 'in') {
                 // Cek Shift
@@ -203,24 +251,31 @@
                 let status = "Tepat Waktu";
                 if (roster) {
                     const now = new Date();
-                    const shiftStart = new Date(`${today}T${roster.start}`);
-                    if (now > shiftStart) status = "Terlambat";
+                    // Asumsi format roster start "08:00"
+                    if (roster.start) {
+                        const shiftStart = new Date(`${today}T${roster.start}`);
+                        if (now > shiftStart) status = "Terlambat";
+                    }
                 }
 
-                mockDatabase.attendance.push({
-                    date: today, empId: state.user.id, clockIn: time, clockOut: null, status: status, 
-                    lat: state.gps.lat, lng: state.gps.lng
+                // Send to Backend
+                postData('clockIn', {
+                    date: today,
+                    empId: state.user.id,
+                    clockIn: time,
+                    status: status,
+                    lat: state.gps.lat,
+                    lng: state.gps.lng
                 });
-                showToast('Berhasil Masuk! Semangat Kerja.', 'success');
+                
             } else {
-                const record = mockDatabase.attendance.find(r => r.empId === state.user.id && r.date === today && !r.clockOut);
-                if (record) {
-                    record.clockOut = time;
-                    showToast('Berhasil Pulang. Hati-hati!', 'success');
-                }
+                // Clock Out
+                postData('clockOut', {
+                    date: today,
+                    empId: state.user.id,
+                    clockOut: time
+                });
             }
-            state.isClockPageOpen = false; // Close modal
-            render();
         }
 
         function toggleTask(taskIndex) {
@@ -235,7 +290,7 @@
         }
 
         /* ==========================================================================
-           3. VIEW RENDERERS
+           4. VIEW RENDERERS
            ========================================================================== */
         function render() {
             const app = document.getElementById('app');
@@ -552,11 +607,6 @@
                     end: SHIFT_TYPES[newShift].time.split(' - ')[1]
                 });
             }
-            // Optimistic UI update happens via re-render or DOM manipulation if needed, 
-            // but here we let the select maintain value until full re-render or next action.
-            // For better UX, we can re-render specific cell or whole table. 
-            // For this simple version, we assume select holds value.
-            // Force re-render to update colors:
             render();
         }
 
@@ -828,10 +878,10 @@
                         ${mockDatabase.announcements.map(a => `
                             <div class="bg-white p-4 rounded-2xl shadow-sm border-l-4 border-indigo-500">
                                 <div class="flex justify-between items-start mb-1">
-                                    <h4 class="font-bold text-sm text-gray-800">${a.title}</h4>
-                                    <span class="text-[10px] bg-gray-100 px-2 py-0.5 rounded text-gray-500">${a.date}</span>
+                                    <h4 class="font-bold text-sm text-gray-800">${a.Judul || a.title}</h4>
+                                    <span class="text-[10px] bg-gray-100 px-2 py-0.5 rounded text-gray-500">${a.Timestamp ? new Date(a.Timestamp).toLocaleDateString() : a.date}</span>
                                 </div>
-                                <p class="text-xs text-gray-500 leading-relaxed">${a.message}</p>
+                                <p class="text-xs text-gray-500 leading-relaxed">${a.Pesan || a.message}</p>
                             </div>
                         `).join('')}
                     </div>
@@ -1032,18 +1082,22 @@
         function closeClockPage() { state.isClockPageOpen = false; render(); }
         function logout() { state.user = null; state.view = 'login'; state.empTab = 'home'; state.mgrTab = 'dashboard'; render(); }
 
-        function showToast(msg, type) {
+        function showToast(msg, type, autoClose = true) {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
-            toast.className = `${type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-3 text-sm font-medium transform translate-y-5 opacity-0 transition-all duration-300`;
-            toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-check' : 'fa-circle-exclamation'}"></i> ${msg}`;
+            toast.className = `${type === 'success' ? 'bg-green-500' : (type === 'error' ? 'bg-red-500' : 'bg-blue-500')} text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-3 text-sm font-medium transform translate-y-5 opacity-0 transition-all duration-300`;
+            toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-check' : (type === 'error' ? 'fa-circle-exclamation' : 'fa-info-circle')}"></i> ${msg}`;
             container.appendChild(toast);
             requestAnimationFrame(() => toast.classList.remove('translate-y-5', 'opacity-0'));
-            setTimeout(() => { toast.classList.add('opacity-0', '-translate-y-2'); setTimeout(() => toast.remove(), 300); }, 3000);
+            
+            if(autoClose) {
+                setTimeout(() => { toast.classList.add('opacity-0', '-translate-y-2'); setTimeout(() => toast.remove(), 300); }, 3000);
+            }
+            return toast;
         }
 
-        // Init
-        render();
+        // Start App
+        initApp();
     </script>
 </body>
 </html>
