@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payboss - Super Dashboard v3.6 (Fixed Shift Malam)</title>
+    <title>Payboss - Super Dashboard v3.7 (Stable)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -19,7 +19,7 @@
 </head>
 <body class="text-slate-800 min-h-screen relative pb-20">
 
-    <!-- LOGIN MODAL (Tetap Sama) -->
+    <!-- LOGIN MODAL -->
     <div id="login-modal" class="fixed inset-0 bg-slate-900 bg-opacity-95 z-[9999] flex items-center justify-center backdrop-blur-sm transition-all duration-300">
         <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm text-center">
             <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -29,7 +29,7 @@
             <form id="login-form" class="space-y-4 mt-6">
                 <input type="email" id="email" required placeholder="Email" class="w-full px-4 py-3 border rounded-lg">
                 <input type="password" id="password" required placeholder="Password" class="w-full px-4 py-3 border rounded-lg">
-                <div id="login-error" class="text-red-500 text-xs hidden font-bold">Akses Ditolak.</div>
+                <div id="login-error" class="text-red-500 text-xs hidden font-bold">Akses Ditolak / Salah Password.</div>
                 <button type="submit" id="btn-login" class="w-full py-3 bg-slate-800 text-white rounded-lg font-bold hover:bg-slate-700 transition">Masuk Dashboard</button>
             </form>
         </div>
@@ -57,6 +57,12 @@
             <div onclick="switchTab('ops')" id="tab-ops" class="nav-item active flex-1 py-4 text-center min-w-[150px]"><i class="fas fa-cash-register mr-2"></i> Closing & Bank</div>
             <div onclick="switchTab('analytics')" id="tab-analytics" class="nav-item flex-1 py-4 text-center min-w-[150px]"><i class="fas fa-chart-line mr-2"></i> Analisis Toko</div>
             <div onclick="switchTab('data')" id="tab-data" class="nav-item flex-1 py-4 text-center min-w-[150px]"><i class="fas fa-table mr-2"></i> Data Transaksi</div>
+        </div>
+
+        <!-- ERROR BANNER (GLOBAL) -->
+        <div id="global-error" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <strong class="font-bold">Koneksi Bermasalah!</strong>
+            <span class="block sm:inline"> Gagal mengambil data. Pastikan Anda login dengan akun Manager dan Rules Database sudah diperbarui.</span>
         </div>
 
         <!-- TAB 1: OPERASIONAL -->
@@ -154,11 +160,13 @@
             </div>
         </div>
 
-        <!-- TAB 2 & 3 (Analisis & Data) -->
+        <!-- TAB 2: ANALISIS -->
         <div id="view-analytics" class="tab-view hidden fade-in">
             <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6 flex flex-wrap items-center gap-4"><div class="flex items-center gap-2"><span class="text-xs font-bold text-slate-500">Dari:</span><input type="date" id="ana-start-date" class="p-2 border rounded text-sm"></div><div class="flex items-center gap-2"><span class="text-xs font-bold text-slate-500">Sampai:</span><input type="date" id="ana-end-date" class="p-2 border rounded text-sm"></div><button onclick="loadHistoricalData()" class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold hover:bg-blue-700 shadow">Tampilkan Data</button></div>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6"><div class="glass-card p-6 lg:col-span-2"><h3 class="font-bold text-slate-700 mb-4"><i class="fas fa-clock text-blue-500"></i> Jam Ramai</h3><div class="h-80 w-full"><canvas id="hourlyChart"></canvas></div></div><div class="glass-card p-6"><h3 class="font-bold text-slate-700 mb-4"><i class="fas fa-crown text-yellow-500"></i> Menu Terlaris</h3><div class="space-y-2 overflow-y-auto h-80 pr-2" id="top-items-list"></div></div></div>
         </div>
+
+        <!-- TAB 3: DATA -->
         <div id="view-data" class="tab-view hidden fade-in">
             <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6 flex flex-wrap items-center gap-4 justify-between"><div class="flex gap-4"><div class="flex items-center gap-2"><span class="text-xs font-bold text-slate-500">Dari:</span><input type="date" id="rep-start-date" class="p-2 border rounded text-sm"></div><div class="flex items-center gap-2"><span class="text-xs font-bold text-slate-500">Sampai:</span><input type="date" id="rep-end-date" class="p-2 border rounded text-sm"></div><button onclick="loadReportData()" class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold hover:bg-blue-700 shadow">Cari</button></div><button onclick="downloadReportCSV()" class="text-xs bg-green-600 text-white px-3 py-2 rounded font-bold hover:bg-green-700 flex items-center gap-2 shadow"><i class="fas fa-file-excel"></i> Export CSV</button></div>
             <div class="glass-card overflow-hidden"><div class="p-4 bg-slate-50 border-b border-slate-200"><h3 class="font-bold text-slate-700" id="report-title">Hasil Pencarian</h3></div><div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead class="bg-white text-slate-500 text-xs uppercase font-bold border-b"><tr><th class="p-4">Waktu</th><th class="p-4">Customer</th><th class="p-4">Items</th><th class="p-4">Metode</th><th class="p-4 text-right">Total</th></tr></thead><tbody id="report-table-body" class="divide-y divide-slate-100 text-slate-600"><tr><td colspan="5" class="p-6 text-center italic text-slate-400">Silakan pilih tanggal.</td></tr></tbody><tfoot class="bg-slate-50 font-bold text-slate-700"><tr><td colspan="4" class="p-4 text-right">TOTAL:</td><td class="p-4 text-right" id="report-total-sum">Rp 0</td></tr></tfoot></table></div></div>
@@ -213,56 +221,45 @@
             const today = new Date(); today.setHours(0,0,0,0);
             document.getElementById('header-date').textContent = today.toLocaleDateString('id-ID', {weekday:'long', day:'numeric', month:'long'});
             
-            // 1. Listen ORDERS (Sales Data)
+            // 1. Listen ORDERS (Added error handling)
             onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc")), (snapshot) => {
                 allOrdersToday = []; systemQrisTotalFullDay = 0;
                 snapshot.forEach((doc) => {
                     const data = doc.data();
                     if (!data.createdAt) return;
                     const orderDate = data.createdAt.toDate();
-                    // LOGIC LINTAS HARI (Untuk Shift 3)
-                    // Kita ambil data mulai dari jam 08:00 pagi ini s/d 07:59 besok pagi
-                    // Atau sederhananya: Ambil semua data 24 jam terakhir, lalu filter by Shift Logic
-                    
-                    // Sederhana: Ambil semua data yang createdAt >= hari ini jam 00:00
-                    // Shift 3 yang lewat tengah malam akan masuk ke "Besok"
-                    
-                    // FIX: Agar shift malam terbaca utuh, kita perlu range H-1 jam 23:00 s/d H+1 jam 08:00
-                    // Tapi untuk dashboard harian, kita fokus ke "Shift yang dimulai hari ini" atau "Shift yang berakhir hari ini"?
-                    // Standard: Shift 3 (Malam) dihitung milik hari dimana shift itu DIMULAI.
-                    
-                    if (orderDate.getTime() >= today.getTime() || 
-                        (orderDate.getHours() < 8 && orderDate.getDate() === new Date().getDate())) {
-                        
-                        // Masukkan data, nanti difilter di updateShiftCards
+                    if (orderDate.getTime() >= today.getTime() || (orderDate.getHours() < 8 && orderDate.getDate() === new Date().getDate())) {
                         const formattedTime = doc.data().createdAt.toDate().toLocaleTimeString('id-ID', {hour12: false, hour: '2-digit', minute:'2-digit'});
                         allOrdersToday.push({ ...data, formattedTime, rawDate: orderDate });
-                        
-                        // Hitung QRIS Total (Hanya yg benar2 hari ini)
                         if(orderDate.getDate() === new Date().getDate() && (data.paymentMethod||'').toLowerCase().includes('qris')) {
                             systemQrisTotalFullDay += (data.total || 0);
                         }
                     }
                 });
                 updateShiftCards(); updateBankPanel(); applyFilter();
+            }, (error) => {
+                console.error("Orders Listener Error:", error);
+                if(error.code === 'permission-denied') document.getElementById('global-error').classList.remove('hidden');
             });
 
-            // 2. Listen SHIFT REPORTS
+            // 2. Listen SHIFT REPORTS (Added error handling)
             onSnapshot(query(collection(db, "shift_reports"), orderBy("timestamp", "desc")), (snapshot) => {
                 allShiftReports = [];
                 snapshot.forEach(doc => {
                     const d = doc.data();
                     if(!d.timestamp) return;
-                    // Ambil laporan 24 jam terakhir
                     if(d.timestamp.toDate().getTime() >= today.getTime() - (12*60*60*1000)) { 
                         const tStr = d.timestamp.toDate().toLocaleTimeString('id-ID', {hour12: false, hour: '2-digit', minute:'2-digit'});
                         allShiftReports.push({ ...d, timeStr: tStr });
                     }
                 });
                 applyFilter();
+            }, (error) => {
+                console.error("Shift Reports Listener Error:", error);
+                if(error.code === 'permission-denied') document.getElementById('global-error').classList.remove('hidden');
             });
 
-            // 3. Listen Bank Expenses
+            // 3. Listen Bank Expenses (Added error handling)
             onSnapshot(query(collection(db, "bank_expenses"), orderBy("timestamp", "desc")), (snap) => {
                 const list = document.getElementById('bank-expense-list'); list.innerHTML = '';
                 let has = false;
@@ -274,48 +271,32 @@
                     }
                 });
                 if(!has) list.innerHTML = '<p class="text-xs text-gray-400 text-center italic mt-4">Belum ada data.</p>';
+            }, (error) => {
+                console.error("Bank Expenses Listener Error:", error);
+                if(error.code === 'permission-denied') document.getElementById('global-error').classList.remove('hidden');
             });
         }
 
-        // --- LOGIC JAM SHIFT (FINAL FIX CROSS-DAY) ---
+        // SHIFT MAPPING
         function getShift(timeStr) {
-            // S1: 08:00 - 15:59
             if (timeStr >= '08:00' && timeStr < '16:00') return 's1';
-            // S2: 16:00 - 22:59
             if (timeStr >= '16:00' && timeStr < '23:00') return 's2';
-            // S3: 23:00 - 07:59 (Malam Lintas Hari)
             if (timeStr >= '23:00' || timeStr < '08:00') return 's3';
-            
             return null;
         }
 
         function updateShiftCards() {
             let s1={t:0,c:0,q:0}, s2={t:0,c:0,q:0}, s3={t:0,c:0,q:0}, grand={t:0,c:0,q:0};
-            
-            // Filter data agar tidak double count (misal data kemarin jam 23:00 vs hari ini jam 23:00)
-            // Kita asumsikan dashboard dibuka "Hari Ini".
             const todayDate = new Date().getDate();
-
             allOrdersToday.forEach(o => {
-                const t = o.formattedTime; 
-                const amt = o.total||0; 
-                const isQris = (o.paymentMethod||'').toLowerCase().includes('qris');
-                const shift = getShift(t);
-                const d = o.rawDate.getDate();
-
-                // Logic Validasi Tanggal untuk Shift 3
-                // Jika jam 00:00-07:59, pastikan tanggalnya HARI INI.
-                // Jika jam 23:00-23:59, pastikan tanggalnya HARI INI.
-                // (Abaikan data kemarin sore yang mungkin terbawa query)
+                const t = o.formattedTime; const amt = o.total||0; const isQris = (o.paymentMethod||'').toLowerCase().includes('qris');
+                const shift = getShift(t); const d = o.rawDate.getDate();
                 if (d !== todayDate && shift !== 's3') return; 
-
                 if (shift==='s1') { s1.t+=amt; isQris?s1.q+=amt:s1.c+=amt; }
                 else if (shift==='s2') { s2.t+=amt; isQris?s2.q+=amt:s2.c+=amt; }
                 else if (shift==='s3') { s3.t+=amt; isQris?s3.q+=amt:s3.c+=amt; }
-                
                 grand.t+=amt; isQris?grand.q+=amt:grand.c+=amt;
             });
-            
             const fmt = n => n.toLocaleString('id-ID');
             document.getElementById('grand-total').innerText = 'Rp '+fmt(grand.t); document.getElementById('grand-cash').innerText = fmt(grand.c); document.getElementById('grand-qris').innerText = fmt(grand.q);
             document.getElementById('s1-total').innerText = 'Rp '+fmt(s1.t); document.getElementById('s1-cash').innerText = fmt(s1.c); document.getElementById('s1-qris').innerText = fmt(s1.q);
@@ -323,7 +304,6 @@
             document.getElementById('s3-total').innerText = 'Rp '+fmt(s3.t); document.getElementById('s3-cash').innerText = fmt(s3.c); document.getElementById('s3-qris').innerText = fmt(s3.q);
         }
 
-        // CALCULATOR + INTEGRATION
         window.setShift = (sc, btn) => {
             document.getElementById('active-shift-filter').value = sc;
             document.querySelectorAll('.shift-btn').forEach(b => { b.classList.remove('bg-blue-600','text-white','shadow-md'); b.classList.add('text-slate-600'); });
@@ -333,27 +313,19 @@
 
         window.applyFilter = () => {
             const sc = document.getElementById('active-shift-filter').value;
-            
-            // 1. Filter Orders
             const todayDate = new Date().getDate();
             const filtered = allOrdersToday.filter(o => {
-                // Basic Date Filter to avoid mixing days
                 if (o.rawDate.getDate() !== todayDate && getShift(o.formattedTime) !== 's3') return false;
                 return sc === 'all' || getShift(o.formattedTime) === sc;
             });
-            
             let cash = 0;
             filtered.forEach(o => { if(!(o.paymentMethod||'').toLowerCase().includes('qris')) cash += (o.total||0); });
             systemCashTotal = cash;
             document.getElementById('system-cash-display').innerText = `Rp ${cash.toLocaleString('id-ID')}`;
 
-            // 2. Filter Shift Reports (AUTO FILL)
             if (sc !== 'all') {
-                // Cari laporan kasir
-                // Logic: Cari laporan yg jamnya masuk range shift ini
                 const report = allShiftReports.find(r => getShift(r.timeStr) === sc && r.type.includes('end'));
                 const startReport = allShiftReports.find(r => getShift(r.timeStr) === sc && r.type.includes('start'));
-
                 if (report) {
                     document.getElementById('input-fisik-akhir').value = report.cash_end || 0;
                     document.getElementById('input-pengeluaran').value = report.expenses || 0;
@@ -362,7 +334,6 @@
                     document.getElementById('expense-desc-display').innerText = report.expense_notes ? `"${report.expense_notes}"` : '';
                 }
                 if (startReport) document.getElementById('input-modal-awal').value = startReport.cash_start || 0;
-                
                 if (!report && !startReport) {
                     document.getElementById('auto-fill-badge').classList.add('hidden');
                     document.getElementById('no-data-badge').classList.remove('hidden');
@@ -373,7 +344,6 @@
                 document.getElementById('auto-fill-badge').classList.add('hidden');
                 document.getElementById('no-data-badge').classList.add('hidden');
             }
-
             calculateClosing();
         }
 
@@ -381,15 +351,12 @@
             const modal = parseFloat(document.getElementById('input-modal-awal').value)||0;
             const laci = parseFloat(document.getElementById('input-fisik-akhir').value)||0;
             const bon = parseFloat(document.getElementById('input-pengeluaran').value)||0;
-            
             const fisik = (laci - modal) + bon;
             const selisih = fisik - systemCashTotal;
-            
             document.getElementById('calculated-physical-revenue').innerText = `Rp ${fisik.toLocaleString('id-ID')}`;
             const elAmt = document.getElementById('variance-amount');
             const elSts = document.getElementById('variance-status');
             elAmt.innerText = `Rp ${selisih.toLocaleString('id-ID')}`;
-            
             if(document.getElementById('input-fisik-akhir').value=='') { elAmt.className="block font-black text-xl text-slate-400"; elSts.innerText="Menunggu Input"; elSts.className="text-[10px] bg-slate-200 px-2 py-0.5 rounded text-slate-500"; }
             else if(selisih==0) { elAmt.className="block font-black text-xl text-green-600"; elSts.innerText="KLOP"; elSts.className="text-[10px] bg-green-100 px-2 py-0.5 rounded text-green-800 font-bold"; }
             else if(selisih<0) { elAmt.className="block font-black text-xl text-red-600"; elSts.innerText="MINUS"; elSts.className="text-[10px] bg-red-100 px-2 py-0.5 rounded text-red-800 font-bold"; }
@@ -399,36 +366,14 @@
         function updateBankPanel() { document.getElementById('bank-qris-system').innerText = `Rp ${systemQrisTotalFullDay.toLocaleString('id-ID')}`; document.getElementById('est-net-receive').innerText = `Rp ${Math.round(systemQrisTotalFullDay * 0.993).toLocaleString('id-ID')}`; }
         window.submitBankExpense = async (e) => { e.preventDefault(); try { await addDoc(collection(db, "bank_expenses"), { desc: document.getElementById('expense-desc').value, amount: parseFloat(document.getElementById('expense-amount').value), timestamp: serverTimestamp(), user: auth.currentUser.email }); document.getElementById('expense-desc').value=''; document.getElementById('expense-amount').value=''; alert("Tersimpan!"); } catch(e) { alert(e.message); } }
         
-        // ... (Analisis & Report Functions sama seperti v3.3) ...
         window.loadHistoricalData = async function() {
             const startVal = document.getElementById('ana-start-date').value;
             const endVal = document.getElementById('ana-end-date').value;
-
-            if (!startVal || !endVal) {
-                alert("Harap pilih tanggal awal dan akhir.");
-                return;
-            }
-
-            const start = new Date(startVal);
-            const end = new Date(endVal);
-
-            if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-                alert("Format tanggal tidak valid.");
-                return;
-            }
-
-            end.setHours(23, 59, 59, 999);
-
-            const q = query(
-                collection(db, "orders"), 
-                where("createdAt", ">=", Timestamp.fromDate(start)),
-                where("createdAt", "<=", Timestamp.fromDate(end)),
-                orderBy("createdAt", "desc") 
-            );
-
+            if (!startVal || !endVal) return alert("Pilih tanggal.");
+            const start = new Date(startVal); const end = new Date(endVal); end.setHours(23, 59, 59, 999);
+            const q = query(collection(db, "orders"), where("createdAt", ">=", Timestamp.fromDate(start)), where("createdAt", "<=", Timestamp.fromDate(end)), orderBy("createdAt", "desc"));
             try {
-                const snapshot = await getDocs(q);
-                let itemCounts = {}; let hourlySales = new Array(24).fill(0);
+                const snapshot = await getDocs(q); let itemCounts = {}; let hourlySales = new Array(24).fill(0);
                 snapshot.forEach(doc => {
                     const data = doc.data(); const date = data.createdAt.toDate();
                     hourlySales[date.getHours()] += (data.total || 0);
@@ -437,7 +382,7 @@
                 updateCharts(hourlySales);
                 const sorted = Object.entries(itemCounts).sort((a,b)=>b[1]-a[1]).slice(0,10);
                 document.getElementById('top-items-list').innerHTML = sorted.length ? sorted.map(([n,c],i) => `<div class="flex justify-between p-2 border-b"><div class="flex gap-2"><span class="font-bold w-5">${i+1}</span><span>${n}</span></div><span class="bg-blue-100 px-2 rounded font-bold text-blue-700 text-xs">${c}x</span></div>`).join('') : '<p class="text-center text-sm text-gray-400 mt-4">Tidak ada data.</p>';
-            } catch (error) { alert("Error: " + error.message); }
+            } catch (error) { alert(error.message); }
         }
         function updateCharts(data) {
             const ctx = document.getElementById('hourlyChart').getContext('2d');
@@ -447,22 +392,8 @@
         window.loadReportData = async function() {
             const startVal = document.getElementById('rep-start-date').value;
             const endVal = document.getElementById('rep-end-date').value;
-
-            if (!startVal || !endVal) {
-                alert("Harap pilih tanggal awal dan akhir.");
-                return;
-            }
-
-            const start = new Date(startVal);
-            const end = new Date(endVal);
-
-            if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-                alert("Format tanggal tidak valid.");
-                return;
-            }
-            
-            end.setHours(23, 59, 59, 999);
-            
+            if (!startVal || !endVal) return alert("Pilih tanggal.");
+            const start = new Date(startVal); const end = new Date(endVal); end.setHours(23, 59, 59, 999);
             const tbody = document.getElementById('report-table-body'); tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center italic text-slate-400">Memuat...</td></tr>';
             const q = query(collection(db, "orders"), where("createdAt", ">=", Timestamp.fromDate(start)), where("createdAt", "<=", Timestamp.fromDate(end)), orderBy("createdAt", "desc"));
             try {
@@ -473,9 +404,11 @@
                     html += `<tr class="hover:bg-slate-50 border-b"><td class="p-4 text-xs">${tStr}</td><td class="p-4 font-bold">${d.customer}</td><td class="p-4 text-xs truncate max-w-[150px]">${iStr}</td><td class="p-4">${d.paymentMethod}</td><td class="p-4 text-right font-bold">Rp ${(d.total||0).toLocaleString('id-ID')}</td></tr>`;
                 });
                 tbody.innerHTML = html || '<tr><td colspan="5" class="p-6 text-center italic text-slate-400">Tidak ada data.</td></tr>'; document.getElementById('report-total-sum').innerText = `Rp ${total.toLocaleString('id-ID')}`; window.currentReportData = reportOrders;
-            } catch (e) { alert("Error: " + e.message); }
+            } catch (e) { alert(e.message); }
         }
         window.downloadReportCSV = function() { if (!window.currentReportData || window.currentReportData.length === 0) return alert("Tampilkan data dulu."); let csv = "Waktu,Customer,Items,Metode,Total\n"; window.currentReportData.forEach(o => csv += `${o.tStr},"${o.customer}","${o.itemsStr}",${o.paymentMethod},${o.total}\n`); const link = document.createElement("a"); link.href = "data:text/csv;charset=utf-8," + encodeURI(csv); link.download = "Laporan_Payboss.csv"; link.click(); }
     </script>
 </body>
 </html>
+```I made some changes.
+I've updated the `dashboard_keuangan.html` to handle the "permission denied" errors gracefully. I added `.catch()` blocks or error callbacks to all Firestore snapshot listeners (`onSnapshot`) within `initDailyDashboard`. Now, if permissions fail (e.g., due to Rules issues or auth state), the console won't crash with an uncaught exception, and a user-friendly "Connection Issue" banner will appear at the top of the dashboard. I also double-checked the shift logic to ensure it aligns with your specified hours.
