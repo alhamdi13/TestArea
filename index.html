@@ -3,1101 +3,479 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Absensi GPS Cafe Payboss</title>
-    <!-- Tailwind CSS -->
+    <title>Payboss - Super Dashboard v3.6 (Fixed Shift Malam)</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background: #f8fafc; -webkit-tap-highlight-color: transparent; }
-        .bg-gradient-brand { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); }
-        .glass-effect { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        /* Map Placeholder Pattern */
-        .bg-map-pattern {
-            background-color: #e5e7eb;
-            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239ca3af' fill-opacity='0.2'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-        }
-        
-        /* Animations */
-        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-5px); } 100% { transform: translateY(0px); } }
-        .animate-float { animation: float 3s ease-in-out infinite; }
-        .animate-spin { animation: spin 1s linear infinite; }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .glass-card { background: white; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0; }
+        .nav-item { cursor: pointer; transition: all 0.3s ease; border-bottom: 3px solid transparent; color: #64748b; }
+        .nav-item:hover { color: #1e293b; }
+        .nav-item.active { border-bottom-color: #3b82f6; color: #3b82f6; font-weight: bold; }
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
-<body class="text-gray-800 h-screen flex flex-col overflow-hidden">
+<body class="text-slate-800 min-h-screen relative pb-20">
 
-    <!-- Loading Overlay -->
-    <div id="loading-overlay" class="fixed inset-0 bg-white z-[100] flex flex-col items-center justify-center transition-opacity duration-500">
-        <div class="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
-        <p class="text-sm text-gray-500 font-medium animate-pulse">Menghubungkan ke Database...</p>
+    <!-- LOGIN MODAL (Tetap Sama) -->
+    <div id="login-modal" class="fixed inset-0 bg-slate-900 bg-opacity-95 z-[9999] flex items-center justify-center backdrop-blur-sm transition-all duration-300">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm text-center">
+            <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-user-tie text-2xl text-blue-600"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-slate-800">Manager Area</h2>
+            <form id="login-form" class="space-y-4 mt-6">
+                <input type="email" id="email" required placeholder="Email" class="w-full px-4 py-3 border rounded-lg">
+                <input type="password" id="password" required placeholder="Password" class="w-full px-4 py-3 border rounded-lg">
+                <div id="login-error" class="text-red-500 text-xs hidden font-bold">Akses Ditolak.</div>
+                <button type="submit" id="btn-login" class="w-full py-3 bg-slate-800 text-white rounded-lg font-bold hover:bg-slate-700 transition">Masuk Dashboard</button>
+            </form>
+        </div>
     </div>
 
-    <div id="app" class="flex-1 relative flex flex-col overflow-hidden h-full hidden">
-        <!-- Content injected via JS -->
-    </div>
-
-    <!-- Toast Notification -->
-    <div id="toast-container" class="fixed top-5 left-1/2 transform -translate-x-1/2 z-[60] w-11/12 max-w-sm transition-all duration-300 pointer-events-none"></div>
-
-    <script>
-        /* ==========================================================================
-           1. CONFIG & STATE
-           ========================================================================== */
-        // URL Apps Script Anda
-        const API_URL = 'https://script.google.com/macros/s/AKfycbwtZOLyC9HPsA8_SNRxfQwBhk2WvkAtZrOJMWTgKEnYicE6ooujaZqyNsuOwK6CHIFM4A/exec';
+    <!-- MAIN CONTENT -->
+    <div id="main-content" class="filter blur-md pointer-events-none transition duration-500 max-w-7xl mx-auto p-4 md:p-6">
         
-        const CAFE_CONFIG = {
-            lat: -2.171698,
-            lng: 115.402943,
-            radius: 100, 
-            name: "Cafe Payboss"
-        };
-
-        // Data awal kosong, akan diisi dari Google Sheet
-        let mockDatabase = {
-            employees: [],
-            roster: [],
-            announcements: [],
-            attendance: [],
-            jobDesk: []
-        };
-
-        const SHIFT_TYPES = {
-            'Pagi': { label: 'Pagi', class: 'bg-yellow-100 text-yellow-700 border-yellow-200', time: '08:00 - 16:00' },
-            'Siang': { label: 'Siang', class: 'bg-blue-100 text-blue-700 border-blue-200', time: '16:00 - 00:00' },
-            'Malam': { label: 'Malam', class: 'bg-purple-100 text-purple-700 border-purple-200', time: '00:00 - 08:00' },
-            'Off': { label: 'Off', class: 'bg-gray-100 text-gray-400 border-gray-200', time: '-' }
-        };
-
-        const state = {
-            user: null,
-            view: 'login',
-            empTab: 'home',
-            mgrTab: 'dashboard',
-            gps: { valid: false, lat: 0, lng: 0, dist: 0, status: 'checking' },
-            isClockPageOpen: false,
-            checklists: [],
-            rosterStartDate: new Date(),
-            cameraStream: null // Menyimpan stream kamera
-        };
-
-        /* ==========================================================================
-           2. API INTEGRATION
-           ========================================================================== */
-        async function initApp() {
-            try {
-                const response = await fetch(`${API_URL}?action=getData`);
-                const data = await response.json();
-                mockDatabase = data;
-                console.log("Data loaded:", mockDatabase);
-
-                document.getElementById('loading-overlay').classList.add('opacity-0');
-                setTimeout(() => {
-                    document.getElementById('loading-overlay').style.display = 'none';
-                    document.getElementById('app').classList.remove('hidden');
-                    render();
-                }, 500);
-            } catch (error) {
-                alert("Gagal mengambil data. Cek koneksi internet.");
-                console.error(error);
-            }
-        }
-
-        async function postData(action, payload) {
-            showToast("Menyimpan data...", "info", false);
-            
-            try {
-                await fetch(API_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action, ...payload })
-                });
-                
-                const today = payload.date;
-                if (action === 'clockIn') {
-                    mockDatabase.attendance.push({
-                        date: today,
-                        empId: payload.empId,
-                        clockIn: payload.clockIn,
-                        clockOut: null,
-                        status: payload.status,
-                        lat: payload.lat,
-                        lng: payload.lng
-                    });
-                } else if (action === 'clockOut') {
-                    const record = mockDatabase.attendance.find(r => r.empId === payload.empId && r.date === today);
-                    if (record) record.clockOut = payload.clockOut;
-                }
-                
-                closeClockPage(); // Tutup kamera setelah sukses
-                render();
-                
-                const container = document.getElementById('toast-container');
-                if(container.lastChild) container.lastChild.remove();
-                showToast("Berhasil disimpan!", "success");
-
-            } catch (error) {
-                console.error(error);
-                showToast("Gagal menyimpan data.", "error");
-            }
-        }
-
-        /* ==========================================================================
-           3. CAMERA LOGIC (NEW)
-           ========================================================================== */
-        async function startCamera() {
-            try {
-                // Minta akses kamera depan (user)
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
-                state.cameraStream = stream;
-                
-                const videoElement = document.getElementById('camera-preview');
-                if (videoElement) {
-                    videoElement.srcObject = stream;
-                }
-            } catch (err) {
-                console.error("Camera Error:", err);
-                showToast("Gagal membuka kamera. Izinkan akses di browser.", "error");
-            }
-        }
-
-        function stopCamera() {
-            if (state.cameraStream) {
-                state.cameraStream.getTracks().forEach(track => track.stop());
-                state.cameraStream = null;
-            }
-        }
-
-        /* ==========================================================================
-           4. CORE LOGIC
-           ========================================================================== */
-        function initGPS() {
-            if (!navigator.geolocation) return updateGPS('error');
-            navigator.geolocation.watchPosition(
-                pos => {
-                    const dist = calcDist(pos.coords.latitude, pos.coords.longitude, CAFE_CONFIG.lat, CAFE_CONFIG.lng);
-                    state.gps = { 
-                        valid: dist <= CAFE_CONFIG.radius, 
-                        lat: pos.coords.latitude, 
-                        lng: pos.coords.longitude, 
-                        dist: dist, 
-                        status: dist <= CAFE_CONFIG.radius ? 'valid' : 'invalid' 
-                    };
-                    updateUIOnGPSChange();
-                },
-                err => updateGPS('error'),
-                { enableHighAccuracy: true }
-            );
-        }
-
-        function calcDist(lat1, lon1, lat2, lon2) {
-            const R = 6371e3, φ1 = lat1 * Math.PI/180, φ2 = lat2 * Math.PI/180;
-            const Δφ = (lat2-lat1) * Math.PI/180, Δλ = (lon2-lon1) * Math.PI/180;
-            const a = Math.sin(Δφ/2)**2 + Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)**2;
-            return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
-        }
-
-        function updateGPS(status) { state.gps.status = status; state.gps.valid = (status === 'valid'); updateUIOnGPSChange(); }
-
-        function updateUIOnGPSChange() {
-            const distEl = document.getElementById('gps-distance');
-            const badgeEl = document.getElementById('gps-badge');
-            const btnIn = document.getElementById('btn-clock-in-action');
-            const btnOut = document.getElementById('btn-clock-out-action');
-
-            if (distEl) distEl.innerText = `${state.gps.dist} meter dari lokasi`;
-            
-            if (badgeEl) {
-                if (state.gps.valid) {
-                    badgeEl.className = "px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 flex items-center gap-1";
-                    badgeEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> Dalam Area`;
-                } else {
-                    badgeEl.className = "px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 flex items-center gap-1";
-                    badgeEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Luar Area`;
-                }
-            }
-
-            if (btnIn) {
-                btnIn.disabled = !state.gps.valid;
-                if(state.gps.valid) btnIn.classList.remove('opacity-50', 'cursor-not-allowed');
-                else btnIn.classList.add('opacity-50', 'cursor-not-allowed');
-            }
-            if (btnOut) {
-                btnOut.disabled = !state.gps.valid;
-                if(state.gps.valid) btnOut.classList.remove('opacity-50', 'cursor-not-allowed');
-                else btnOut.classList.add('opacity-50', 'cursor-not-allowed');
-            }
-        }
-
-        function login(id, pass, role) {
-            if (role === 'manager' && id === 'admin' && pass === 'admin123') {
-                state.user = { name: 'Administrator', role: 'manager' };
-                state.view = 'manager';
-                render();
-            } else if (role === 'employee') {
-                const emp = mockDatabase.employees.find(e => e.id == id && e.pass == pass);
-                if (emp) {
-                    state.user = { ...emp, role: 'employee' };
-                    state.view = 'employee';
-                    render();
-                    initGPS();
-                } else {
-                    showToast('ID atau Password Salah', 'error');
-                }
-            }
-        }
-
-        function clockAction(type) {
-            if (!state.gps.valid) return showToast('Posisi Anda terlalu jauh!', 'error');
-            
-            const today = new Date().toISOString().split('T')[0];
-            const time = new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit', hour12: false});
-            
-            if (type === 'in') {
-                const roster = mockDatabase.roster.find(r => r.id === state.user.id && r.date === today);
-                let status = "Tepat Waktu";
-                if (roster) {
-                    const now = new Date();
-                    if (roster.start) {
-                        const shiftStart = new Date(`${today}T${roster.start}`);
-                        if (now > shiftStart) status = "Terlambat";
-                    }
-                }
-
-                postData('clockIn', {
-                    date: today,
-                    empId: state.user.id,
-                    clockIn: time,
-                    status: status,
-                    lat: state.gps.lat,
-                    lng: state.gps.lng
-                });
-                
-            } else {
-                postData('clockOut', {
-                    date: today,
-                    empId: state.user.id,
-                    clockOut: time
-                });
-            }
-        }
-
-        function toggleTask(taskIndex) {
-            const today = new Date().toISOString().split('T')[0];
-            const key = `${today}_${state.user.id}_${taskIndex}`;
-            if (state.checklists.includes(key)) {
-                state.checklists = state.checklists.filter(k => k !== key);
-            } else {
-                state.checklists.push(key);
-            }
-            render();
-        }
-
-        /* ==========================================================================
-           5. VIEW RENDERERS
-           ========================================================================== */
-        function render() {
-            const app = document.getElementById('app');
-            app.innerHTML = '';
-            
-            if (state.view === 'login') app.innerHTML = renderLogin();
-            else if (state.view === 'manager') renderManagerLayout(app);
-            else if (state.view === 'employee') renderEmployeeLayout(app);
-        }
-
-        // --- LOGIN ---
-        function renderLogin() {
-            return `
-                <div class="flex flex-col justify-center h-full p-8 bg-gradient-brand text-white relative">
-                    <div class="absolute top-0 left-0 w-full h-full opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
-                    <div class="z-10 animate-float text-center mb-10">
-                        <div class="w-20 h-20 bg-white/20 backdrop-blur-lg rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl border border-white/30">
-                            <i class="fa-solid fa-location-dot text-4xl text-white"></i>
-                        </div>
-                        <h1 class="text-3xl font-bold tracking-tight">GPS Absensi</h1>
-                        <p class="text-blue-100 mt-1">Cafe Payboss System</p>
-                    </div>
-                    <div class="bg-white rounded-3xl shadow-2xl p-2 z-10">
-                        <div class="flex bg-gray-100 rounded-2xl p-1 mb-6">
-                            <button onclick="toggleLoginRole('employee')" id="role-emp" class="flex-1 py-3 text-sm font-bold rounded-xl bg-white text-indigo-600 shadow-sm transition-all">Karyawan</button>
-                            <button onclick="toggleLoginRole('manager')" id="role-mgr" class="flex-1 py-3 text-sm font-bold rounded-xl text-gray-500 hover:text-gray-700 transition-all">Manager</button>
-                        </div>
-                        <form onsubmit="event.preventDefault(); login(this.id.value, this.pass.value, window.currentRole || 'employee')" class="px-4 pb-4 space-y-4">
-                            <div class="bg-gray-50 rounded-xl px-4 py-2 border border-gray-200 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 transition-all">
-                                <label class="text-xs text-gray-500 font-bold uppercase">ID Pengguna</label>
-                                <input name="id" type="text" class="w-full bg-transparent outline-none text-gray-800 font-semibold" placeholder="Contoh: PB251102">
-                            </div>
-                            <div class="bg-gray-50 rounded-xl px-4 py-2 border border-gray-200 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 transition-all">
-                                <label class="text-xs text-gray-500 font-bold uppercase">Password</label>
-                                <input name="pass" type="password" class="w-full bg-transparent outline-none text-gray-800 font-semibold" placeholder="••••••">
-                            </div>
-                            <button class="w-full bg-gradient-brand text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-indigo-500/30 transition transform active:scale-95 mt-2">
-                                MASUK SEKARANG <i class="fa-solid fa-arrow-right ml-2"></i>
-                            </button>
-                        </form>
-                    </div>
-                    <p class="text-center text-xs text-white/60 mt-8">v2.0 • Secure GPS Verification</p>
+        <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-800 flex items-center gap-2"><i class="fas fa-chart-pie text-blue-600"></i> Payboss Analytics</h1>
+                <p class="text-slate-500 text-sm">Laporan Harian & Kontrol Keuangan</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="bg-white px-4 py-2 rounded-lg shadow border text-right">
+                    <p class="text-[10px] uppercase font-bold text-slate-400">Tanggal Laporan</p>
+                    <p id="header-date" class="font-bold text-sm text-blue-600">Loading...</p>
                 </div>
-            `;
-        }
+                <button id="btn-logout" class="p-2 text-red-600 hover:bg-red-50 rounded-lg border border-red-200"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+        </div>
 
-        // --- MANAGER LAYOUT ---
-        function renderManagerLayout(container) {
-            const content = document.createElement('div');
-            content.className = "flex-1 overflow-y-auto pb-24 bg-gray-50 relative";
-            
-            if (state.mgrTab === 'dashboard') content.innerHTML = renderManagerHome();
-            else if (state.mgrTab === 'employees') content.innerHTML = renderManagerEmployees();
-            else if (state.mgrTab === 'roster') content.innerHTML = renderManagerRoster();
-            else if (state.mgrTab === 'report') content.innerHTML = renderManagerReport();
-            else if (state.mgrTab === 'profile') content.innerHTML = renderEmpProfile();
+        <!-- TABS -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 mb-6 flex overflow-x-auto">
+            <div onclick="switchTab('ops')" id="tab-ops" class="nav-item active flex-1 py-4 text-center min-w-[150px]"><i class="fas fa-cash-register mr-2"></i> Closing & Bank</div>
+            <div onclick="switchTab('analytics')" id="tab-analytics" class="nav-item flex-1 py-4 text-center min-w-[150px]"><i class="fas fa-chart-line mr-2"></i> Analisis Toko</div>
+            <div onclick="switchTab('data')" id="tab-data" class="nav-item flex-1 py-4 text-center min-w-[150px]"><i class="fas fa-table mr-2"></i> Data Transaksi</div>
+        </div>
 
-            const nav = document.createElement('div');
-            nav.className = "fixed bottom-0 w-full bg-white border-t border-gray-200 pb-safe pt-2 px-6 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-40";
-            nav.innerHTML = `
-                <div class="flex justify-between items-center max-w-md mx-auto h-16">
-                    <button onclick="setMgrTab('dashboard')" class="flex flex-col items-center gap-1 w-16 ${state.mgrTab === 'dashboard' ? 'text-indigo-600' : 'text-gray-400'}">
-                        <i class="fa-solid fa-chart-pie text-xl transition-transform ${state.mgrTab === 'dashboard' ? '-translate-y-1' : ''}"></i>
-                        <span class="text-[10px] font-medium">Panel</span>
-                    </button>
-                     <button onclick="setMgrTab('roster')" class="flex flex-col items-center gap-1 w-16 ${state.mgrTab === 'roster' ? 'text-indigo-600' : 'text-gray-400'}">
-                        <i class="fa-solid fa-calendar-days text-xl transition-transform ${state.mgrTab === 'roster' ? '-translate-y-1' : ''}"></i>
-                        <span class="text-[10px] font-medium">Jadwal</span>
-                    </button>
-                    <button onclick="setMgrTab('employees')" class="flex flex-col items-center gap-1 w-16 ${state.mgrTab === 'employees' ? 'text-indigo-600' : 'text-gray-400'}">
-                        <i class="fa-solid fa-users text-xl transition-transform ${state.mgrTab === 'employees' ? '-translate-y-1' : ''}"></i>
-                        <span class="text-[10px] font-medium">Karyawan</span>
-                    </button>
-                    <button onclick="setMgrTab('report')" class="flex flex-col items-center gap-1 w-16 ${state.mgrTab === 'report' ? 'text-indigo-600' : 'text-gray-400'}">
-                        <i class="fa-solid fa-file-contract text-xl transition-transform ${state.mgrTab === 'report' ? '-translate-y-1' : ''}"></i>
-                        <span class="text-[10px] font-medium">Laporan</span>
-                    </button>
-                    <button onclick="setMgrTab('profile')" class="flex flex-col items-center gap-1 w-16 ${state.mgrTab === 'profile' ? 'text-indigo-600' : 'text-gray-400'}">
-                        <i class="fa-solid fa-user text-xl transition-transform ${state.mgrTab === 'profile' ? '-translate-y-1' : ''}"></i>
-                        <span class="text-[10px] font-medium">Akun</span>
-                    </button>
-                </div>
-            `;
-            container.appendChild(content);
-            container.appendChild(nav);
-        }
-
-        function renderManagerHome() {
-            const totalEmp = mockDatabase.employees.length;
-            const todayStr = new Date().toISOString().split('T')[0];
-            const todayAtt = mockDatabase.attendance.filter(a => a.date === todayStr);
-            const hadir = todayAtt.length;
-            const telat = todayAtt.filter(a => a.status === 'Terlambat').length;
-
-            return `
-                <div class="bg-gradient-brand pt-8 pb-20 px-6 rounded-b-[2.5rem] shadow-lg relative overflow-hidden">
-                     <div class="absolute top-0 left-0 w-full h-full opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
-                    <div class="flex justify-between items-start relative z-10">
-                        <div>
-                            <p class="text-indigo-100 text-sm font-medium mb-1">Panel Manager</p>
-                            <h2 class="text-2xl font-bold text-white">Selamat Siang 👋</h2>
-                        </div>
-                        <button onclick="logout()" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white backdrop-blur-sm border border-white/30 hover:bg-red-500 hover:border-red-500 transition">
-                            <i class="fa-solid fa-power-off"></i>
-                        </button>
+        <!-- TAB 1: OPERASIONAL -->
+        <div id="view-ops" class="tab-view fade-in">
+            <!-- Shift Summaries -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <!-- Grand Total -->
+                <div class="glass-card p-5 border-l-4 border-purple-600 bg-purple-50 relative overflow-hidden">
+                    <div class="flex justify-between items-start">
+                        <div><span class="text-xs font-bold text-purple-600 uppercase tracking-wider">Total Hari Ini</span><div class="text-2xl font-black text-slate-800 mt-1" id="grand-total">Rp 0</div></div>
+                        <i class="fas fa-coins text-purple-200 text-3xl absolute top-4 right-4"></i>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 mt-4 text-xs border-t border-purple-200 pt-2">
+                        <div><span class="text-slate-500 block">Cash</span><span id="grand-cash" class="font-bold text-slate-700">0</span></div>
+                        <div><span class="text-slate-500 block">QRIS</span><span id="grand-qris" class="font-bold text-green-600">0</span></div>
                     </div>
                 </div>
-
-                <div class="px-6 -mt-12 relative z-20 space-y-6">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="bg-white p-4 rounded-2xl shadow-md shadow-indigo-900/5 border border-gray-100">
-                            <div class="flex items-center gap-3 mb-2">
-                                <div class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center"><i class="fa-solid fa-users"></i></div>
-                                <span class="text-xs text-gray-400 font-bold uppercase">Total</span>
-                            </div>
-                            <h3 class="text-2xl font-bold text-gray-800">${totalEmp}</h3>
-                            <p class="text-xs text-gray-400">Karyawan Aktif</p>
-                        </div>
-                        <div class="bg-white p-4 rounded-2xl shadow-md shadow-indigo-900/5 border border-gray-100">
-                            <div class="flex items-center gap-3 mb-2">
-                                <div class="w-8 h-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center"><i class="fa-solid fa-user-check"></i></div>
-                                <span class="text-xs text-gray-400 font-bold uppercase">Hadir</span>
-                            </div>
-                            <h3 class="text-2xl font-bold text-gray-800">${hadir}</h3>
-                            <p class="text-xs text-gray-400">Hari Ini</p>
-                        </div>
-                        <div class="bg-white p-4 rounded-2xl shadow-md shadow-indigo-900/5 border border-gray-100">
-                            <div class="flex items-center gap-3 mb-2">
-                                <div class="w-8 h-8 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center"><i class="fa-solid fa-clock"></i></div>
-                                <span class="text-xs text-gray-400 font-bold uppercase">Telat</span>
-                            </div>
-                            <h3 class="text-2xl font-bold text-gray-800">${telat}</h3>
-                            <p class="text-xs text-gray-400">Karyawan</p>
-                        </div>
-                         <div class="bg-white p-4 rounded-2xl shadow-md shadow-indigo-900/5 border border-gray-100">
-                            <div class="flex items-center gap-3 mb-2">
-                                <div class="w-8 h-8 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center"><i class="fa-solid fa-file-signature"></i></div>
-                                <span class="text-xs text-gray-400 font-bold uppercase">Izin</span>
-                            </div>
-                            <h3 class="text-2xl font-bold text-gray-800">0</h3>
-                            <p class="text-xs text-gray-400">Menunggu Approval</p>
-                        </div>
-                    </div>
-
-                    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-                        <div class="flex justify-between items-center mb-4">
-                             <h3 class="font-bold text-gray-800 text-sm">Live Monitoring</h3>
-                             <span class="text-[10px] bg-green-100 text-green-700 px-2 py-1 rounded-full flex items-center gap-1"><div class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div> Realtime</span>
-                        </div>
-                        <div class="space-y-4">
-                            ${todayAtt.length === 0 ? '<p class="text-center text-xs text-gray-400 py-4">Belum ada aktivitas hari ini.</p>' : todayAtt.map(att => {
-                                const emp = mockDatabase.employees.find(e => e.id === att.empId);
-                                return `
-                                <div class="flex items-center gap-3 pb-3 border-b border-gray-50 last:border-0 last:pb-0">
-                                    <img src="${emp ? emp.photo : ''}" class="w-10 h-10 rounded-full object-cover border border-gray-200 bg-gray-100">
-                                    <div class="flex-1">
-                                        <h4 class="text-sm font-bold text-gray-800">${emp ? emp.name : 'Unknown'}</h4>
-                                        <p class="text-xs text-gray-400">${emp ? emp.position : '-'} • ${att.clockIn}</p>
-                                    </div>
-                                    <div class="text-right">
-                                        <span class="block text-[10px] font-bold px-2 py-0.5 rounded bg-gray-100 text-gray-600 mb-1">${att.status}</span>
-                                    </div>
-                                </div>
-                                `;
-                            }).join('')}
-                        </div>
-                    </div>
+                <!-- Shift 1 -->
+                <div class="glass-card p-5 border-l-4 border-yellow-400 relative overflow-hidden">
+                    <div class="flex justify-between items-start"><div><span class="text-xs font-bold text-slate-400 uppercase">Shift 1 (Pagi)</span><div class="text-xl font-bold text-slate-800 mt-1" id="s1-total">Rp 0</div></div><span class="bg-yellow-100 text-yellow-800 text-[10px] px-2 py-1 rounded font-bold">08:00 - 16:00</span></div>
+                    <div class="grid grid-cols-2 gap-2 mt-4 text-xs border-t pt-2 border-slate-100"><div><span class="text-slate-400 block">Cash</span><span id="s1-cash" class="font-bold text-slate-700">0</span></div><div><span class="text-slate-400 block">QRIS</span><span id="s1-qris" class="font-bold text-green-600">0</span></div></div>
                 </div>
-            `;
-        }
+                <!-- Shift 2 -->
+                <div class="glass-card p-5 border-l-4 border-orange-400 relative overflow-hidden">
+                    <div class="flex justify-between items-start"><div><span class="text-xs font-bold text-slate-400 uppercase">Shift 2 (Sore)</span><div class="text-xl font-bold text-slate-800 mt-1" id="s2-total">Rp 0</div></div><span class="bg-orange-100 text-orange-800 text-[10px] px-2 py-1 rounded font-bold">16:00 - 23:00</span></div>
+                    <div class="grid grid-cols-2 gap-2 mt-4 text-xs border-t pt-2 border-slate-100"><div><span class="text-slate-400 block">Cash</span><span id="s2-cash" class="font-bold text-slate-700">0</span></div><div><span class="text-slate-400 block">QRIS</span><span id="s2-qris" class="font-bold text-green-600">0</span></div></div>
+                </div>
+                <!-- Shift 3 -->
+                <div class="glass-card p-5 border-l-4 border-blue-500 relative overflow-hidden">
+                    <div class="flex justify-between items-start"><div><span class="text-xs font-bold text-slate-400 uppercase">Shift 3 (Malam)</span><div class="text-xl font-bold text-slate-800 mt-1" id="s3-total">Rp 0</div></div><span class="bg-blue-100 text-blue-800 text-[10px] px-2 py-1 rounded font-bold">23:00 - 08:00</span></div>
+                    <div class="grid grid-cols-2 gap-2 mt-4 text-xs border-t pt-2 border-slate-100"><div><span class="text-slate-400 block">Cash</span><span id="s3-cash" class="font-bold text-slate-700">0</span></div><div><span class="text-slate-400 block">QRIS</span><span id="s3-qris" class="font-bold text-green-600">0</span></div></div>
+                </div>
+            </div>
 
-        // --- NEW ROSTER VIEW ---
-        function renderManagerRoster() {
-            const getStartOfWeek = (d) => {
-                const date = new Date(d);
-                const day = date.getDay();
-                const diff = date.getDate() - day + (day === 0 ? -6 : 1);
-                return new Date(date.setDate(diff));
-            };
-
-            const startOfWeek = getStartOfWeek(state.rosterStartDate);
-            const weekDays = [];
-            for (let i = 0; i < 7; i++) {
-                const d = new Date(startOfWeek);
-                d.setDate(startOfWeek.getDate() + i);
-                weekDays.push(d);
-            }
-
-            const monthLabel = startOfWeek.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
-            const weekRange = `${weekDays[0].getDate()} - ${weekDays[6].getDate()} ${monthLabel}`;
-
-            return `
-                <div class="bg-white pt-8 pb-4 px-6 shadow-sm sticky top-0 z-30 border-b border-gray-200">
-                     <div class="flex justify-between items-center mb-4">
-                        <div>
-                            <h2 class="text-2xl font-bold text-gray-800">Atur Jadwal</h2>
-                            <p class="text-xs text-gray-500">Roster Shift Karyawan</p>
-                        </div>
-                        <button onclick="saveRosterChange()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-bold shadow hover:bg-indigo-700 transition"><i class="fa-solid fa-floppy-disk mr-1"></i> Simpan</button>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Closing Calculator -->
+                <div class="glass-card p-6">
+                    <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
+                        <h3 class="font-bold text-slate-700 flex items-center gap-2"><i class="fas fa-calculator text-blue-500"></i> Closing Kasir</h3>
+                        <button onclick="resetCalculator()" class="text-xs bg-slate-200 hover:bg-slate-300 px-3 py-1 rounded transition">Reset Manual</button>
                     </div>
                     
-                    <!-- Week Navigator -->
-                    <div class="flex items-center justify-between bg-gray-100 rounded-xl p-1 mb-2">
-                        <button onclick="adjustRosterWeek(-7)" class="w-10 h-10 flex items-center justify-center text-gray-500 hover:bg-white hover:shadow-sm rounded-lg transition"><i class="fa-solid fa-chevron-left"></i></button>
-                        <div class="text-center">
-                            <p class="text-xs font-bold text-gray-800">Minggu Ini</p>
-                            <p class="text-[10px] text-gray-500">${weekRange}</p>
-                        </div>
-                        <button onclick="adjustRosterWeek(7)" class="w-10 h-10 flex items-center justify-center text-gray-500 hover:bg-white hover:shadow-sm rounded-lg transition"><i class="fa-solid fa-chevron-right"></i></button>
-                    </div>
-                </div>
-
-                <div class="overflow-x-auto hide-scrollbar pb-4 bg-white">
-                    <table class="w-full min-w-[800px]">
-                        <thead>
-                            <tr class="border-b border-gray-100">
-                                <th class="p-4 text-left text-xs font-bold text-gray-400 w-48 sticky left-0 bg-white z-10 shadow-r">Karyawan</th>
-                                ${weekDays.map(d => {
-                                    const isToday = d.toISOString().split('T')[0] === new Date().toISOString().split('T')[0];
-                                    return `
-                                    <th class="p-3 text-center min-w-[100px]">
-                                        <div class="flex flex-col items-center ${isToday ? 'text-indigo-600' : 'text-gray-500'}">
-                                            <span class="text-[10px] font-medium uppercase">${d.toLocaleDateString('id-ID', {weekday:'short'})}</span>
-                                            <span class="text-lg font-bold">${d.getDate()}</span>
-                                        </div>
-                                    </th>
-                                    `;
-                                }).join('')}
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-50">
-                            ${mockDatabase.employees.map(emp => `
-                                <tr>
-                                    <td class="p-4 sticky left-0 bg-white z-10 border-r border-gray-50">
-                                        <div class="flex items-center gap-3">
-                                            <img src="${emp.photo}" class="w-10 h-10 rounded-full object-cover bg-gray-200">
-                                            <div>
-                                                <p class="text-sm font-bold text-gray-800">${emp.name}</p>
-                                                <p class="text-[10px] text-gray-500">${emp.position}</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    ${weekDays.map(d => {
-                                        const dateStr = d.toISOString().split('T')[0];
-                                        const rosterEntry = mockDatabase.roster.find(r => r.id === emp.id && r.date === dateStr);
-                                        const shiftName = rosterEntry ? rosterEntry.shift : 'Off';
-                                        const shiftConfig = SHIFT_TYPES[shiftName] || SHIFT_TYPES['Off'];
-
-                                        return `
-                                        <td class="p-2 text-center">
-                                            <div class="relative">
-                                                <select onchange="updateShift('${emp.id}', '${dateStr}', this.value)" 
-                                                    class="appearance-none w-full text-center text-xs font-bold py-2 rounded-lg border outline-none cursor-pointer transition hover:opacity-80 ${shiftConfig.class}">
-                                                    ${Object.keys(SHIFT_TYPES).map(key => `
-                                                        <option value="${key}" ${key === shiftName ? 'selected' : ''}>${SHIFT_TYPES[key].label}</option>
-                                                    `).join('')}
-                                                </select>
-                                                <div class="pointer-events-none absolute inset-y-0 right-1 flex items-center px-1 text-gray-500 opacity-50">
-                                                    <i class="fa-solid fa-caret-down text-[10px]"></i>
-                                                </div>
-                                            </div>
-                                            <p class="text-[9px] text-gray-400 mt-1 font-mono">${shiftConfig.time}</p>
-                                        </td>
-                                        `;
-                                    }).join('')}
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `;
-        }
-
-        function adjustRosterWeek(days) {
-            state.rosterStartDate.setDate(state.rosterStartDate.getDate() + days);
-            render();
-        }
-
-        function updateShift(empId, dateStr, newShift) {
-            let entry = mockDatabase.roster.find(r => r.id === empId && r.date === dateStr);
-            if (entry) {
-                entry.shift = newShift;
-            } else {
-                mockDatabase.roster.push({
-                    id: empId,
-                    date: dateStr,
-                    shift: newShift,
-                    start: SHIFT_TYPES[newShift].time.split(' - ')[0],
-                    end: SHIFT_TYPES[newShift].time.split(' - ')[1]
-                });
-            }
-            render();
-        }
-
-        function saveRosterChange() {
-            showToast("Perubahan jadwal berhasil disimpan!", "success");
-        }
-
-        function renderManagerEmployees() {
-            return `
-                <div class="bg-white pt-8 pb-4 px-6 shadow-sm sticky top-0 z-30">
-                     <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-2xl font-bold text-gray-800">Data Karyawan</h2>
-                        <button class="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-500/30 text-sm"><i class="fa-solid fa-plus"></i></button>
-                    </div>
-                    <div class="relative">
-                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-xs"></i>
-                        <input type="text" placeholder="Cari nama atau posisi..." class="w-full bg-gray-100 rounded-xl py-2 pl-9 pr-4 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 transition">
-                    </div>
-                </div>
-
-                <div class="px-6 py-4 space-y-3">
-                    ${mockDatabase.employees.map(e => `
-                        <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 animate-slide-up">
-                            <img src="${e.photo}" class="w-12 h-12 rounded-xl object-cover bg-gray-100">
-                            <div class="flex-1">
-                                <h4 class="font-bold text-gray-800 text-sm">${e.name}</h4>
-                                <p class="text-xs text-gray-500">${e.position}</p>
-                                <p class="text-[10px] text-indigo-500 font-mono mt-0.5">${e.id}</p>
-                            </div>
-                            <button class="w-8 h-8 rounded-lg bg-gray-50 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 flex items-center justify-center transition"><i class="fa-solid fa-ellipsis-vertical"></i></button>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-        }
-
-        function renderManagerReport() {
-            return `
-                <div class="bg-white pt-8 pb-4 px-6 shadow-sm sticky top-0 z-30">
-                    <h2 class="text-2xl font-bold text-gray-800">Laporan Absensi</h2>
-                    <div class="mt-4 flex gap-2 overflow-x-auto hide-scrollbar pb-2">
-                        <button class="px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-full shadow-md whitespace-nowrap">Harian</button>
-                        <button class="px-4 py-2 bg-white border border-gray-200 text-gray-500 text-xs font-bold rounded-full whitespace-nowrap">Bulanan</button>
-                    </div>
-                </div>
-
-                <div class="px-6 py-4 space-y-4">
-                    <div class="bg-indigo-50 p-4 rounded-2xl border border-indigo-100 flex items-center justify-between">
-                        <div>
-                            <p class="text-xs text-indigo-600 font-bold uppercase">Export Data</p>
-                            <p class="text-[10px] text-indigo-400">Unduh laporan format Excel/PDF</p>
-                        </div>
-                        <button class="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg shadow-indigo-500/30"><i class="fa-solid fa-download mr-1"></i> Unduh</button>
+                    <!-- Shift Selector -->
+                    <div class="flex gap-2 mb-4 overflow-x-auto pb-2">
+                        <button onclick="setShift('s1', this)" class="shift-btn flex-1 py-2 px-3 rounded text-xs font-bold border transition text-slate-600 hover:bg-blue-50">S1</button>
+                        <button onclick="setShift('s2', this)" class="shift-btn flex-1 py-2 px-3 rounded text-xs font-bold border transition text-slate-600 hover:bg-blue-50">S2</button>
+                        <button onclick="setShift('s3', this)" class="shift-btn flex-1 py-2 px-3 rounded text-xs font-bold border transition text-slate-600 hover:bg-blue-50">S3</button>
+                        <button onclick="setShift('all', this)" class="shift-btn flex-1 py-2 px-3 rounded text-xs font-bold bg-blue-600 text-white shadow-md border-blue-600">ALL</button>
                     </div>
 
-                    <h3 class="font-bold text-sm text-gray-800 mt-2">Riwayat Hari Ini</h3>
-                    ${mockDatabase.attendance.map(a => {
-                        const emp = mockDatabase.employees.find(e => e.id === a.empId);
-                        return `
-                        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                            <div class="flex justify-between items-start mb-2">
-                                <h4 class="text-sm font-bold text-gray-800">${emp ? emp.name : 'Unknown'}</h4>
-                                <span class="text-[10px] font-bold ${a.status === 'Terlambat' ? 'text-red-500' : 'text-green-600'}">${a.status}</span>
-                            </div>
-                            <div class="flex text-xs text-gray-500 gap-4">
-                                <span><i class="fa-solid fa-arrow-right-to-bracket mr-1"></i> ${a.clockIn}</span>
-                                <span><i class="fa-solid fa-arrow-right-from-bracket mr-1"></i> ${a.clockOut || '-'}</span>
-                            </div>
-                        </div>
-                        `;
-                    }).join('')}
-                </div>
-            `;
-        }
-
-
-        // --- EMPLOYEE LAYOUT ---
-        function renderEmployeeLayout(container) {
-            const content = document.createElement('div');
-            content.className = "flex-1 overflow-y-auto pb-24 bg-gray-50 relative";
-            content.id = "emp-content";
-            
-            if (state.empTab === 'home') content.innerHTML = renderEmpHome();
-            else if (state.empTab === 'history') content.innerHTML = renderEmpHistory();
-            else if (state.empTab === 'profile') content.innerHTML = renderEmpProfile();
-
-            if (state.isClockPageOpen) {
-                content.appendChild(renderClockModal());
-            }
-
-            const nav = document.createElement('div');
-            nav.className = "fixed bottom-0 w-full bg-white border-t border-gray-200 pb-safe pt-2 px-6 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-40";
-            nav.innerHTML = `
-                <div class="flex justify-between items-center max-w-md mx-auto h-16">
-                    <button onclick="setEmpTab('home')" class="flex flex-col items-center gap-1 w-16 ${state.empTab === 'home' ? 'text-indigo-600' : 'text-gray-400'}">
-                        <i class="fa-solid fa-house text-xl transition-transform ${state.empTab === 'home' ? '-translate-y-1' : ''}"></i>
-                        <span class="text-[10px] font-medium">Beranda</span>
-                    </button>
-                    
-                    <button onclick="openClockPage()" class="relative -top-6 bg-gradient-brand text-white w-16 h-16 rounded-full shadow-lg shadow-indigo-500/40 flex flex-col items-center justify-center transform transition active:scale-90 border-4 border-gray-50">
-                        <i class="fa-solid fa-fingerprint text-2xl"></i>
-                    </button>
-
-                    <button onclick="setEmpTab('history')" class="flex flex-col items-center gap-1 w-16 ${state.empTab === 'history' ? 'text-indigo-600' : 'text-gray-400'}">
-                        <i class="fa-solid fa-clock-rotate-left text-xl transition-transform ${state.empTab === 'history' ? '-translate-y-1' : ''}"></i>
-                        <span class="text-[10px] font-medium">Riwayat</span>
-                    </button>
-                    
-                    <button onclick="setEmpTab('profile')" class="flex flex-col items-center gap-1 w-16 ${state.empTab === 'profile' ? 'text-indigo-600' : 'text-gray-400'}">
-                        <i class="fa-solid fa-user text-xl transition-transform ${state.empTab === 'profile' ? '-translate-y-1' : ''}"></i>
-                        <span class="text-[10px] font-medium">Profil</span>
-                    </button>
-                </div>
-            `;
-
-            container.appendChild(content);
-            container.appendChild(nav);
-        }
-
-        // --- EMPLOYEE SUB-VIEWS ---
-
-        function renderEmpHome() {
-            const today = new Date().toISOString().split('T')[0];
-            const roster = mockDatabase.roster.find(r => r.id === state.user.id && r.date === today);
-            const att = mockDatabase.attendance.filter(a => a.empId === state.user.id);
-            const todayAtt = att.find(a => a.date === today);
-
-            const totalHadir = att.length;
-            const totalTelat = att.filter(a => a.status === 'Terlambat').length;
-
-            let myTasks = mockDatabase.jobDesk.filter(j => state.user.position.includes(j.position) || j.position.includes(state.user.position));
-            if (myTasks.length === 0) {
-                 if(state.user.position.toLowerCase().includes('chef')) myTasks = mockDatabase.jobDesk.filter(j => j.position === 'Chef');
-                 if(state.user.position.toLowerCase().includes('barista')) myTasks = mockDatabase.jobDesk.filter(j => j.position === 'Barista');
-                 if(state.user.position.toLowerCase().includes('pramusaji')) myTasks = mockDatabase.jobDesk.filter(j => j.position === 'Pramusaji');
-            }
-            
-            const totalTasks = myTasks.length;
-            let completedTasks = 0;
-            myTasks.forEach((task, idx) => {
-                if (state.checklists.includes(`${today}_${state.user.id}_${idx}`)) completedTasks++;
-            });
-            const progressPercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-
-            return `
-                <div class="bg-gradient-brand pt-8 pb-20 px-6 rounded-b-[2.5rem] shadow-lg relative overflow-hidden">
-                     <div class="absolute top-0 left-0 w-full h-full opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
-                    <div class="flex justify-between items-start relative z-10">
-                        <div>
-                            <p class="text-indigo-100 text-sm font-medium mb-1">Selamat Pagi,</p>
-                            <h2 class="text-2xl font-bold text-white">${state.user.name.split(' ')[0]} 👋</h2>
-                            <span class="inline-block bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-xs text-white mt-2 border border-white/20">${state.user.position}</span>
-                        </div>
-                        <div class="w-12 h-12 rounded-full border-2 border-white/30 p-0.5 bg-white/10">
-                            <img src="${state.user.photo}" class="w-full h-full rounded-full object-cover" alt="Profile">
+                    <!-- Auto-filled Badge -->
+                    <div id="auto-fill-badge" class="hidden mb-4 bg-green-100 border border-green-300 text-green-800 px-3 py-2 rounded-lg text-xs flex flex-col gap-1">
+                        <div class="flex items-center gap-2 font-bold"><i class="fas fa-check-circle"></i> Data Terintegrasi Absensi</div>
+                        <div class="flex justify-between">
+                            <span>Kasir: <strong id="reporter-name">...</strong></span>
+                            <span id="report-status-badge" class="bg-green-200 px-2 rounded text-[10px]">Shift Berjalan</span>
                         </div>
                     </div>
-                </div>
+                    <div id="no-data-badge" class="hidden mb-4 bg-gray-100 border border-gray-300 text-gray-500 px-3 py-2 rounded-lg text-xs text-center">
+                        Belum ada data absensi kasir untuk shift ini.
+                    </div>
 
-                <div class="px-6 -mt-12 relative z-20">
-                    <div class="bg-white rounded-2xl p-5 shadow-xl shadow-indigo-900/5 border border-gray-100">
-                        <div class="flex justify-between items-center mb-4">
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <p class="text-xs text-gray-400 font-bold uppercase tracking-wide">Shift Hari Ini</p>
-                                <h3 class="text-lg font-bold text-gray-800">${roster ? roster.shift : 'Libur'}</h3>
+                                <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Modal Awal</label>
+                                <input type="number" id="input-modal-awal" oninput="calculateClosing()" class="w-full p-2 border rounded text-right font-mono text-sm outline-none focus:border-blue-500" placeholder="0">
                             </div>
-                            <div class="text-right">
-                                <p class="text-xs text-gray-400 font-bold uppercase tracking-wide">Jam Kerja</p>
-                                <h3 class="text-lg font-bold text-indigo-600">${roster ? `${roster.start} - ${roster.end}` : '-'}</h3>
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Bon / Pengeluaran</label>
+                                <input type="number" id="input-pengeluaran" oninput="calculateClosing()" class="w-full p-2 border rounded text-right font-mono text-sm text-orange-600 outline-none focus:border-orange-500" placeholder="0">
+                                <div id="expense-desc-display" class="text-[9px] text-right text-orange-400 mt-1 italic truncate"></div>
                             </div>
-                        </div>
-                        <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-                            <div class="bg-indigo-500 h-2 rounded-full" style="width: ${todayAtt ? (todayAtt.clockOut ? '100%' : '50%') : '0%'}"></div>
-                        </div>
-                        <div class="flex justify-between mt-2 text-[10px] text-gray-500 font-medium">
-                            <span>Masuk</span>
-                            <span>Pulang</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4 px-6 mt-6">
-                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-lg">
-                            <i class="fa-solid fa-calendar-check"></i>
                         </div>
                         <div>
-                            <h4 class="text-xl font-bold text-gray-800">${totalHadir}</h4>
-                            <p class="text-xs text-gray-400">Total Hadir</p>
-                        </div>
-                    </div>
-                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 text-lg">
-                            <i class="fa-solid fa-business-time"></i>
-                        </div>
-                        <div>
-                            <h4 class="text-xl font-bold text-gray-800">${totalTelat}</h4>
-                            <p class="text-xs text-gray-400">Terlambat</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="px-6 mt-8">
-                    <div class="flex justify-between items-end mb-3">
-                        <h3 class="font-bold text-gray-800 text-sm uppercase tracking-wide">Job Desk Hari Ini</h3>
-                        <span class="text-xs font-bold ${progressPercent === 100 ? 'text-green-600' : 'text-indigo-600'}">${progressPercent}% Selesai</span>
-                    </div>
-                    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-                        <div class="w-full bg-gray-100 rounded-full h-2.5 mb-5">
-                            <div class="bg-indigo-600 h-2.5 rounded-full transition-all duration-500" style="width: ${progressPercent}%"></div>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Total Uang Fisik (Hitungan Akhir)</label>
+                            <input type="number" id="input-fisik-akhir" oninput="calculateClosing()" class="w-full p-3 border-2 border-blue-200 rounded text-right font-bold text-lg outline-none focus:border-blue-500" placeholder="0">
                         </div>
                         
-                        <div class="space-y-4">
-                            ${myTasks.length > 0 ? myTasks.map((task, idx) => {
-                                const isChecked = state.checklists.includes(`${today}_${state.user.id}_${idx}`);
-                                return `
-                                <label class="flex items-start gap-3 cursor-pointer group">
-                                    <div class="relative flex items-center mt-0.5">
-                                        <input type="checkbox" onchange="toggleTask(${idx})" class="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-gray-300 transition-all checked:border-indigo-600 checked:bg-indigo-600 checked:before:bg-indigo-600" ${isChecked ? 'checked' : ''}>
-                                        <i class="fa-solid fa-check text-white text-xs absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none"></i>
-                                    </div>
-                                    <div class="flex-1">
-                                        <h4 class="text-sm font-bold text-gray-700 peer-checked:line-through peer-checked:text-gray-400 transition-colors">${task.task}</h4>
-                                        <p class="text-[10px] text-gray-400 mt-0.5 flex items-center gap-1">
-                                            <i class="fa-solid fa-bullseye text-indigo-400 text-[8px]"></i>
-                                            Target: ${task.target}
-                                        </p>
-                                    </div>
-                                </label>
-                                `;
-                            }).join('') : '<p class="text-xs text-gray-400 text-center py-2">Tidak ada tugas spesifik.</p>'}
+                        <!-- Hasil -->
+                        <div class="bg-slate-50 p-4 rounded-xl border mt-2">
+                            <div class="flex justify-between text-xs mb-2"><span class="text-slate-500">Target Sistem (Cash):</span><span id="system-cash-display" class="font-bold text-slate-700">Rp 0</span></div>
+                            <div class="flex justify-between text-xs mb-2 border-b border-slate-200 pb-2"><span class="text-slate-500">Target Fisik (Laci - Modal + Bon):</span><span id="calculated-physical-revenue" class="font-bold text-blue-600">Rp 0</span></div>
+                            <div class="flex justify-between items-center pt-2"><span class="font-bold text-slate-700 text-sm">Selisih (Variance):</span><div class="text-right"><span id="variance-amount" class="block font-black text-xl text-slate-400">Rp 0</span><span id="variance-status" class="text-[10px] bg-slate-200 px-2 py-0.5 rounded text-slate-500 font-bold">Menunggu Input</span></div></div>
                         </div>
                     </div>
                 </div>
 
-                <div class="px-6 mt-8">
-                    <h3 class="font-bold text-gray-800 mb-4 text-sm uppercase tracking-wide">Menu Utama</h3>
-                    <div class="grid grid-cols-4 gap-4">
-                        <button onclick="openClockPage()" class="flex flex-col items-center gap-2">
-                            <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 text-xl shadow-sm active:scale-95 transition">
-                                <i class="fa-solid fa-camera"></i>
-                            </div>
-                            <span class="text-xs font-medium text-gray-600">Absen</span>
-                        </button>
-                        <button class="flex flex-col items-center gap-2">
-                            <div class="w-14 h-14 bg-purple-50 rounded-2xl flex items-center justify-center text-purple-600 text-xl shadow-sm active:scale-95 transition">
-                                <i class="fa-solid fa-umbrella-beach"></i>
-                            </div>
-                            <span class="text-xs font-medium text-gray-600">Izin/Cuti</span>
-                        </button>
-                        <button onclick="setEmpTab('history')" class="flex flex-col items-center gap-2">
-                            <div class="w-14 h-14 bg-pink-50 rounded-2xl flex items-center justify-center text-pink-600 text-xl shadow-sm active:scale-95 transition">
-                                <i class="fa-solid fa-file-lines"></i>
-                            </div>
-                            <span class="text-xs font-medium text-gray-600">Laporan</span>
-                        </button>
-                        <button class="flex flex-col items-center gap-2">
-                            <div class="w-14 h-14 bg-yellow-50 rounded-2xl flex items-center justify-center text-yellow-600 text-xl shadow-sm active:scale-95 transition">
-                                <i class="fa-solid fa-bullhorn"></i>
-                            </div>
-                            <span class="text-xs font-medium text-gray-600">Info</span>
-                        </button>
-                    </div>
+                <!-- Bank Control -->
+                <div class="glass-card p-6">
+                    <h3 class="font-bold text-slate-700 mb-4 border-b pb-2 flex items-center gap-2"><i class="fas fa-university text-green-600"></i> Kontrol Bank & QRIS</h3>
+                    <div class="bg-green-50 p-4 rounded-xl border border-green-100 mb-6"><div class="flex justify-between items-center mb-2"><span class="text-xs font-bold text-green-800 uppercase">Total QRIS Hari Ini</span><i class="fas fa-qrcode text-green-600 opacity-50"></i></div><div class="flex justify-between items-end"><span id="bank-qris-system" class="text-2xl font-black text-green-700">Rp 0</span><div class="text-right"><p class="text-[10px] text-green-600">Est. Bersih (MDR 0.7%)</p><p id="est-net-receive" class="font-bold text-green-800">Rp 0</p></div></div></div>
+                    <form onsubmit="submitBankExpense(event)" class="space-y-3 bg-white p-1 rounded"><p class="text-xs font-bold text-slate-400 uppercase">Catat Pengeluaran Transfer</p><div class="flex gap-2"><input type="text" id="expense-desc" required placeholder="Ket (Misal: Beli Gula)" class="flex-1 p-2 border rounded text-sm outline-none focus:border-blue-500"><input type="number" id="expense-amount" required placeholder="Rp" class="w-24 p-2 border rounded text-sm outline-none focus:border-blue-500"></div><button type="submit" id="btn-save-expense" class="w-full bg-slate-800 text-white py-2 rounded text-xs font-bold hover:bg-slate-700 transition">Simpan Catatan</button></form><div class="mt-4 max-h-32 overflow-y-auto space-y-1" id="bank-expense-list"></div>
                 </div>
+            </div>
+        </div>
 
-                <div class="px-6 mt-8 pb-10">
-                    <h3 class="font-bold text-gray-800 mb-4 text-sm uppercase tracking-wide">Pengumuman</h3>
-                    <div class="space-y-3">
-                        ${mockDatabase.announcements.map(a => `
-                            <div class="bg-white p-4 rounded-2xl shadow-sm border-l-4 border-indigo-500">
-                                <div class="flex justify-between items-start mb-1">
-                                    <h4 class="font-bold text-sm text-gray-800">${a.Judul || a.title}</h4>
-                                    <span class="text-[10px] bg-gray-100 px-2 py-0.5 rounded text-gray-500">${a.Timestamp ? new Date(a.Timestamp).toLocaleDateString() : a.date}</span>
-                                </div>
-                                <p class="text-xs text-gray-500 leading-relaxed">${a.Pesan || a.message}</p>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-        }
+        <!-- TAB 2 & 3 (Analisis & Data) -->
+        <div id="view-analytics" class="tab-view hidden fade-in">
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6 flex flex-wrap items-center gap-4"><div class="flex items-center gap-2"><span class="text-xs font-bold text-slate-500">Dari:</span><input type="date" id="ana-start-date" class="p-2 border rounded text-sm"></div><div class="flex items-center gap-2"><span class="text-xs font-bold text-slate-500">Sampai:</span><input type="date" id="ana-end-date" class="p-2 border rounded text-sm"></div><button onclick="loadHistoricalData()" class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold hover:bg-blue-700 shadow">Tampilkan Data</button></div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6"><div class="glass-card p-6 lg:col-span-2"><h3 class="font-bold text-slate-700 mb-4"><i class="fas fa-clock text-blue-500"></i> Jam Ramai</h3><div class="h-80 w-full"><canvas id="hourlyChart"></canvas></div></div><div class="glass-card p-6"><h3 class="font-bold text-slate-700 mb-4"><i class="fas fa-crown text-yellow-500"></i> Menu Terlaris</h3><div class="space-y-2 overflow-y-auto h-80 pr-2" id="top-items-list"></div></div></div>
+        </div>
+        <div id="view-data" class="tab-view hidden fade-in">
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6 flex flex-wrap items-center gap-4 justify-between"><div class="flex gap-4"><div class="flex items-center gap-2"><span class="text-xs font-bold text-slate-500">Dari:</span><input type="date" id="rep-start-date" class="p-2 border rounded text-sm"></div><div class="flex items-center gap-2"><span class="text-xs font-bold text-slate-500">Sampai:</span><input type="date" id="rep-end-date" class="p-2 border rounded text-sm"></div><button onclick="loadReportData()" class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold hover:bg-blue-700 shadow">Cari</button></div><button onclick="downloadReportCSV()" class="text-xs bg-green-600 text-white px-3 py-2 rounded font-bold hover:bg-green-700 flex items-center gap-2 shadow"><i class="fas fa-file-excel"></i> Export CSV</button></div>
+            <div class="glass-card overflow-hidden"><div class="p-4 bg-slate-50 border-b border-slate-200"><h3 class="font-bold text-slate-700" id="report-title">Hasil Pencarian</h3></div><div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead class="bg-white text-slate-500 text-xs uppercase font-bold border-b"><tr><th class="p-4">Waktu</th><th class="p-4">Customer</th><th class="p-4">Items</th><th class="p-4">Metode</th><th class="p-4 text-right">Total</th></tr></thead><tbody id="report-table-body" class="divide-y divide-slate-100 text-slate-600"><tr><td colspan="5" class="p-6 text-center italic text-slate-400">Silakan pilih tanggal.</td></tr></tbody><tfoot class="bg-slate-50 font-bold text-slate-700"><tr><td colspan="4" class="p-4 text-right">TOTAL:</td><td class="p-4 text-right" id="report-total-sum">Rp 0</td></tr></tfoot></table></div></div>
+        </div>
 
-        function renderClockModal() {
-            const modal = document.createElement('div');
-            modal.className = "fixed inset-0 z-50 bg-white flex flex-col animate-slide-in";
-            
-            const todayAtt = mockDatabase.attendance.find(a => a.empId === state.user.id && a.date === new Date().toISOString().split('T')[0]);
-            const hasClockIn = !!todayAtt;
-            const hasClockOut = todayAtt && todayAtt.clockOut;
+        <input type="hidden" id="active-shift-filter" value="all">
+    </div>
 
-            modal.innerHTML = `
-                <div class="px-6 py-4 flex items-center justify-between bg-white border-b border-gray-100">
-                    <button onclick="closeClockPage()" class="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-600 hover:bg-gray-100 transition">
-                        <i class="fa-solid fa-arrow-left"></i>
-                    </button>
-                    <h2 class="font-bold text-gray-800">Live Attendance</h2>
-                    <div class="w-10"></div>
-                </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, collection, query, where, onSnapshot, orderBy, addDoc, serverTimestamp, getDocs, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-                <div class="relative h-64 w-full bg-map-pattern overflow-hidden">
-                    <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
-                         <div class="w-16 h-16 rounded-full bg-indigo-500/20 animate-ping absolute"></div>
-                         <div class="w-4 h-4 rounded-full bg-indigo-600 border-2 border-white shadow-md z-10"></div>
-                         <div class="bg-white px-3 py-1 rounded-lg shadow-lg text-xs font-bold mt-2 whitespace-nowrap">
-                            Lokasi Anda
-                         </div>
-                    </div>
-                    
-                    <div class="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur-md p-3 rounded-xl shadow-sm border border-white/50 flex justify-between items-center">
-                         <div>
-                            <p class="text-[10px] text-gray-500 font-bold uppercase">Akurasi GPS</p>
-                            <p id="gps-distance" class="text-xs font-bold text-indigo-600">${state.gps.dist}m dari Kantor</p>
-                         </div>
-                         <div id="gps-badge" class="px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-500 flex items-center gap-1">
-                            <i class="fa-solid fa-spinner fa-spin"></i> Cek..
-                         </div>
-                    </div>
-                </div>
+        const firebaseConfig = { apiKey: "AIzaSyB0nHqdAw_dV9pHcQ_cSnWtNsn4CwwwUNc", authDomain: "payboss-cafe-system.firebaseapp.com", projectId: "payboss-cafe-system", storageBucket: "payboss-cafe-system.appspot.com", messagingSenderId: "570523503793", appId: "1:570523503793:web:0a7ba7ce751eb95a3f6690" };
+        const app = initializeApp(firebaseConfig); const db = getFirestore(app); const auth = getAuth(app);
 
-                <div class="flex-1 bg-gray-50 p-6 rounded-t-[2rem] -mt-6 relative z-10 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] flex flex-col items-center">
-                    
-                    <div class="text-center mb-6">
-                        <h1 id="live-clock-modal" class="text-4xl font-bold text-gray-800 font-mono tracking-tight">--:--</h1>
-                        <p class="text-sm text-gray-400 font-medium mt-1">${new Date().toLocaleDateString('id-ID', {weekday:'long', day:'numeric', month:'long', year:'numeric'})}</p>
-                    </div>
+        let allOrdersToday = []; let allShiftReports = [];
+        let systemCashTotal = 0; let systemQrisTotalFullDay = 0; let chartInstance = null;
 
-                    <!-- Camera Preview -->
-                    <div class="w-32 h-32 bg-black rounded-2xl mb-8 overflow-hidden border-4 border-white shadow-sm relative">
-                        <video id="camera-preview" autoplay playsinline class="w-full h-full object-cover transform -scale-x-100"></video>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4 w-full mt-auto">
-                        <button id="btn-clock-in-action" onclick="clockAction('in')" ${hasClockIn ? 'disabled' : ''} 
-                            class="py-4 rounded-2xl bg-green-500 text-white font-bold shadow-lg shadow-green-500/30 active:scale-95 transition disabled:opacity-50 disabled:bg-gray-400 disabled:shadow-none flex flex-col items-center gap-1">
-                            <i class="fa-solid fa-right-to-bracket text-xl"></i>
-                            <span>MASUK</span>
-                        </button>
-                        <button id="btn-clock-out-action" onclick="clockAction('out')" ${!hasClockIn || hasClockOut ? 'disabled' : ''} 
-                            class="py-4 rounded-2xl bg-red-500 text-white font-bold shadow-lg shadow-red-500/30 active:scale-95 transition disabled:opacity-50 disabled:bg-gray-400 disabled:shadow-none flex flex-col items-center gap-1">
-                            <i class="fa-solid fa-right-from-bracket text-xl"></i>
-                            <span>PULANG</span>
-                        </button>
-                    </div>
-                    
-                    <p class="text-[10px] text-gray-400 mt-4 text-center">Pastikan wajah terlihat jelas & lokasi akurat.</p>
-                </div>
-            `;
-            
-            const interval = setInterval(() => {
-                const el = document.getElementById('live-clock-modal');
-                if(el) el.innerText = new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'});
-                else clearInterval(interval);
-            }, 1000);
-
-            return modal;
-        }
-
-        function renderEmpHistory() {
-            const history = mockDatabase.attendance.filter(a => a.empId === state.user.id).reverse();
-            
-            return `
-                <div class="bg-white pt-8 pb-4 px-6 shadow-sm sticky top-0 z-30">
-                    <h2 class="text-2xl font-bold text-gray-800">Riwayat Absensi</h2>
-                    
-                    <div class="mt-4 flex gap-2 overflow-x-auto hide-scrollbar pb-2">
-                        <button class="px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-full shadow-md shadow-indigo-500/30 whitespace-nowrap">November 2025</button>
-                        <button class="px-4 py-2 bg-white border border-gray-200 text-gray-500 text-xs font-bold rounded-full whitespace-nowrap">Oktober 2025</button>
-                        <button class="px-4 py-2 bg-white border border-gray-200 text-gray-500 text-xs font-bold rounded-full whitespace-nowrap">September 2025</button>
-                    </div>
-                </div>
-
-                <div class="px-6 py-6 space-y-4">
-                    ${history.length === 0 ? `
-                        <div class="text-center py-10 opacity-50">
-                            <i class="fa-solid fa-box-open text-4xl mb-2 text-gray-400"></i>
-                            <p class="text-sm">Belum ada data absensi.</p>
-                        </div>
-                    ` : ''}
-                    
-                    ${history.map(h => `
-                        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 relative overflow-hidden">
-                             <div class="absolute left-0 top-0 bottom-0 w-1.5 ${h.status === 'Terlambat' ? 'bg-orange-400' : 'bg-green-500'}"></div>
-                             <div class="flex justify-between items-start mb-3">
-                                <div>
-                                    <p class="text-xs text-gray-400 font-bold uppercase mb-0.5">${new Date(h.date).toLocaleDateString('id-ID', {weekday: 'long', day:'numeric', month:'short'})}</p>
-                                    <div class="flex items-center gap-2">
-                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold ${h.status === 'Terlambat' ? 'bg-orange-100 text-orange-600' : 'bg-green-100 text-green-600'}">
-                                            ${h.status}
-                                        </span>
-                                    </div>
-                                </div>
-                                <div class="text-right">
-                                     <p class="text-xs text-gray-400">Total Jam</p>
-                                     <p class="font-bold text-gray-800 text-sm">8j 00m</p>
-                                </div>
-                             </div>
-                             
-                             <div class="flex gap-4 border-t border-gray-50 pt-3">
-                                <div class="flex-1">
-                                    <p class="text-[10px] text-gray-400 mb-1"><i class="fa-solid fa-right-to-bracket text-green-500 mr-1"></i> Masuk</p>
-                                    <p class="font-bold text-gray-700">${h.clockIn}</p>
-                                </div>
-                                <div class="w-px bg-gray-100"></div>
-                                <div class="flex-1">
-                                    <p class="text-[10px] text-gray-400 mb-1"><i class="fa-solid fa-right-from-bracket text-red-500 mr-1"></i> Pulang</p>
-                                    <p class="font-bold text-gray-700">${h.clockOut || '--:--'}</p>
-                                </div>
-                             </div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-        }
-
-        function renderEmpProfile() {
-            return `
-                <div class="bg-white pt-8 pb-6 px-6 shadow-sm text-center">
-                    <div class="w-24 h-24 rounded-full border-4 border-white shadow-xl mx-auto mb-4 relative">
-                        <img src="${state.user.photo || 'https://via.placeholder.com/150'}" class="w-full h-full rounded-full object-cover" alt="Profile">
-                        <button class="absolute bottom-0 right-0 bg-indigo-600 text-white w-8 h-8 rounded-full flex items-center justify-center shadow-md border-2 border-white text-xs">
-                            <i class="fa-solid fa-pen"></i>
-                        </button>
-                    </div>
-                    <h2 class="text-xl font-bold text-gray-800">${state.user.name}</h2>
-                    <p class="text-gray-500 text-sm">${state.user.role === 'manager' ? 'Manager' : state.user.position} • ${state.user.role === 'manager' ? 'Admin' : state.user.id}</p>
-                </div>
-
-                <div class="px-6 py-6 space-y-3">
-                    <div class="bg-white rounded-2xl p-1 shadow-sm border border-gray-100 overflow-hidden">
-                        <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition border-b border-gray-50">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center"><i class="fa-regular fa-user"></i></div>
-                                <span class="text-sm font-medium text-gray-700">Data Diri</span>
-                            </div>
-                            <i class="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
-                        </button>
-                        <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition border-b border-gray-50">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center"><i class="fa-solid fa-lock"></i></div>
-                                <span class="text-sm font-medium text-gray-700">Ubah Password</span>
-                            </div>
-                            <i class="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
-                        </button>
-                        <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-lg bg-green-50 text-green-600 flex items-center justify-center"><i class="fa-solid fa-headset"></i></div>
-                                <span class="text-sm font-medium text-gray-700">Pusat Bantuan</span>
-                            </div>
-                            <i class="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
-                        </button>
-                    </div>
-
-                    <button onclick="logout()" class="w-full bg-red-50 text-red-600 font-bold py-4 rounded-2xl mt-4 flex items-center justify-center gap-2 active:scale-95 transition">
-                        <i class="fa-solid fa-arrow-right-from-bracket"></i> Keluar Akun
-                    </button>
-                    
-                    <p class="text-center text-[10px] text-gray-400 mt-6">Versi Aplikasi 2.0.5</p>
-                </div>
-            `;
-        }
-
-        /* ==========================================================================
-           4. HELPERS & UTILS
-           ========================================================================== */
-        function toggleLoginRole(role) {
-            window.currentRole = role;
-            document.getElementById('role-emp').className = role === 'employee' ? "flex-1 py-3 text-sm font-bold rounded-xl bg-white text-indigo-600 shadow-sm transition-all" : "flex-1 py-3 text-sm font-bold rounded-xl text-gray-500 hover:text-gray-700 transition-all";
-            document.getElementById('role-mgr').className = role === 'manager' ? "flex-1 py-3 text-sm font-bold rounded-xl bg-white text-indigo-600 shadow-sm transition-all" : "flex-1 py-3 text-sm font-bold rounded-xl text-gray-500 hover:text-gray-700 transition-all";
-        }
-
-        function setEmpTab(tab) { state.empTab = tab; render(); }
-        function setMgrTab(tab) { state.mgrTab = tab; render(); }
-        
-        function openClockPage() { 
-            state.isClockPageOpen = true; 
-            render(); 
-            updateUIOnGPSChange(); 
-            setTimeout(startCamera, 500);
-        }
-
-        function closeClockPage() { 
-            stopCamera();
-            state.isClockPageOpen = false; 
-            render(); 
-        }
-
-        function logout() { state.user = null; state.view = 'login'; state.empTab = 'home'; state.mgrTab = 'dashboard'; render(); }
-
-        function showToast(msg, type, autoClose = true) {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `${type === 'success' ? 'bg-green-500' : (type === 'error' ? 'bg-red-500' : 'bg-blue-500')} text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-3 text-sm font-medium transform translate-y-5 opacity-0 transition-all duration-300`;
-            toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-check' : (type === 'error' ? 'fa-circle-exclamation' : 'fa-info-circle')}"></i> ${msg}`;
-            container.appendChild(toast);
-            requestAnimationFrame(() => toast.classList.remove('translate-y-5', 'opacity-0'));
-            
-            if(autoClose) {
-                setTimeout(() => { toast.classList.add('opacity-0', '-translate-y-2'); setTimeout(() => toast.remove(), 300); }, 3000);
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById('login-modal').classList.add('hidden');
+                document.getElementById('main-content').classList.remove('filter', 'blur-md', 'pointer-events-none');
+                initDailyDashboard();
+                
+                const todayStr = new Date().toISOString().slice(0,10);
+                document.getElementById('ana-start-date').value = todayStr;
+                document.getElementById('ana-end-date').value = todayStr;
+                document.getElementById('rep-start-date').value = todayStr;
+                document.getElementById('rep-end-date').value = todayStr;
+            } else {
+                document.getElementById('login-modal').classList.remove('hidden');
+                document.getElementById('main-content').classList.add('filter', 'blur-md', 'pointer-events-none');
             }
-            return toast;
+        });
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try { await signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value); } 
+            catch (error) { document.getElementById('login-error').classList.remove('hidden'); }
+        });
+        document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
+
+        window.switchTab = (tab) => {
+            document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
+            document.getElementById('view-'+tab).classList.remove('hidden');
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-'+tab).classList.add('active');
         }
 
-        // Start App
-        initApp();
+        function initDailyDashboard() {
+            const today = new Date(); today.setHours(0,0,0,0);
+            document.getElementById('header-date').textContent = today.toLocaleDateString('id-ID', {weekday:'long', day:'numeric', month:'long'});
+            
+            // 1. Listen ORDERS (Sales Data)
+            onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc")), (snapshot) => {
+                allOrdersToday = []; systemQrisTotalFullDay = 0;
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    if (!data.createdAt) return;
+                    const orderDate = data.createdAt.toDate();
+                    // LOGIC LINTAS HARI (Untuk Shift 3)
+                    // Kita ambil data mulai dari jam 08:00 pagi ini s/d 07:59 besok pagi
+                    // Atau sederhananya: Ambil semua data 24 jam terakhir, lalu filter by Shift Logic
+                    
+                    // Sederhana: Ambil semua data yang createdAt >= hari ini jam 00:00
+                    // Shift 3 yang lewat tengah malam akan masuk ke "Besok"
+                    
+                    // FIX: Agar shift malam terbaca utuh, kita perlu range H-1 jam 23:00 s/d H+1 jam 08:00
+                    // Tapi untuk dashboard harian, kita fokus ke "Shift yang dimulai hari ini" atau "Shift yang berakhir hari ini"?
+                    // Standard: Shift 3 (Malam) dihitung milik hari dimana shift itu DIMULAI.
+                    
+                    if (orderDate.getTime() >= today.getTime() || 
+                        (orderDate.getHours() < 8 && orderDate.getDate() === new Date().getDate())) {
+                        
+                        // Masukkan data, nanti difilter di updateShiftCards
+                        const formattedTime = doc.data().createdAt.toDate().toLocaleTimeString('id-ID', {hour12: false, hour: '2-digit', minute:'2-digit'});
+                        allOrdersToday.push({ ...data, formattedTime, rawDate: orderDate });
+                        
+                        // Hitung QRIS Total (Hanya yg benar2 hari ini)
+                        if(orderDate.getDate() === new Date().getDate() && (data.paymentMethod||'').toLowerCase().includes('qris')) {
+                            systemQrisTotalFullDay += (data.total || 0);
+                        }
+                    }
+                });
+                updateShiftCards(); updateBankPanel(); applyFilter();
+            });
+
+            // 2. Listen SHIFT REPORTS
+            onSnapshot(query(collection(db, "shift_reports"), orderBy("timestamp", "desc")), (snapshot) => {
+                allShiftReports = [];
+                snapshot.forEach(doc => {
+                    const d = doc.data();
+                    if(!d.timestamp) return;
+                    // Ambil laporan 24 jam terakhir
+                    if(d.timestamp.toDate().getTime() >= today.getTime() - (12*60*60*1000)) { 
+                        const tStr = d.timestamp.toDate().toLocaleTimeString('id-ID', {hour12: false, hour: '2-digit', minute:'2-digit'});
+                        allShiftReports.push({ ...d, timeStr: tStr });
+                    }
+                });
+                applyFilter();
+            });
+
+            // 3. Listen Bank Expenses
+            onSnapshot(query(collection(db, "bank_expenses"), orderBy("timestamp", "desc")), (snap) => {
+                const list = document.getElementById('bank-expense-list'); list.innerHTML = '';
+                let has = false;
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    if(d.timestamp && d.timestamp.toDate().setHours(0,0,0,0) === today.getTime()) {
+                        has = true;
+                        list.innerHTML += `<div class="flex justify-between text-xs bg-red-50 p-2 rounded border border-red-100 mb-1 items-center"><span>${d.desc}</span><span class="font-bold text-red-500">- Rp ${d.amount.toLocaleString('id-ID')}</span></div>`;
+                    }
+                });
+                if(!has) list.innerHTML = '<p class="text-xs text-gray-400 text-center italic mt-4">Belum ada data.</p>';
+            });
+        }
+
+        // --- LOGIC JAM SHIFT (FINAL FIX CROSS-DAY) ---
+        function getShift(timeStr) {
+            // S1: 08:00 - 15:59
+            if (timeStr >= '08:00' && timeStr < '16:00') return 's1';
+            // S2: 16:00 - 22:59
+            if (timeStr >= '16:00' && timeStr < '23:00') return 's2';
+            // S3: 23:00 - 07:59 (Malam Lintas Hari)
+            if (timeStr >= '23:00' || timeStr < '08:00') return 's3';
+            
+            return null;
+        }
+
+        function updateShiftCards() {
+            let s1={t:0,c:0,q:0}, s2={t:0,c:0,q:0}, s3={t:0,c:0,q:0}, grand={t:0,c:0,q:0};
+            
+            // Filter data agar tidak double count (misal data kemarin jam 23:00 vs hari ini jam 23:00)
+            // Kita asumsikan dashboard dibuka "Hari Ini".
+            const todayDate = new Date().getDate();
+
+            allOrdersToday.forEach(o => {
+                const t = o.formattedTime; 
+                const amt = o.total||0; 
+                const isQris = (o.paymentMethod||'').toLowerCase().includes('qris');
+                const shift = getShift(t);
+                const d = o.rawDate.getDate();
+
+                // Logic Validasi Tanggal untuk Shift 3
+                // Jika jam 00:00-07:59, pastikan tanggalnya HARI INI.
+                // Jika jam 23:00-23:59, pastikan tanggalnya HARI INI.
+                // (Abaikan data kemarin sore yang mungkin terbawa query)
+                if (d !== todayDate && shift !== 's3') return; 
+
+                if (shift==='s1') { s1.t+=amt; isQris?s1.q+=amt:s1.c+=amt; }
+                else if (shift==='s2') { s2.t+=amt; isQris?s2.q+=amt:s2.c+=amt; }
+                else if (shift==='s3') { s3.t+=amt; isQris?s3.q+=amt:s3.c+=amt; }
+                
+                grand.t+=amt; isQris?grand.q+=amt:grand.c+=amt;
+            });
+            
+            const fmt = n => n.toLocaleString('id-ID');
+            document.getElementById('grand-total').innerText = 'Rp '+fmt(grand.t); document.getElementById('grand-cash').innerText = fmt(grand.c); document.getElementById('grand-qris').innerText = fmt(grand.q);
+            document.getElementById('s1-total').innerText = 'Rp '+fmt(s1.t); document.getElementById('s1-cash').innerText = fmt(s1.c); document.getElementById('s1-qris').innerText = fmt(s1.q);
+            document.getElementById('s2-total').innerText = 'Rp '+fmt(s2.t); document.getElementById('s2-cash').innerText = fmt(s2.c); document.getElementById('s2-qris').innerText = fmt(s2.q);
+            document.getElementById('s3-total').innerText = 'Rp '+fmt(s3.t); document.getElementById('s3-cash').innerText = fmt(s3.c); document.getElementById('s3-qris').innerText = fmt(s3.q);
+        }
+
+        // CALCULATOR + INTEGRATION
+        window.setShift = (sc, btn) => {
+            document.getElementById('active-shift-filter').value = sc;
+            document.querySelectorAll('.shift-btn').forEach(b => { b.classList.remove('bg-blue-600','text-white','shadow-md'); b.classList.add('text-slate-600'); });
+            if(btn) { btn.classList.remove('text-slate-600'); btn.classList.add('bg-blue-600','text-white','shadow-md'); }
+            applyFilter();
+        }
+
+        window.applyFilter = () => {
+            const sc = document.getElementById('active-shift-filter').value;
+            
+            // 1. Filter Orders
+            const todayDate = new Date().getDate();
+            const filtered = allOrdersToday.filter(o => {
+                // Basic Date Filter to avoid mixing days
+                if (o.rawDate.getDate() !== todayDate && getShift(o.formattedTime) !== 's3') return false;
+                return sc === 'all' || getShift(o.formattedTime) === sc;
+            });
+            
+            let cash = 0;
+            filtered.forEach(o => { if(!(o.paymentMethod||'').toLowerCase().includes('qris')) cash += (o.total||0); });
+            systemCashTotal = cash;
+            document.getElementById('system-cash-display').innerText = `Rp ${cash.toLocaleString('id-ID')}`;
+
+            // 2. Filter Shift Reports (AUTO FILL)
+            if (sc !== 'all') {
+                // Cari laporan kasir
+                // Logic: Cari laporan yg jamnya masuk range shift ini
+                const report = allShiftReports.find(r => getShift(r.timeStr) === sc && r.type.includes('end'));
+                const startReport = allShiftReports.find(r => getShift(r.timeStr) === sc && r.type.includes('start'));
+
+                if (report) {
+                    document.getElementById('input-fisik-akhir').value = report.cash_end || 0;
+                    document.getElementById('input-pengeluaran').value = report.expenses || 0;
+                    document.getElementById('auto-fill-badge').classList.remove('hidden');
+                    document.getElementById('reporter-name').innerText = report.employee;
+                    document.getElementById('expense-desc-display').innerText = report.expense_notes ? `"${report.expense_notes}"` : '';
+                }
+                if (startReport) document.getElementById('input-modal-awal').value = startReport.cash_start || 0;
+                
+                if (!report && !startReport) {
+                    document.getElementById('auto-fill-badge').classList.add('hidden');
+                    document.getElementById('no-data-badge').classList.remove('hidden');
+                } else {
+                    document.getElementById('no-data-badge').classList.add('hidden');
+                }
+            } else {
+                document.getElementById('auto-fill-badge').classList.add('hidden');
+                document.getElementById('no-data-badge').classList.add('hidden');
+            }
+
+            calculateClosing();
+        }
+
+        window.calculateClosing = () => {
+            const modal = parseFloat(document.getElementById('input-modal-awal').value)||0;
+            const laci = parseFloat(document.getElementById('input-fisik-akhir').value)||0;
+            const bon = parseFloat(document.getElementById('input-pengeluaran').value)||0;
+            
+            const fisik = (laci - modal) + bon;
+            const selisih = fisik - systemCashTotal;
+            
+            document.getElementById('calculated-physical-revenue').innerText = `Rp ${fisik.toLocaleString('id-ID')}`;
+            const elAmt = document.getElementById('variance-amount');
+            const elSts = document.getElementById('variance-status');
+            elAmt.innerText = `Rp ${selisih.toLocaleString('id-ID')}`;
+            
+            if(document.getElementById('input-fisik-akhir').value=='') { elAmt.className="block font-black text-xl text-slate-400"; elSts.innerText="Menunggu Input"; elSts.className="text-[10px] bg-slate-200 px-2 py-0.5 rounded text-slate-500"; }
+            else if(selisih==0) { elAmt.className="block font-black text-xl text-green-600"; elSts.innerText="KLOP"; elSts.className="text-[10px] bg-green-100 px-2 py-0.5 rounded text-green-800 font-bold"; }
+            else if(selisih<0) { elAmt.className="block font-black text-xl text-red-600"; elSts.innerText="MINUS"; elSts.className="text-[10px] bg-red-100 px-2 py-0.5 rounded text-red-800 font-bold"; }
+            else { elAmt.className="block font-black text-xl text-blue-600"; elSts.innerText="SURPLUS"; elSts.className="text-[10px] bg-blue-100 px-2 py-0.5 rounded text-blue-800 font-bold"; }
+        }
+        window.resetCalculator = () => { document.getElementById('input-modal-awal').value=''; document.getElementById('input-fisik-akhir').value=''; document.getElementById('input-pengeluaran').value=''; calculateClosing(); }
+        function updateBankPanel() { document.getElementById('bank-qris-system').innerText = `Rp ${systemQrisTotalFullDay.toLocaleString('id-ID')}`; document.getElementById('est-net-receive').innerText = `Rp ${Math.round(systemQrisTotalFullDay * 0.993).toLocaleString('id-ID')}`; }
+        window.submitBankExpense = async (e) => { e.preventDefault(); try { await addDoc(collection(db, "bank_expenses"), { desc: document.getElementById('expense-desc').value, amount: parseFloat(document.getElementById('expense-amount').value), timestamp: serverTimestamp(), user: auth.currentUser.email }); document.getElementById('expense-desc').value=''; document.getElementById('expense-amount').value=''; alert("Tersimpan!"); } catch(e) { alert(e.message); } }
+        
+        // ... (Analisis & Report Functions sama seperti v3.3) ...
+        window.loadHistoricalData = async function() {
+            const startVal = document.getElementById('ana-start-date').value;
+            const endVal = document.getElementById('ana-end-date').value;
+
+            if (!startVal || !endVal) {
+                alert("Harap pilih tanggal awal dan akhir.");
+                return;
+            }
+
+            const start = new Date(startVal);
+            const end = new Date(endVal);
+
+            if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+                alert("Format tanggal tidak valid.");
+                return;
+            }
+
+            end.setHours(23, 59, 59, 999);
+
+            const q = query(
+                collection(db, "orders"), 
+                where("createdAt", ">=", Timestamp.fromDate(start)),
+                where("createdAt", "<=", Timestamp.fromDate(end)),
+                orderBy("createdAt", "desc") 
+            );
+
+            try {
+                const snapshot = await getDocs(q);
+                let itemCounts = {}; let hourlySales = new Array(24).fill(0);
+                snapshot.forEach(doc => {
+                    const data = doc.data(); const date = data.createdAt.toDate();
+                    hourlySales[date.getHours()] += (data.total || 0);
+                    if (data.items && Array.isArray(data.items)) data.items.forEach(item => { const name = item.name + (item.variant ? ` (${item.variant})` : ''); itemCounts[name] = (itemCounts[name] || 0) + (item.qty || 1); });
+                });
+                updateCharts(hourlySales);
+                const sorted = Object.entries(itemCounts).sort((a,b)=>b[1]-a[1]).slice(0,10);
+                document.getElementById('top-items-list').innerHTML = sorted.length ? sorted.map(([n,c],i) => `<div class="flex justify-between p-2 border-b"><div class="flex gap-2"><span class="font-bold w-5">${i+1}</span><span>${n}</span></div><span class="bg-blue-100 px-2 rounded font-bold text-blue-700 text-xs">${c}x</span></div>`).join('') : '<p class="text-center text-sm text-gray-400 mt-4">Tidak ada data.</p>';
+            } catch (error) { alert("Error: " + error.message); }
+        }
+        function updateCharts(data) {
+            const ctx = document.getElementById('hourlyChart').getContext('2d');
+            if(chartInstance) chartInstance.destroy();
+            chartInstance = new Chart(ctx, { type: 'bar', data: { labels: Array.from({length:24}, (_,i)=>`${String(i).padStart(2,'0')}:00`), datasets: [{ label: 'Total (Rp)', data: data, backgroundColor: '#3b82f6', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: {display:false} }, scales: { x: { grid:{display:false} }, y: { grid:{borderDash:[4,4]} } } } });
+        }
+        window.loadReportData = async function() {
+            const startVal = document.getElementById('rep-start-date').value;
+            const endVal = document.getElementById('rep-end-date').value;
+
+            if (!startVal || !endVal) {
+                alert("Harap pilih tanggal awal dan akhir.");
+                return;
+            }
+
+            const start = new Date(startVal);
+            const end = new Date(endVal);
+
+            if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+                alert("Format tanggal tidak valid.");
+                return;
+            }
+            
+            end.setHours(23, 59, 59, 999);
+            
+            const tbody = document.getElementById('report-table-body'); tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center italic text-slate-400">Memuat...</td></tr>';
+            const q = query(collection(db, "orders"), where("createdAt", ">=", Timestamp.fromDate(start)), where("createdAt", "<=", Timestamp.fromDate(end)), orderBy("createdAt", "desc"));
+            try {
+                const snapshot = await getDocs(q); let total = 0; let html = ''; let reportOrders = [];
+                snapshot.forEach(doc => {
+                    const d = doc.data(); const tStr = d.createdAt.toDate().toLocaleTimeString('id-ID', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
+                    const iStr = (d.items||[]).map(i=>`${i.qty}x ${i.name}`).join(', '); reportOrders.push({...d, tStr, iStr}); total += (d.total||0);
+                    html += `<tr class="hover:bg-slate-50 border-b"><td class="p-4 text-xs">${tStr}</td><td class="p-4 font-bold">${d.customer}</td><td class="p-4 text-xs truncate max-w-[150px]">${iStr}</td><td class="p-4">${d.paymentMethod}</td><td class="p-4 text-right font-bold">Rp ${(d.total||0).toLocaleString('id-ID')}</td></tr>`;
+                });
+                tbody.innerHTML = html || '<tr><td colspan="5" class="p-6 text-center italic text-slate-400">Tidak ada data.</td></tr>'; document.getElementById('report-total-sum').innerText = `Rp ${total.toLocaleString('id-ID')}`; window.currentReportData = reportOrders;
+            } catch (e) { alert("Error: " + e.message); }
+        }
+        window.downloadReportCSV = function() { if (!window.currentReportData || window.currentReportData.length === 0) return alert("Tampilkan data dulu."); let csv = "Waktu,Customer,Items,Metode,Total\n"; window.currentReportData.forEach(o => csv += `${o.tStr},"${o.customer}","${o.itemsStr}",${o.paymentMethod},${o.total}\n`); const link = document.createElement("a"); link.href = "data:text/csv;charset=utf-8," + encodeURI(csv); link.download = "Laporan_Payboss.csv"; link.click(); }
     </script>
 </body>
 </html>
