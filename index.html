@@ -131,6 +131,8 @@
                                             <label class="cursor-pointer relative"><input type="radio" name="trx_type" value="in" class="type-radio sr-only" checked onchange="handleTypeChange('in')"><div id="btn-in" class="py-3 px-4 rounded-xl font-bold border-2 border-emerald-500 bg-emerald-50 text-emerald-700 text-center transition">Masuk (+)</div></label>
                                             <label class="cursor-pointer relative"><input type="radio" name="trx_type" value="out" class="type-radio sr-only" onchange="handleTypeChange('out')"><div id="btn-out" class="py-3 px-4 rounded-xl font-bold border-2 border-slate-200 text-slate-400 text-center transition">Keluar (-)</div></label>
                                         </div>
+                                        <!-- ADDED MISSING HIDDEN INPUT -->
+                                        <input type="hidden" id="fin-type" value="in">
                                     </div>
 
                                     <!-- 2. Tanggal & Unit -->
@@ -297,7 +299,7 @@
         const auth = getAuth(app);
 
         // DATA STATE
-        let transactions = [], allCompletedOrders=[], allShiftReports=[];
+        let transactions = [], allCompletedOrders=[], allShiftReports=[], allFinanceLogs=[];
         let isEditing = false, editDocId = null;
         let peakChart=null, barChartInstance=null, pieChartInstance=null;
 
@@ -332,6 +334,7 @@
         // DOM HELPERS
         function setText(id, text) { const el = document.getElementById(id); if(el) el.innerText = text; }
         function setHTML(id, html) { const el = document.getElementById(id); if(el) el.innerHTML = html; }
+        function safeHTML(id, html) { const el = document.getElementById(id); if(el) el.innerHTML = html; }
 
         // AUTH & INIT
         onAuthStateChanged(auth, u => {
@@ -374,13 +377,16 @@
         function initListeners() {
             onSnapshot(query(collection(db, 'financial_transactions'), orderBy('timestamp', 'desc')), snap => {
                 transactions = snap.docs.map(d => ({id: d.id, ...d.data()}));
-                renderTransactionTable(transactions);
+                allFinanceLogs = transactions; // Sync variable name
+                renderFinanceHistory();
                 updateDashboards(); 
+                loadReportData();
             });
 
             onSnapshot(collection(db, 'completedOrders'), snap => {
                 allCompletedOrders = snap.docs.map(d => ({...d.data(), timestamp: d.data().createdAt?.seconds*1000}));
                 updateDashboards();
+                loadReportData();
             });
 
             onSnapshot(query(collection(db, 'shift_reports'), orderBy('createdAt', 'desc')), snap => {
@@ -498,9 +504,9 @@
             window.handleTypeChange('in');
         };
 
-        function renderTransactionTable(data) {
+        function renderFinanceHistory() {
             const tbody = document.getElementById('financeTableBody');
-            const recent = data.slice(0, 10); // Show top 10
+            const recent = allFinanceLogs.slice(0, 10); // Show top 10
             tbody.innerHTML = recent.map(t => {
                 let badgeColor = 'bg-gray-100 text-gray-600';
                 if(t.paymentMethod === 'QRIS') badgeColor = 'bg-blue-100 text-blue-600';
@@ -564,7 +570,7 @@
             });
 
             // 3. Process Manager Input (Big Ops)
-            transactions.forEach(f => {
+            allFinanceLogs.forEach(f => {
                 if(inRange(f.timestamp)) {
                     const item = {n:f.description||f.category, a:f.amount, d:f.dateString};
                     const code = f.coaCode.charAt(0);
@@ -623,6 +629,42 @@
         function fmt(n) { return 'Rp ' + (n||0).toLocaleString('id-ID'); }
         function formatDate(s) { if(!s) return '-'; return new Date(s).toLocaleDateString('id-ID'); }
         function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
+        
+        window.updateCategories = () => {
+            const unit = document.getElementById('unitSelect').value;
+            const type = document.querySelector('input[name="trx_type"]:checked').value;
+            const select = document.getElementById('categorySelect');
+            select.innerHTML = '';
+            
+            const list = coaDatabase[unit] ? coaDatabase[unit][type] : [];
+            if(!list || list.length === 0) {
+                if(type === 'in') select.add(new Option('Pendapatan Umum', '4000'));
+                else select.add(new Option('Biaya Umum', '5000'));
+            } else {
+                list.forEach(i => select.add(new Option(`[${i.c}] ${i.n}`, i.c)));
+            }
+        };
+
+        window.handleTypeChange = (type) => {
+            window.updateCategories();
+            const btnIn = document.getElementById('btn-in');
+            const btnOut = document.getElementById('btn-out');
+            
+            if(type === 'in') {
+                btnIn.className = "py-3 px-4 rounded-xl font-bold border-2 border-emerald-500 bg-emerald-50 text-emerald-700 text-center transition cursor-pointer";
+                btnOut.className = "py-3 px-4 rounded-xl font-bold border-2 border-slate-200 text-slate-400 text-center transition cursor-pointer";
+            } else {
+                btnOut.className = "py-3 px-4 rounded-xl font-bold border-2 border-rose-500 bg-rose-50 text-rose-700 text-center transition cursor-pointer";
+                btnIn.className = "py-3 px-4 rounded-xl font-bold border-2 border-slate-200 text-slate-400 text-center transition cursor-pointer";
+            }
+        };
+        
+        window.formatCurrency = (input) => {
+            let val = input.value.replace(/\D/g, '');
+            if(val === "") { input.value = ""; return; }
+            input.value = new Intl.NumberFormat('id-ID').format(val);
+        }
+
     </script>
 </body>
 </html>
