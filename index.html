@@ -1,670 +1,414 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PayBoss Finance - SOP Compliant</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; }
-        
-        /* Sidebar & Nav */
-        .sidebar-transition { transition: transform 0.3s ease-in-out; }
-        .nav-item { cursor: pointer; color: #94a3b8; transition: all 0.2s; }
-        .nav-item:hover { color: #f1f5f9; background: rgba(255,255,255,0.05); }
-        .nav-item.active { background: #0f172a; color: #34d399; border-right: 3px solid #34d399; }
-        
-        /* Shift Cards */
-        .shift-card { padding: 20px; border-radius: 16px; color: white; position: relative; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-        .shift-pagi { background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%); }
-        .shift-siang { background: linear-gradient(135deg, #34d399 0%, #059669 100%); }
-        .shift-malam { background: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%); }
-        
-        /* Utils */
-        .type-radio:checked + div { border-color: currentColor; background-color: rgb(243 244 246); }
-        
-        /* Print */
-        @media print {
-            body * { visibility: hidden; }
-            #printableArea, #printableArea * { visibility: visible; }
-            #printableArea { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; background: white; }
-            .no-print { display: none !important; }
-        }
-
-        .toast { position: fixed; bottom: 24px; right: 24px; background: #ef4444; color: white; padding: 14px 24px; border-radius: 10px; display: none; z-index: 100; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
-        .toast.show { display: block; animation: slideUp 0.3s; }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-    </style>
-</head>
-<body class="bg-slate-50 text-slate-800">
-
-    <!-- AUTH OVERLAY -->
-    <div id="auth-overlay" class="fixed inset-0 bg-slate-900/95 z-50 flex flex-col justify-center items-center backdrop-blur-sm">
-        <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-sm w-full text-center">
-            <div class="mb-4 bg-slate-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto text-3xl">🔐</div>
-            <h2 class="text-2xl font-bold text-slate-800 mb-2">Manager Login</h2>
-            <p class="text-slate-500 mb-6 text-sm">Akses Laporan Keuangan & Operasional</p>
-            <form onsubmit="handleLogin(event)">
-                <input type="email" id="fin-email" placeholder="Email Manager" class="w-full p-3 border rounded-lg mb-3 focus:outline-none focus:ring-2 focus:ring-emerald-500" required>
-                <input type="password" id="fin-pass" placeholder="Password" class="w-full p-3 border rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-emerald-500" required>
-                <button type="submit" id="btn-login" class="w-full bg-slate-900 text-white p-3 rounded-lg font-bold hover:bg-slate-800 transition shadow-lg">Masuk Dashboard</button>
-            </form>
-            <p id="login-error" class="text-red-500 text-xs mt-3 hidden"></p>
-        </div>
-    </div>
-
-    <!-- MOBILE HEADER -->
-    <div class="md:hidden bg-slate-900 text-white p-4 flex justify-between items-center sticky top-0 z-40 shadow-md no-print">
-        <div class="font-bold flex items-center gap-2">
-            <span class="text-emerald-400">PAYBOSS</span> <span class="text-xs bg-slate-700 px-2 py-0.5 rounded text-slate-300">V5 SOP</span>
-        </div>
-        <button onclick="toggleSidebar()" class="text-2xl">☰</button>
-    </div>
-
-    <div class="flex h-screen overflow-hidden relative" id="app-container" style="display:none;">
-        
-        <!-- SIDEBAR -->
-        <div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden no-print"></div>
-        <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-64 bg-slate-900 text-white flex flex-col transform -translate-x-full md:translate-x-0 md:static sidebar-transition no-print shadow-xl">
-            <div class="p-6 border-b border-slate-800">
-                <h1 class="text-xl font-bold flex items-center gap-2 tracking-tight">
-                    <span class="text-emerald-500 text-2xl">⚡</span> PAYBOSS
-                </h1>
-                <p class="text-xs text-slate-500 mt-1">One Stop Entertainment</p>
-            </div>
-            
-            <nav class="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
-                <div class="text-xs font-bold text-slate-500 uppercase px-3 mb-2 mt-2">Keuangan (SOP V5)</div>
-                <div onclick="showSection('input', this)" class="nav-item active w-full text-left px-4 py-3 rounded-lg flex gap-3 items-center" id="nav-input">
-                    <span>✏️</span> Input Transaksi
-                </div>
-                <div onclick="showSection('report', this)" class="nav-item w-full text-left px-4 py-3 rounded-lg flex gap-3 items-center" id="nav-report">
-                    <span>📑</span> Laporan Arus Kas
-                </div>
-                <div onclick="showSection('finance-dashboard', this)" class="nav-item w-full text-left px-4 py-3 rounded-lg flex gap-3 items-center" id="nav-finance-dashboard">
-                    <span>📊</span> Dashboard Keu
-                </div>
-
-                <div class="text-xs font-bold text-slate-500 uppercase px-3 mb-2 mt-6">Operasional</div>
-                <div onclick="showSection('ops-monitoring', this)" class="nav-item w-full text-left px-4 py-3 rounded-lg flex gap-3 items-center" id="nav-ops-monitoring">
-                    <span>👁️</span> Monitoring Ops
-                </div>
-            </nav>
-
-            <div class="p-4 border-t border-slate-800 bg-slate-900">
-                <div class="flex items-center gap-3 mb-3">
-                    <div class="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-xs font-bold">MG</div>
-                    <div class="text-xs">
-                        <div class="font-bold text-white">Manager</div>
-                        <div class="text-slate-500" id="user-email-display">user@payboss.com</div>
-                    </div>
-                </div>
-                <button onclick="doLogout()" class="w-full py-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg text-xs font-bold transition">Keluar</button>
-            </div>
-        </aside>
-
-        <!-- MAIN CONTENT -->
-        <main class="flex-1 overflow-y-auto w-full bg-slate-50">
-            <div class="p-4 md:p-8 pb-20 max-w-7xl mx-auto">
-
-                <!-- SECTION 1: INPUT TRANSAKSI (SOP BARU) -->
-                <div id="input-section" class="content-section active space-y-6">
-                    <header class="flex justify-between items-end">
-                        <div>
-                            <h2 class="text-2xl font-bold text-slate-900">Input Transaksi Keuangan</h2>
-                            <p class="text-sm text-slate-500">Sesuai SOP Pengisian Cashflow</p>
-                        </div>
-                    </header>
-                    
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        <!-- Form -->
-                        <div class="lg:col-span-1">
-                            <div class="bg-white p-6 rounded-2xl shadow-lg border border-slate-100 sticky top-4">
-                                <form id="financeForm" onsubmit="submitFinance(event)">
-                                    <!-- 1. Tipe Transaksi -->
-                                    <div class="mb-4">
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">1. Tipe Transaksi</label>
-                                        <div class="grid grid-cols-2 gap-3">
-                                            <label class="cursor-pointer relative"><input type="radio" name="trx_type" value="in" class="type-radio sr-only" checked onchange="handleTypeChange('in')"><div id="btn-in" class="py-3 px-4 rounded-xl font-bold border-2 border-emerald-500 bg-emerald-50 text-emerald-700 text-center transition">Masuk (+)</div></label>
-                                            <label class="cursor-pointer relative"><input type="radio" name="trx_type" value="out" class="type-radio sr-only" onchange="handleTypeChange('out')"><div id="btn-out" class="py-3 px-4 rounded-xl font-bold border-2 border-slate-200 text-slate-400 text-center transition">Keluar (-)</div></label>
-                                        </div>
-                                        <!-- ADDED MISSING HIDDEN INPUT -->
-                                        <input type="hidden" id="fin-type" value="in">
-                                    </div>
-
-                                    <!-- 2. Tanggal & Unit -->
-                                    <div class="grid grid-cols-2 gap-4 mb-4">
-                                        <div><label class="block text-xs font-bold text-slate-500 mb-1">2. Tanggal</label><input type="date" id="fin-date" class="w-full p-2 border rounded-lg text-sm font-semibold text-slate-700"></div>
-                                        <div><label class="block text-xs font-bold text-slate-500 mb-1">3. Unit Bisnis</label>
-                                            <select id="unitSelect" onchange="updateCategories()" class="w-full p-2 border rounded-lg text-sm bg-white font-bold text-slate-700">
-                                                <option value="fnb">Coffee & Resto</option>
-                                                <option value="ent">Karaoke & Billiard</option>
-                                                <option value="wel">Wellness</option>
-                                                <option value="ops">Operasional</option>
-                                                <option value="inv">Investasi</option>
-                                                <option value="fin">Pendanaan</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <!-- 3. Metode Pembayaran & COA -->
-                                    <div class="mb-4">
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">4. Metode Pembayaran <span class="text-red-500">*</span></label>
-                                        <select id="paymentSelect" class="w-full p-3 border rounded-lg text-sm bg-slate-50 font-semibold text-slate-800 border-l-4 border-l-indigo-500">
-                                            <option value="Tunai">💵 Tunai (Cash)</option>
-                                            <option value="QRIS">📱 QRIS / E-Wallet</option>
-                                            <option value="Transfer">🏦 Transfer Bank</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="mb-4">
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">5. Kode Akun (COA)</label>
-                                        <select id="categorySelect" class="w-full p-3 border rounded-lg text-sm bg-white font-mono text-slate-600 shadow-sm border-l-4 border-l-emerald-500">
-                                            <!-- Populated by JS -->
-                                        </select>
-                                    </div>
-
-                                    <!-- 4. Nominal & Catatan -->
-                                    <div class="mb-4">
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">6. Nominal (Rp)</label>
-                                        <input type="text" id="amountInput" onkeyup="formatCurrency(this)" class="w-full p-3 border rounded-lg font-bold text-lg text-slate-800" placeholder="0" required>
-                                    </div>
-
-                                    <div class="mb-6">
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">7. Catatan</label>
-                                        <textarea id="noteInput" rows="2" class="w-full p-3 border rounded-lg text-sm" placeholder="Contoh: Beli Galon 5 Pcs"></textarea>
-                                    </div>
-
-                                    <div class="flex gap-2">
-                                        <button type="button" id="cancelEditBtn" onclick="cancelEditMode()" class="hidden w-1/3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-3.5 rounded-xl transition">Batal</button>
-                                        <button type="submit" id="submitBtn" class="w-full bg-slate-900 hover:bg-black text-white font-bold py-3.5 rounded-xl transition shadow-lg flex items-center justify-center gap-2">
-                                            <span>💾</span> Simpan ke Cloud
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-
-                        <!-- History Table -->
-                        <div class="lg:col-span-2">
-                            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden h-full flex flex-col">
-                                <div class="px-6 py-4 border-b bg-slate-50 flex justify-between items-center">
-                                    <h3 class="font-bold text-slate-700">Riwayat Input Terakhir</h3>
-                                    <span class="text-xs text-slate-400 bg-white px-2 py-1 rounded border">Cek sebelum closing</span>
-                                </div>
-                                <div class="overflow-x-auto flex-1">
-                                    <table class="w-full text-left text-sm">
-                                        <thead class="bg-slate-50 text-slate-500 uppercase text-xs font-bold">
-                                            <tr><th class="px-4 py-3">Tanggal</th><th class="px-4 py-3">Metode</th><th class="px-4 py-3">Akun</th><th class="px-4 py-3 text-right">Nominal</th><th class="px-4 py-3 text-right">Aksi</th></tr>
-                                        </thead>
-                                        <tbody id="financeTableBody" class="divide-y divide-slate-100"></tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SECTION 2: REPORT (CASHFLOW) -->
-                <div id="report-section" class="content-section hidden space-y-6">
-                    <!-- ... Report Header & Controls (Same as before) ... -->
-                    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6 flex flex-wrap gap-4 items-center justify-between no-print">
-                        <div class="flex gap-4 items-center">
-                            <div><label class="block text-xs font-bold text-slate-500">Dari</label><input type="date" id="startDate" class="border rounded p-1 text-sm"></div>
-                            <div><label class="block text-xs font-bold text-slate-500">Sampai</label><input type="date" id="endDate" class="border rounded p-1 text-sm"></div>
-                            <button onclick="loadReportData()" class="bg-indigo-600 text-white px-4 py-1.5 rounded-md text-sm font-bold hover:bg-indigo-700">Tampilkan</button>
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick="window.print()" class="bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-bold">🖨️ PDF</button>
-                            <button onclick="exportExcel()" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold">📊 Excel</button>
-                        </div>
-                    </div>
-
-                    <div id="printableArea" class="bg-white shadow-xl rounded-xl overflow-hidden p-8 min-h-[800px]">
-                        <div class="text-center border-b-4 border-slate-800 pb-6 mb-8">
-                            <h1 class="text-3xl font-extrabold text-slate-900 uppercase tracking-widest">PayBoss Cafe</h1>
-                            <p class="text-sm font-semibold text-slate-700">One Stop Entertainment</p>
-                            <p class="text-sm font-bold text-emerald-600 mt-2" id="report-period-text"></p>
-                        </div>
-
-                        <table class="w-full text-sm">
-                            <!-- OPS -->
-                            <thead><tr class="bg-emerald-50 border-y border-emerald-100"><th class="text-left py-3 px-4 font-bold text-emerald-900 text-base">I. AKTIVITAS OPERASI (OPERATIONAL)</th><th class="text-right py-3 px-4"></th></tr></thead>
-                            <tbody class="text-slate-700">
-                                <tr><td class="py-2 px-4 font-bold text-slate-800 bg-slate-50/50 pt-4">A. Pendapatan (Masuk)</td><td></td></tr>
-                                <tbody id="tbody-ops-in"></tbody>
-                                <tr><td class="py-2 px-4 font-bold text-slate-800 bg-slate-50/50 pt-4">B. Pengeluaran (Keluar)</td><td></td></tr>
-                                <tbody id="tbody-ops-out"></tbody>
-                                <tr class="bg-slate-100 border-y-2 border-slate-200"><td class="py-3 px-4 font-bold uppercase">Arus Kas Bersih Operasi</td><td class="py-3 px-4 font-bold text-right text-lg" id="net-ops">Rp 0</td></tr>
-                            </tbody>
-                            <!-- Inv & Fin Headers ... (Added via JS logic mostly, but static headers here for structure) -->
-                            <thead><tr class="bg-amber-50 border-y border-amber-100 mt-6"><th class="text-left py-3 px-4 font-bold text-amber-900 text-base">II. AKTIVITAS INVESTASI</th><th class="text-right py-3 px-4 pt-6"></th></tr></thead>
-                            <tbody class="text-slate-700">
-                                <tbody id="tbody-inv"></tbody>
-                                <tr class="bg-slate-100 border-y-2 border-slate-200"><td class="py-3 px-4 font-bold uppercase">Arus Kas Bersih Investasi</td><td class="py-3 px-4 font-bold text-right text-lg" id="net-inv">Rp 0</td></tr>
-                            </tbody>
-
-                            <thead><tr class="bg-blue-50 border-y border-blue-100 mt-6"><th class="text-left py-3 px-4 font-bold text-blue-800 text-base">III. AKTIVITAS PENDANAAN</th><th class="text-right py-3 px-4 pt-6"></th></tr></thead>
-                            <tbody class="text-slate-700">
-                                <tbody id="tbody-fin"></tbody>
-                                <tr class="bg-slate-100 border-y-2 border-slate-200"><td class="py-3 px-4 font-bold uppercase">Arus Kas Bersih Pendanaan</td><td class="py-3 px-4 font-bold text-right text-lg" id="net-fin">Rp 0</td></tr>
-                            </tbody>
-
-                            <tfoot>
-                                <tr class="bg-slate-900 text-white text-xl">
-                                    <td class="py-4 px-4 font-bold uppercase">SALDO KAS BERSIH</td>
-                                    <td class="py-4 px-4 font-bold text-right" id="grand-total">Rp 0</td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                </div>
-                
-                <!-- SECTION 3 & 4 (DASHBOARD & OPS) KEPT INVISIBLE BUT PRESENT FOR LOGIC COMPATIBILITY IF NEEDED -->
-                 <div id="finance-dashboard-section" class="content-section hidden">
-                    <!-- ... Charts placeholders ... -->
-                    <div class="h-64"><canvas id="barChart"></canvas></div><div class="h-64"><canvas id="pieChart"></canvas></div>
-                </div>
-                <div id="ops-monitoring-section" class="content-section hidden">
-                    <!-- ... Ops placeholders ... -->
-                    <div class="h-64"><canvas id="peakHourChart"></canvas></div>
-                </div>
-            </div>
-        </main>
-    </div>
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manager Dashboard - Finance Integrated V4</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f1f5f9; min-height: 100vh; }
+    .dashboard-container { max-width: 1200px; margin: 0 auto; padding: 20px; display: none; }
+    #auth-overlay { position: fixed; inset: 0; background: #f8fafc; z-index: 50; display: flex; justify-content: center; align-items: center; }
+    .login-box { background: white; padding: 40px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+    .input-field { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; margin-bottom: 15px; outline: none; transition: all 0.2s; }
+    .input-field:focus { border-color: #4f46e5; }
+    .btn-primary { width: 100%; padding: 12px; background: #4f46e5; color: white; border-radius: 10px; font-weight: 700; transition: background 0.2s; }
     
-    <div id="toast" class="toast">Error Message</div>
+    .card { background: white; padding: 20px; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+    .status-posted { background: #dcfce7; color: #15803d; padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 800; border: 1px solid #bbf7d0; display: inline-flex; align-items: center; gap: 4px; }
+    .status-pending { background: #fef9c3; color: #854d0e; padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 800; border: 1px solid #fde047; display: inline-flex; align-items: center; gap: 4px; }
+    
+    .coa-badge { font-family: monospace; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #475569; font-size: 10px; border: 1px solid #cbd5e1; }
+  </style>
+ </head>
+ <body>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-        import { getFirestore, collection, query, where, getDocs, orderBy, Timestamp, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+  <!-- AUTH SCREEN -->
+  <div id="auth-overlay">
+      <div class="login-box">
+          <div class="mb-6">
+            <h2 class="text-2xl font-extrabold text-slate-900">Manager Access V4</h2>
+            <p class="text-slate-500 text-sm">PayBoss Ops & Finance Integration</p>
+          </div>
+          <form onsubmit="handleLogin(event)">
+              <input type="email" id="mgr-email" placeholder="Email Manager" class="input-field" required>
+              <input type="password" id="mgr-pass" placeholder="Password" class="input-field" required>
+              <button type="submit" id="btn-login" class="btn-primary">Masuk Dashboard</button>
+          </form>
+          <div id="login-status" class="mt-4 text-xs font-bold text-slate-500">Menunggu input...</div>
+      </div>
+  </div>
 
-        // CONFIG
-        const firebaseConfig = {
-            apiKey: "AIzaSyB0nHqdAw_dV9pHcQ_cSnWtNsn4CwwwUNc",
-            authDomain: "payboss-cafe-system.firebaseapp.com",
-            projectId: "payboss-cafe-system",
-            storageBucket: "payboss-cafe-system.firebasestorage.app",
-            messagingSenderId: "570523503793",
-            appId: "1:570523503793:web:0a7ba7ce751eb95a3f6690",
-            measurementId: "G-H1NJ369HE9"
-        };
+  <!-- DASHBOARD UI -->
+  <div id="dashboard-ui" class="dashboard-container">
+    
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+        <div>
+            <h1 class="text-2xl font-extrabold text-slate-800 flex items-center gap-2">
+                📊 Manager Control Room
+                <span class="bg-indigo-100 text-indigo-700 text-xs px-2 py-1 rounded-full border border-indigo-200">V4 Stable</span>
+            </h1>
+            <p class="text-slate-500 text-sm mt-1">Jembatan Data: Staff Ops (Cafe System) ➡ Finance (Buku Besar)</p>
+        </div>
+        <div class="flex gap-2">
+            <div class="bg-white px-4 py-2 rounded-lg border border-slate-200 text-xs shadow-sm flex flex-col justify-center">
+                <div class="text-slate-400 font-bold uppercase text-[10px]">Status Database</div>
+                <div id="connection-indicator" class="font-bold text-amber-600 flex items-center gap-1">
+                    <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> Menghubungkan...
+                </div>
+            </div>
+            <button onclick="doLogout()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 px-4 py-2 rounded-lg font-bold text-sm border border-rose-200 transition">Logout</button>
+        </div>
+    </div>
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
+    <!-- Overview Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="card bg-gradient-to-br from-white to-indigo-50 border-indigo-100">
+            <h3 class="text-indigo-900 font-bold text-sm mb-2">📥 Laporan Menunggu Posting</h3>
+            <div id="pending-count" class="text-4xl font-extrabold text-indigo-600">0</div>
+            <p class="text-xs text-indigo-400 mt-1">Shift Staff yang belum masuk buku besar</p>
+        </div>
+        <div class="card">
+            <h3 class="text-slate-600 font-bold text-sm mb-2">💰 Estimasi Omzet Shift (Pending)</h3>
+            <div id="pending-value" class="text-2xl font-bold text-slate-800">Rp 0</div>
+            <p class="text-xs text-slate-400 mt-1">Potensi data yang akan diposting</p>
+        </div>
+        <div class="card">
+            <h3 class="text-slate-600 font-bold text-sm mb-2">✅ Terposting Hari Ini</h3>
+            <div id="posted-today" class="text-2xl font-bold text-emerald-600">0</div>
+            <p class="text-xs text-slate-400 mt-1">Laporan berhasil disinkronkan</p>
+        </div>
+    </div>
 
-        // DATA STATE
-        let transactions = [], allCompletedOrders=[], allShiftReports=[], allFinanceLogs=[];
-        let isEditing = false, editDocId = null;
-        let peakChart=null, barChartInstance=null, pieChartInstance=null;
+    <!-- MAIN TABLE -->
+    <div class="card overflow-hidden p-0">
+        <div class="p-5 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+            <div>
+                <h3 class="font-bold text-slate-800">Antrean Laporan Shift (Staff App)</h3>
+                <p class="text-xs text-slate-500">Klik "Post" untuk memecah laporan ke Kode Akun (COA) secara otomatis.</p>
+            </div>
+            <button onclick="initData()" class="text-xs font-bold text-blue-600 hover:text-blue-800">🔄 Refresh Data</button>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+                <thead class="bg-slate-50 text-slate-500 font-bold uppercase text-xs">
+                    <tr>
+                        <th class="p-4">Waktu Laporan</th>
+                        <th class="p-4">Info Shift</th>
+                        <th class="p-4 text-right">Total Fisik</th>
+                        <th class="p-4 text-right">Pengeluaran</th>
+                        <th class="p-4 text-center">Selisih</th>
+                        <th class="p-4 text-center">Status</th>
+                        <th class="p-4 text-right">Aksi Manager</th>
+                    </tr>
+                </thead>
+                <tbody id="staffDataTable" class="divide-y divide-slate-100">
+                    <tr><td colspan="7" class="p-8 text-center text-slate-400 italic">Sedang menghubungkan ke dua database...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-        // SOP COA DATABASE
-        const coaDatabase = {
-            fnb: { 
-                in: [{c:'4101', n:'Pendapatan Jual Makanan'}, {c:'4102', n:'Pendapatan Jual Minuman'}, {c:'4103', n:'Pendapatan Paket Bundling'}, {c:'4104', n:'Pendapatan Event/Catering'}], 
-                out: [{c:'5101', n:'Bahan Baku Makanan'}, {c:'5102', n:'Bahan Baku Minuman'}, {c:'5201', n:'Gaji Barista & Chef'}, {c:'5202', n:'Gaji Kasir & Pramusaji'}, {c:'5501', n:'Pajak Restoran/Ritel F&B'}] 
-            },
-            ent: { 
-                in: [{c:'4201', n:'Sewa Room Karaoke'}, {c:'4202', n:'Jual F&B Area Karaoke'}, {c:'4203', n:'Sewa Meja Billiard'}, {c:'4204', n:'Jual F&B Area Billiard'}], 
-                out: [{c:'5103', n:'Stok Snack Hiburan'}, {c:'5203', n:'Gaji Kru Karaoke & Billiard'}, {c:'5502', n:'Pajak Hiburan Karaoke'}, {c:'5503', n:'Pajak Hiburan Billiard'}, {c:'5504', n:'Biaya Perizinan Usaha'}] 
-            },
-            wel: { 
-                in: [{c:'4301', n:'Jasa Pijat/Refleksi'}, {c:'4302', n:'Pendapatan Kursi Pijat (Coin)'}, {c:'4303', n:'Pendapatan Hipnoterapi'}], 
-                out: [{c:'5104', n:'Bahan Habis Pakai (Aroma/Linen)'}, {c:'5206', n:'Fee Hipnoterapis'}, {c:'5207', n:'Fee Terapis Pijat'}] 
-            },
-            ops: { 
-                in: [], 
-                out: [{c:'5204', n:'Gaji Team Leader'}, {c:'5205', n:'Gaji Security & Cleaning Service'}, {c:'5301', n:'Listrik (AC, Sound, Lampu)'}, {c:'5302', n:'Air & Gas'}, {c:'5303', n:'Internet & WiFi'}, {c:'5304', n:'Kebersihan (Detergen/Alat)'}, {c:'5305', n:'Perawatan Peralatan (Maintenance)'}, {c:'5401', n:'Promosi & Medsos'}, {c:'5402', n:'Biaya Platform (GoFood/Grab)'}, {c:'5403', n:'ATK & Admin Kantor'}, {c:'5404', n:'Transport Operasional'}] 
-            },
-            inv: { 
-                in: [{c:'1100', n:'Jual Aset'}], 
-                out: [{c:'6101', n:'Beli Alat'}, {c:'6106', n:'Renovasi'}] 
-            },
-            fin: { 
-                in: [{c:'7101', n:'Setor Modal'}], 
-                out: [{c:'7201', n:'Cicilan Bank'}] 
-            }
-        };
+    <!-- COA REFERENCE (Accordion) -->
+    <div class="mt-6 border border-slate-200 rounded-xl overflow-hidden">
+        <button onclick="document.getElementById('coa-ref').classList.toggle('hidden')" class="w-full p-4 bg-white text-left font-bold text-slate-700 flex justify-between items-center hover:bg-slate-50">
+            <span>📚 Referensi Mapping COA (Sesuai PDF)</span>
+            <span class="text-xs text-slate-400">▼</span>
+        </button>
+        <div id="coa-ref" class="hidden bg-slate-50 p-4 text-xs text-slate-600 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <p class="font-bold mb-2">Pemasukan (Auto Split):</p>
+                <ul class="list-disc pl-4 space-y-1">
+                    <li>F&B (Makan/Minum) ➡ <span class="coa-badge">4101</span></li>
+                    <li>Karaoke (Room) ➡ <span class="coa-badge">4201</span></li>
+                    <li>Billiard (Meja) ➡ <span class="coa-badge">4203</span></li>
+                    <li>Wellness (Pijat) ➡ <span class="coa-badge">4301</span></li>
+                    <li>Hipnoterapi ➡ <span class="coa-badge">4303</span></li>
+                </ul>
+            </div>
+            <div>
+                <p class="font-bold mb-2">Pengeluaran (Sesuai Staff):</p>
+                <ul class="list-disc pl-4 space-y-1">
+                    <li>Bahan Baku ➡ <span class="coa-badge">5101</span></li>
+                    <li>Air & Gas ➡ <span class="coa-badge">5302</span></li>
+                    <li>Kebersihan ➡ <span class="coa-badge">5304</span></li>
+                    <li>Transport ➡ <span class="coa-badge">5404</span></li>
+                </ul>
+            </div>
+        </div>
+    </div>
 
-        // DOM HELPERS
-        function setText(id, text) { const el = document.getElementById(id); if(el) el.innerText = text; }
-        function setHTML(id, html) { const el = document.getElementById(id); if(el) el.innerHTML = html; }
-        function safeHTML(id, html) { const el = document.getElementById(id); if(el) el.innerHTML = html; }
+  </div>
 
-        // AUTH & INIT
-        onAuthStateChanged(auth, u => {
-            if(u) {
-                document.getElementById('auth-overlay').classList.add('hidden');
-                document.getElementById('app-container').style.display = 'flex';
-                setText('user-email-display', u.email);
-                initDates();
-                window.updateCategories();
-                initListeners();
-            } else {
-                document.getElementById('auth-overlay').classList.remove('hidden');
-                document.getElementById('app-container').style.display = 'none';
-            }
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc, writeBatch, getDoc, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, signInAnonymously, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+    // --- KONFIGURASI DUAL DATABASE ---
+    
+    // 1. Database Operasional (Staff App & Manager App)
+    const configOps = {
+      apiKey: "AIzaSyB0nHqdAw_dV9pHcQ_cSnWtNsn4CwwwUNc",
+      authDomain: "payboss-cafe-system.firebaseapp.com",
+      projectId: "payboss-cafe-system",
+      storageBucket: "payboss-cafe-system.firebasestorage.app",
+      messagingSenderId: "570523503793",
+      appId: "1:570523503793:web:0a7ba7ce751eb95a3f6690"
+    };
+
+    // 2. Database Finance (Cashflow App) - SESUAI INPUT ANDA
+    const configFin = {
+      apiKey: "AIzaSyDZj7rxsE-q3vl0R-dCRplw3fFrSRiK_A4",
+      authDomain: "payboss-finance.firebaseapp.com",
+      projectId: "payboss-finance",
+      storageBucket: "payboss-finance.firebasestorage.app",
+      messagingSenderId: "634368910018",
+      appId: "1:634368910018:web:aba7ddb774c98ca5c9515b"
+    };
+
+    // --- INISIALISASI ---
+    const appOps = initializeApp(configOps, "opsApp");
+    const appFin = initializeApp(configFin, "finApp");
+
+    const dbOps = getFirestore(appOps);
+    const dbFin = getFirestore(appFin);
+
+    const authOps = getAuth(appOps);
+    const authFin = getAuth(appFin);
+
+    // Path Finance (Harus sama dengan Cashflow App)
+    const FIN_COLLECTION = 'payboss_trx_v1'; 
+    const FIN_PATH_ARGS = ['artifacts', 'payboss-live-v1', 'public', 'data', FIN_COLLECTION];
+
+    let allShiftReports = [];
+    let isFinanceReady = false;
+
+    // --- AUTHENTICATION FLOW ---
+    const loginStatus = document.getElementById('login-status');
+    const connIndicator = document.getElementById('connection-indicator');
+
+    // 1. Login ke Ops (Email/Pass Manager)
+    onAuthStateChanged(authOps, (user) => {
+        if (user) {
+            loginStatus.innerText = "Manager dikenali. Menghubungkan ke Finance...";
+            connectToFinance();
+        } else {
+            document.getElementById('auth-overlay').style.display = 'flex';
+        }
+    });
+
+    // 2. Login ke Finance (Anonymous)
+    async function connectToFinance() {
+        try {
+            await signInAnonymously(authFin);
+            isFinanceReady = true;
+            
+            // Update UI Success
+            document.getElementById('auth-overlay').style.display = 'none';
+            document.getElementById('dashboard-ui').style.display = 'block';
+            connIndicator.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Ops & Finance Terhubung';
+            connIndicator.className = 'font-bold text-emerald-600 flex items-center gap-1';
+            
+            initData();
+        } catch (err) {
+            console.error("Finance Auth Error:", err);
+            connIndicator.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-500"></span> Gagal Koneksi Finance';
+            connIndicator.className = 'font-bold text-red-600 flex items-center gap-1';
+            alert("GAGAL MENGHUBUNGKAN KE FINANCE APP.\n\nError: " + err.message + "\n\nPastikan 'Anonymous Auth' diaktifkan di Firebase Console Payboss Finance.");
+        }
+    }
+
+    window.handleLogin = async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('mgr-email').value;
+        const pass = document.getElementById('mgr-pass').value;
+        const btn = document.getElementById('btn-login');
+        
+        btn.innerText = "Memverifikasi..."; btn.disabled = true;
+        try {
+            await signInWithEmailAndPassword(authOps, email, pass);
+        } catch(e) { 
+            alert("Login Gagal: " + e.message); 
+            btn.innerText = "Masuk Dashboard"; btn.disabled = false;
+        }
+    };
+
+    window.doLogout = () => {
+        signOut(authOps);
+        signOut(authFin);
+        location.reload();
+    };
+
+    // --- DATA HANDLING ---
+    window.initData = function() {
+        const q = query(collection(dbOps, "shift_reports"), orderBy("createdAt", "desc"));
+        onSnapshot(q, (snap) => {
+            allShiftReports = snap.docs.map(d => ({id: d.id, ...d.data()}));
+            renderTable();
+            updateStats();
         });
+    };
 
-        function initDates() {
-            const now = new Date();
-            document.getElementById('fin-date').valueAsDate = now;
-            document.getElementById('endDate').valueAsDate = now;
-            document.getElementById('startDate').valueAsDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    function renderTable() {
+        const tbody = document.getElementById('staffDataTable');
+        if(allShiftReports.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400">Belum ada data shift dari Staff App</td></tr>';
+            return;
         }
 
-        window.handleLogin = async (e) => {
-            if (e && e.preventDefault) e.preventDefault();
-            const email = document.getElementById('fin-email').value;
-            const pass = document.getElementById('fin-pass').value;
-            const btn = document.getElementById('btn-login');
-            btn.innerText = "Memproses..."; btn.disabled = true;
-            try { await signInWithEmailAndPassword(auth, email, pass); }
-            catch(err) { 
-                document.getElementById('login-error').innerText = "Gagal: " + err.message; 
-                document.getElementById('login-error').classList.remove('hidden'); 
-                btn.innerText = "Masuk Dashboard"; btn.disabled = false;
-            }
-        };
-        window.doLogout = () => signOut(auth);
-
-        // LISTENERS
-        function initListeners() {
-            onSnapshot(query(collection(db, 'financial_transactions'), orderBy('timestamp', 'desc')), snap => {
-                transactions = snap.docs.map(d => ({id: d.id, ...d.data()}));
-                allFinanceLogs = transactions; // Sync variable name
-                renderFinanceHistory();
-                updateDashboards(); 
-                loadReportData();
-            });
-
-            onSnapshot(collection(db, 'completedOrders'), snap => {
-                allCompletedOrders = snap.docs.map(d => ({...d.data(), timestamp: d.data().createdAt?.seconds*1000}));
-                updateDashboards();
-                loadReportData();
-            });
-
-            onSnapshot(query(collection(db, 'shift_reports'), orderBy('createdAt', 'desc')), snap => {
-                allShiftReports = snap.docs.map(d => d.data());
-                updateDashboards();
-                loadReportData();
-            });
-        }
-
-        function updateDashboards() {
-            // Placeholder
-        }
-
-        // --- INPUT FORM LOGIC (SOP COMPLIANT) ---
-        window.handleTypeChange = (type) => {
-            window.updateCategories();
-            const btnIn = document.getElementById('btn-in');
-            const btnOut = document.getElementById('btn-out');
+        tbody.innerHTML = allShiftReports.map(r => {
+            const isPosted = r.financePosted === true;
+            const statusBadge = isPosted 
+                ? `<span class="status-posted">✅ SUKSES</span>` 
+                : `<span class="status-pending">⏳ MENUNGGU</span>`;
             
-            if(type === 'in') {
-                btnIn.className = "py-3 px-4 rounded-xl font-bold border-2 border-emerald-500 bg-emerald-50 text-emerald-700 text-center transition cursor-pointer";
-                btnOut.className = "py-3 px-4 rounded-xl font-bold border-2 border-slate-200 text-slate-400 text-center transition cursor-pointer";
-            } else {
-                btnOut.className = "py-3 px-4 rounded-xl font-bold border-2 border-rose-500 bg-rose-50 text-rose-700 text-center transition cursor-pointer";
-                btnIn.className = "py-3 px-4 rounded-xl font-bold border-2 border-slate-200 text-slate-400 text-center transition cursor-pointer";
-            }
-        };
+            const btnAction = isPosted
+                ? `<span class="text-xs text-slate-400 font-medium">Terposting: ${new Date(r.postedAt).toLocaleDateString()}</span>`
+                : `<button onclick="postToFinance('${r.id}')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-4 py-2 rounded-lg font-bold shadow-sm shadow-indigo-200 transition transform hover:-translate-y-0.5 active:translate-y-0">🚀 POST KE FINANCE</button>`;
 
-        window.updateCategories = () => {
-            const unit = document.getElementById('unitSelect').value;
-            const type = document.querySelector('input[name="trx_type"]:checked').value;
-            const select = document.getElementById('categorySelect');
-            select.innerHTML = '';
-            
-            const list = coaDatabase[unit] ? coaDatabase[unit][type] : [];
-            if(!list || list.length === 0) {
-                if(type === 'in') select.add(new Option('Pendapatan Umum', '4000'));
-                else select.add(new Option('Biaya Umum', '5000'));
-            } else {
-                list.forEach(i => select.add(new Option(`[${i.c}] ${i.n}`, i.c)));
-            }
-        };
+            const diff = r.difference || 0;
+            const diffClass = diff < 0 ? 'text-rose-600 bg-rose-50' : (diff > 0 ? 'text-emerald-600 bg-emerald-50' : 'text-slate-400 bg-slate-50');
 
-        window.saveTransaction = async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('submitBtn');
-            btn.innerText = "Menyimpan..."; btn.disabled = true;
+            return `
+            <tr class="bg-white hover:bg-slate-50 border-b border-slate-100 transition">
+                <td class="p-4">
+                    <div class="font-bold text-slate-700">${r.date}</div>
+                    <div class="text-xs text-slate-400 font-mono">${new Date(r.createdAt?.seconds*1000).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})}</div>
+                </td>
+                <td class="p-4">
+                    <div class="font-bold text-slate-800">${r.staffName}</div>
+                    <span class="bg-indigo-50 text-indigo-600 text-[10px] font-bold px-2 py-0.5 rounded uppercase">${r.shift}</span>
+                </td>
+                <td class="p-4 text-right font-mono font-bold text-slate-700">${fmt(r.physicalCash)}</td>
+                <td class="p-4 text-right font-mono text-rose-600">${fmt(r.expenses)}</td>
+                <td class="p-4 text-center">
+                    <span class="${diffClass} px-2 py-1 rounded text-xs font-bold">${diff > 0 ? '+' : ''}${fmt(diff)}</span>
+                </td>
+                <td class="p-4 text-center">${statusBadge}</td>
+                <td class="p-4 text-right">${btnAction}</td>
+            </tr>
+            `;
+        }).join('');
+    }
 
-            try {
-                const formData = {
-                    dateString: document.getElementById('fin-date').value,
-                    timestamp: new Date(document.getElementById('fin-date').value).getTime(),
-                    unit: document.getElementById('unitSelect').value,
-                    unitName: document.getElementById('unitSelect').options[document.getElementById('unitSelect').selectedIndex].text,
-                    trxType: document.querySelector('input[name="trx_type"]:checked').value,
-                    paymentMethod: document.getElementById('paymentSelect').value,
-                    coaCode: document.getElementById('categorySelect').value,
-                    coaName: document.getElementById('categorySelect').options[document.getElementById('categorySelect').selectedIndex].text,
-                    amount: parseInt(document.getElementById('amountInput').value.replace(/\D/g, '')),
-                    note: document.getElementById('noteInput').value,
-                    user: auth.currentUser.email,
-                    createdAt: serverTimestamp()
-                };
-
-                if (isEditing && editDocId) {
-                    await updateDoc(doc(db, 'financial_transactions', editDocId), formData);
-                    showToast("Data Diperbarui!");
-                    window.cancelEditMode();
-                } else {
-                    await addDoc(collection(db, "financial_transactions"), formData);
-                    showToast("Transaksi Tersimpan!");
-                    document.getElementById('financeForm').reset();
-                    document.getElementById('fin-date').valueAsDate = new Date();
-                    window.handleTypeChange('in');
-                }
-            } catch (error) { console.error(error); alert("Gagal: " + error.message); } 
-            finally { btn.innerText = "Simpan ke Cloud"; btn.disabled = false; }
-        };
-
-        window.prepareEdit = (id) => {
-            const trx = transactions.find(t => t.id === id);
-            if (!trx) return;
-            isEditing = true; editDocId = id;
-
-            document.getElementById('fin-date').value = trx.dateString;
-            document.getElementById('unitSelect').value = trx.unit;
-            document.querySelector(`input[name="trx_type"][value="${trx.trxType}"]`).checked = true;
-            document.getElementById('paymentSelect').value = trx.paymentMethod || 'Tunai';
-            
-            window.handleTypeChange(trx.trxType);
-            // Delay to allow options to populate
-            setTimeout(() => { document.getElementById('categorySelect').value = trx.coaCode; }, 50);
-            
-            document.getElementById('amountInput').value = formatIDR(trx.amount).replace('Rp', '').trim();
-            document.getElementById('noteInput').value = trx.note;
-
-            document.getElementById('submitBtn').innerText = "Update Data";
-            document.getElementById('submitBtn').className = "w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-lg flex items-center justify-center gap-2";
-            document.getElementById('cancelEditBtn').classList.remove('hidden');
-        };
-
-        window.deleteTransaction = async (id) => {
-            if(!confirm("Hapus data ini?")) return;
-            try { await deleteDoc(doc(db, 'financial_transactions', id)); showToast("Data dihapus."); } 
-            catch (e) { alert("Gagal hapus."); }
-        };
-
-        window.cancelEditMode = () => {
-            isEditing = false; editDocId = null;
-            document.getElementById('financeForm').reset();
-            document.getElementById('fin-date').valueAsDate = new Date();
-            document.getElementById('submitBtn').innerText = "Simpan ke Cloud";
-            document.getElementById('submitBtn').className = "w-full bg-slate-900 hover:bg-black text-white font-bold py-3.5 rounded-xl transition shadow-lg flex items-center justify-center gap-2";
-            document.getElementById('cancelEditBtn').classList.add('hidden');
-            window.handleTypeChange('in');
-        };
-
-        function renderFinanceHistory() {
-            const tbody = document.getElementById('financeTableBody');
-            const recent = allFinanceLogs.slice(0, 10); // Show top 10
-            tbody.innerHTML = recent.map(t => {
-                let badgeColor = 'bg-gray-100 text-gray-600';
-                if(t.paymentMethod === 'QRIS') badgeColor = 'bg-blue-100 text-blue-600';
-                if(t.paymentMethod === 'Transfer') badgeColor = 'bg-purple-100 text-purple-600';
-                if(t.paymentMethod === 'Tunai') badgeColor = 'bg-emerald-100 text-emerald-600';
-
-                return `
-                <tr class="border-b hover:bg-slate-50 transition">
-                    <td class="py-3 px-4 text-xs">${t.dateString}</td>
-                    <td class="py-3 px-4"><span class="text-xs font-bold px-2 py-1 rounded ${badgeColor}">${t.paymentMethod}</span></td>
-                    <td class="py-3 px-4 text-xs font-mono text-slate-500">[${t.coaCode}] ${t.coaName}</td>
-                    <td class="py-3 px-4 text-sm font-bold text-right ${t.trxType==='out'?'text-rose-600':''}">${t.trxType==='out'?'- ':''}${formatIDR(t.amount)}</td>
-                    <td class="py-3 px-4 text-right">
-                        <button onclick="prepareEdit('${t.id}')" class="text-blue-500 hover:text-blue-700 mx-1">✏️</button>
-                        <button onclick="deleteTransaction('${t.id}')" class="text-rose-500 hover:text-rose-700 mx-1">🗑️</button>
-                    </td>
-                </tr>
-            `}).join('');
-        }
-
-        // --- REPORT LOGIC ---
-        window.loadReportData = () => {
-            const startStr = document.getElementById('startDate').value;
-            const endStr = document.getElementById('endDate').value;
-            if (!startStr || !endStr) return;
-
-            setText('report-period-text', `Periode: ${formatDate(startStr)} s/d ${formatDate(endStr)}`);
-            const startDate = new Date(startStr).setHours(0,0,0,0);
-            const endDate = new Date(endStr).setHours(23,59,59,999);
-            const inRange = (ts) => { const t = ts?.seconds ? ts.seconds*1000 : ts; return t >= startDate && t <= endDate; };
-
-            let opsIn=[], opsOut=[], inv=[], fin=[];
-            let sOpsIn=0, sOpsOut=0, sInv=0, sFin=0;
-
-            // 1. Process POS (Completed Orders) - Revenue F&B
-            allCompletedOrders.forEach(o => {
-                if(inRange(o.createdAt)) {
-                    // Aggregated via Shifts for Cashflow report to maintain integrity with Cash Drawer
-                }
-            });
-
-            // 2. Process Shifts (Verified Revenue)
-            allShiftReports.forEach(s => {
-                if(inRange(s.createdAt)) {
-                    const fnb = (s.cashSales||0) + (s.qrisSales||0);
-                    if(fnb>0) { opsIn.push({n:`F&B (${s.shift})`, a:fnb, d:s.date}); sOpsIn+=fnb; }
-                    
-                    const svc = (s.incomeKaraoke||0)+(s.incomeMassage||0)+(s.incomeHypno||0);
-                    if(svc>0) { opsIn.push({n:`Jasa Lain (${s.shift})`, a:svc, d:s.date}); sOpsIn+=svc; }
-
-                    // Expenses from Shift (Small Ops)
-                    if(s.expenseDetails && Array.isArray(s.expenseDetails)) {
-                        s.expenseDetails.forEach(e => {
-                            if(e.categoryCode === 'prive') { fin.push({n:`Prive (${e.desc})`, a:-e.amount, d:s.date}); sFin-=e.amount; }
-                            else { opsOut.push({n:`${e.categoryName} - ${e.desc}`, a:e.amount, d:s.date}); sOpsOut+=e.amount; }
-                        });
-                    } else if(s.expenses > 0) {
-                        opsOut.push({n:`Biaya Shift`, a:s.expenses, d:s.date}); sOpsOut+=s.expenses;
-                    }
-                }
-            });
-
-            // 3. Process Manager Input (Big Ops)
-            allFinanceLogs.forEach(f => {
-                if(inRange(f.timestamp)) {
-                    const item = {n:f.description||f.category, a:f.amount, d:f.dateString};
-                    const code = f.coaCode.charAt(0);
-                    if(code === '5') { opsOut.push(item); sOpsOut+=f.amount; } // Biaya
-                    else if(code === '6') { item.a = -item.a; inv.push(item); sInv+=item.a; } // Invest
-                    else if(code === '7') { if(f.trxType==='out') item.a = -item.a; fin.push(item); sFin+=item.a; } // Finance
-                    else if(code === '4') { opsIn.push(item); sOpsIn+=f.amount; } // Revenue
-                }
-            });
-
-            renderRows('tbody-ops-in', opsIn); renderRows('tbody-ops-out', opsOut);
-            renderRows('tbody-inv', inv); renderRows('tbody-fin', fin);
-
-            setText('total-ops-in', fmt(sOpsIn)); setText('total-ops-out', `(${fmt(sOpsOut)})`);
-            setText('net-ops', fmt(sOpsIn - sOpsOut));
-            setText('net-inv', fmt(sInv)); setText('net-fin', fmt(sFin));
-            setText('grand-total', fmt((sOpsIn - sOpsOut) + sInv + sFin));
-        }
-
-        function renderRows(id, arr) {
-            const el = document.getElementById(id);
-            if(!el) return;
-            if(!arr.length) { el.innerHTML = ''; return; }
-            arr.sort((a,b) => new Date(a.d) - new Date(b.d));
-            el.innerHTML = arr.map(x => `<tr class="border-b border-dashed border-slate-100"><td class="py-1 px-4 pl-10 text-xs text-slate-600"><span class="font-mono text-slate-400 mr-2">[${x.d}]</span> ${x.n}</td><td class="py-1 px-4 text-right text-xs font-medium ${x.a<0?'text-red-600':'text-slate-700'}">${fmt(x.a)}</td></tr>`).join('');
-        }
-
-        // --- UTILS ---
-        window.switchTab = (t) => {
-            document.querySelectorAll('.content-section').forEach(e=>e.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(e=>e.classList.remove('active'));
-            document.getElementById(`${t}-section`).classList.add('active');
-            document.getElementById(`tab-btn-${t}`).classList.add('active');
-        };
-        window.showSection = (i,b) => window.switchSection(i,b); // Alias
-        window.switchSection = (t, el) => {
-            window.switchTab(t);
-            if(window.innerWidth < 768) toggleSidebar();
-        }
-        window.setFilter = (f) => {
-            currentFilter = f;
-            document.querySelectorAll('#btn-today, #btn-week, #btn-month').forEach(b=>b.className="px-4 py-2 rounded-lg text-sm font-bold bg-white text-slate-500 border hover:bg-slate-50 transition");
-            document.getElementById(`btn-${f}`).className="px-4 py-2 rounded-lg text-sm font-bold bg-slate-800 text-white transition";
-            updateDashboard();
-        };
-        window.exportExcel = () => {
-            const wb = XLSX.utils.table_to_book(document.getElementById('printableArea'), {sheet:"Cashflow"});
-            XLSX.writeFile(wb, "Laporan_Keuangan.xlsx");
-        };
+    function updateStats() {
+        const pending = allShiftReports.filter(r => !r.financePosted);
+        const posted = allShiftReports.filter(r => r.financePosted && r.date === new Date().toLocaleDateString('id-ID'));
         
-        window.toggleSidebar = () => {
-            document.getElementById('sidebar').classList.toggle('-translate-x-full');
-            document.getElementById('sidebarOverlay').classList.toggle('hidden');
+        document.getElementById('pending-count').innerText = pending.length;
+        document.getElementById('posted-today').innerText = posted.length;
+        
+        const pendingVal = pending.reduce((sum, r) => sum + (r.physicalCash || 0) + (r.qrisSales || 0), 0);
+        document.getElementById('pending-value').innerText = fmt(pendingVal);
+    }
+
+    // --- LOGIKA UTAMA: POSTING ---
+    window.postToFinance = async (reportId) => {
+        console.log("Tombol diklik untuk Report ID:", reportId);
+        
+        if (!isFinanceReady) {
+            alert("Sistem Finance BELUM TERHUBUNG. Coba refresh halaman dan pastikan login sukses.");
+            return;
         }
 
-        function fmt(n) { return 'Rp ' + (n||0).toLocaleString('id-ID'); }
-        function formatDate(s) { if(!s) return '-'; return new Date(s).toLocaleDateString('id-ID'); }
-        function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
+        const report = allShiftReports.find(r => r.id === reportId);
+        if(!report) { alert("Data laporan tidak ditemukan di memori."); return; }
+
+        if(!confirm(`Konfirmasi Posting Laporan ${report.shift} oleh ${report.staffName}?\n\nSistem akan otomatis memecah transaksi ke COA yang sesuai.`)) return;
+
+        const batchFin = writeBatch(dbFin); 
+        const batchOps = writeBatch(dbOps); 
+        const newFinDoc = () => doc(collection(dbFin, ...FIN_PATH_ARGS));
+
+        const timestamp = Date.now();
+        const dateString = report.date.split('/').reverse().join('-');
         
-        window.updateCategories = () => {
-            const unit = document.getElementById('unitSelect').value;
-            const type = document.querySelector('input[name="trx_type"]:checked').value;
-            const select = document.getElementById('categorySelect');
-            select.innerHTML = '';
-            
-            const list = coaDatabase[unit] ? coaDatabase[unit][type] : [];
-            if(!list || list.length === 0) {
-                if(type === 'in') select.add(new Option('Pendapatan Umum', '4000'));
-                else select.add(new Option('Biaya Umum', '5000'));
-            } else {
-                list.forEach(i => select.add(new Option(`[${i.c}] ${i.n}`, i.c)));
+        const baseTrx = {
+            dateString: dateString, 
+            timestamp: timestamp,
+            userId: "MANAGER_AUTOSYNC",
+            lastModified: new Date().toISOString(),
+            shiftRef: reportId,
+            shiftInfo: `Shift ${report.shift} (${report.staffName})`
+        };
+
+        let trxCount = 0;
+
+        // MAPPING PEMASUKAN
+        const addTrx = (unit, unitName, method, coa, coaName, amount, note) => {
+            if(amount > 0) {
+                batchFin.set(newFinDoc(), { 
+                    ...baseTrx, 
+                    unit, unitName, 
+                    trxType:'in', 
+                    paymentMethod: method, 
+                    coaCode: coa, coaName: coaName, 
+                    amount: amount, 
+                    note: `${note} - ${baseTrx.shiftInfo}` 
+                });
+                trxCount++;
             }
         };
 
-        window.handleTypeChange = (type) => {
-            window.updateCategories();
-            const btnIn = document.getElementById('btn-in');
-            const btnOut = document.getElementById('btn-out');
-            
-            if(type === 'in') {
-                btnIn.className = "py-3 px-4 rounded-xl font-bold border-2 border-emerald-500 bg-emerald-50 text-emerald-700 text-center transition cursor-pointer";
-                btnOut.className = "py-3 px-4 rounded-xl font-bold border-2 border-slate-200 text-slate-400 text-center transition cursor-pointer";
-            } else {
-                btnOut.className = "py-3 px-4 rounded-xl font-bold border-2 border-rose-500 bg-rose-50 text-rose-700 text-center transition cursor-pointer";
-                btnIn.className = "py-3 px-4 rounded-xl font-bold border-2 border-slate-200 text-slate-400 text-center transition cursor-pointer";
-            }
-        };
-        
-        window.formatCurrency = (input) => {
-            let val = input.value.replace(/\D/g, '');
-            if(val === "") { input.value = ""; return; }
-            input.value = new Intl.NumberFormat('id-ID').format(val);
+        // F&B
+        addTrx('fnb', 'Coffee & Resto', 'Tunai', '4101', 'Pendapatan Jual Makanan', report.incomeFnbCash, 'Penjualan F&B Tunai');
+        addTrx('fnb', 'Coffee & Resto', 'QRIS', '4101', 'Pendapatan Jual Makanan', report.incomeFnbQris, 'Penjualan F&B QRIS');
+
+        // Karaoke
+        addTrx('ent', 'Karaoke & Billiard', 'Tunai', '4201', 'Sewa Room Karaoke', report.incomeKaraokeCash, 'Karaoke Tunai');
+        addTrx('ent', 'Karaoke & Billiard', 'QRIS', '4201', 'Sewa Room Karaoke', report.incomeKaraokeQris, 'Karaoke QRIS');
+
+        // Billiard
+        addTrx('ent', 'Karaoke & Billiard', 'Tunai', '4203', 'Sewa Meja Billiard', report.incomeBilliardCash, 'Billiard Tunai');
+        addTrx('ent', 'Karaoke & Billiard', 'QRIS', '4203', 'Sewa Meja Billiard', report.incomeBilliardQris, 'Billiard QRIS');
+
+        // Wellness
+        addTrx('wel', 'Wellness', 'Tunai', '4301', 'Jasa Pijat/Refleksi', report.incomeMassageCash, 'Pijat Tunai');
+        addTrx('wel', 'Wellness', 'QRIS', '4301', 'Jasa Pijat/Refleksi', report.incomeMassageQris, 'Pijat QRIS');
+        addTrx('wel', 'Wellness', 'Tunai', '4303', 'Pendapatan Hipnoterapi', report.incomeHypnoCash, 'Hipno Tunai');
+        addTrx('wel', 'Wellness', 'QRIS', '4303', 'Pendapatan Hipnoterapi', report.incomeHypnoQris, 'Hipno QRIS');
+
+        // MAPPING PENGELUARAN
+        if(report.expenseDetails && report.expenseDetails.length > 0) {
+            report.expenseDetails.forEach(exp => {
+                let unit = 'ops'; let unitName = 'Operasional';
+                if(exp.categoryCode.startsWith('5101') || exp.categoryCode.startsWith('5102')) { unit='fnb'; unitName='Coffee & Resto'; }
+                if(exp.categoryCode.startsWith('5103')) { unit='ent'; unitName='Karaoke & Billiard'; }
+                if(exp.categoryCode.startsWith('5104')) { unit='wel'; unitName='Wellness'; }
+
+                batchFin.set(newFinDoc(), {
+                    ...baseTrx,
+                    unit: unit, unitName: unitName,
+                    trxType: 'out',
+                    paymentMethod: 'Tunai', 
+                    coaCode: exp.categoryCode || '5000',
+                    coaName: exp.categoryName || 'Pengeluaran Umum',
+                    amount: exp.amount,
+                    note: `[Biaya Shift] ${exp.desc}`
+                });
+                trxCount++;
+            });
         }
 
-    </script>
-</body>
+        try {
+            const shiftRef = doc(dbOps, "shift_reports", reportId);
+            batchOps.update(shiftRef, { financePosted: true, postedAt: new Date().toISOString() });
+
+            await batchFin.commit(); 
+            await batchOps.commit(); 
+
+            alert(`BERHASIL! ${trxCount} transaksi sukses diposting.`);
+        } catch(err) {
+            console.error(err);
+            alert("GAGAL Posting: " + err.message);
+        }
+    };
+
+    function fmt(n) { return 'Rp ' + (n||0).toLocaleString('id-ID'); }
+  </script>
+ </body>
 </html>
