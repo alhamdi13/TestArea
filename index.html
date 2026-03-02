@@ -272,6 +272,8 @@
       const [voteModal, setVoteModal] = useState(null);
 
       const [filterAngkatan, setFilterAngkatan] = useState('Semua Angkatan');
+      const [rsvpStatus, setRsvpStatus] = useState({});
+      const [rsvpCounts, setRsvpCounts] = useState({});
       
       const [isScannerOpen, setIsScannerOpen] = useState(false);
       const [scanResult, setScanResult] = useState(null);
@@ -301,6 +303,7 @@
               setAlumniData(data.alumni || []);
               setEventsData(data.events || []);
               if(data.voteTally) setVoteTally(data.voteTally);
+              if(data.rsvpCounts) setRsvpCounts(data.rsvpCounts);
             }
             setIsLoading(false);
           })
@@ -663,6 +666,42 @@
           return Math.round(((voteTally[id] || 0) / totalVotes) * 100);
       };
 
+      const handleRsvp = async (eventId, status) => {
+        if (currentUser.role === 'guest') {
+          showToast('Login terlebih dahulu untuk konfirmasi kehadiran.');
+          setCurrentPage('profile');
+          return;
+        }
+
+        setIsLoading(true);
+        try {
+          const res = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({
+              action: 'submitRsvp',
+              phone: currentUser.data.hp,
+              nama: currentUser.data.nama,
+              eventId: eventId,
+              status: status
+            })
+          });
+          const result = await res.json();
+          if (result.status === 'success') {
+            setRsvpStatus(prev => ({ ...prev, [eventId]: status }));
+            if (status === 'Hadir') {
+              setRsvpCounts(prev => ({ ...prev, [eventId]: (prev[eventId] || 0) + 1 }));
+            }
+            showToast(`Kehadiran berhasil dicatat status ${status}`);
+          } else {
+            showToast('Gagal mencatat kehadiran.');
+          }
+        } catch (e) {
+          showToast('Gagal mengirim data. Periksa koneksi internet.');
+        }
+        setIsLoading(false);
+      };
+
       const renderHeader = () => {
         const titles = { home: "Dashboard", directory: "Directory", map: "Peta Sebaran", events: "Pemilu & Event", profile: "Akun Saya" };
         return (
@@ -955,7 +994,51 @@
           )}
 
           <div className="pt-6 border-t border-gray-200 mt-6">
-            <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2"><CalendarDays size={20} className="text-gray-500"/> Agenda Organisasi & Event</h3>
+            <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2"><CalendarDays size={20} className="text-[#5D4C8C]"/> Agenda Terdekat & RSVP</h3>
+            
+            <div className="space-y-4 mb-6">
+              {[
+                { id: 'bukber_2026', title: 'Buka Bersama IKATP', date: '14 Maret 2026', time: '16:00 WIB', location: 'Menunggu Konfirmasi', type: 'Sosial' },
+                { id: 'mubes_2026', title: 'Musyawarah Besar (MUBES) IKATP', date: '15 Maret 2026', time: '08:00 WIB', location: 'Menunggu Konfirmasi', type: 'Organisasi' }
+              ].map((ev) => (
+                <div key={ev.id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-[#D4AF37]">
+                   <div className="p-5">
+                      <div className="flex justify-between items-start mb-3">
+                        <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-[#D4AF37]">{ev.type}</span>
+                        <span className="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-1 rounded">Wajib Konfirmasi</span>
+                      </div>
+                      <h3 className="text-lg font-bold text-gray-800 leading-tight mb-4">{ev.title}</h3>
+                      <div className="space-y-2 mb-5">
+                        <div className="flex items-center gap-2 text-sm text-gray-600"><CalendarDays size={16} className="text-[#D4AF37]" /><span>{ev.date} • {ev.time}</span></div>
+                        <div className="flex items-center gap-2 text-sm text-gray-600"><MapPin size={16} className="text-gray-400" /><span>{ev.location}</span></div>
+                      </div>
+
+                      <div className="pt-4 border-t border-gray-100">
+                        <div className="flex justify-between items-center mb-3">
+                           <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Kehadiran Kamu</p>
+                           <p className="text-xs font-bold text-[#5D4C8C] bg-purple-50 px-2 py-1 rounded-md">{rsvpCounts[ev.id] || 0} Orang Hadir</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleRsvp(ev.id, 'Hadir')}
+                            className={`flex-1 py-2.5 rounded-xl text-sm font-bold border transition-colors ${rsvpStatus[ev.id] === 'Hadir' ? 'bg-[#5D4C8C] text-white border-[#5D4C8C] shadow-md' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
+                          >
+                            Hadir
+                          </button>
+                          <button
+                            onClick={() => handleRsvp(ev.id, 'Berhalangan')}
+                            className={`flex-1 py-2.5 rounded-xl text-sm font-bold border transition-colors ${rsvpStatus[ev.id] === 'Berhalangan' ? 'bg-gray-200 text-gray-500 border-gray-300 shadow-inner' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
+                          >
+                            Berhalangan
+                          </button>
+                        </div>
+                      </div>
+                   </div>
+                </div>
+              ))}
+            </div>
+
+            <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2"><CalendarDays size={20} className="text-gray-500"/> Event Lainnya</h3>
             
             {/* Action Buttons: Tambah Event & Scan Kehadiran */}
             <div className="mb-4 flex flex-wrap justify-end gap-2">
