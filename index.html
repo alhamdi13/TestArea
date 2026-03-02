@@ -1121,7 +1121,7 @@
                 
                 <div className="bg-white p-2.5 rounded-2xl shadow-sm border border-gray-200 mb-2">
                   <img 
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(currentUser.data.hp)}&margin=0`} 
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(String(currentUser.data.hp || currentUser.data.nama))}&margin=0`} 
                     alt="QR Code Kehadiran" 
                     className="w-28 h-28 object-contain" 
                   />
