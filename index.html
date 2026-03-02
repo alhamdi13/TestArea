@@ -17,7 +17,8 @@
       "imports": {
         "react": "https://esm.sh/react@18.2.0",
         "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
-        "lucide-react": "https://esm.sh/lucide-react@0.263.1"
+        "lucide-react": "https://esm.sh/lucide-react@0.263.1",
+        "qrcode.react": "https://esm.sh/qrcode.react@3.1.0"
       }
     }
   </script>
@@ -91,12 +92,13 @@
   <script type="text/babel" data-type="module">
     import React, { useState, useMemo, useEffect } from 'react';
     import { createRoot } from 'react-dom/client';
+    import { QRCodeSVG } from 'qrcode.react';
     import {
       Search, SlidersHorizontal, ChevronRight, Home, Users, Map as MapIcon,
       Calendar, User, Briefcase, MapPin, Phone, Mail, X, Plus, Minus, LocateFixed,
       Navigation, TrendingUp, CalendarDays, Building2, KeyRound,
       Send, Edit2, CheckCircle2, Save, LogOut, Loader2, UploadCloud, Lock, Key,
-      Ticket, Copy, BarChart2, QrCode, Scan, XCircle, RefreshCw
+      Ticket, Copy, BarChart2, QrCode, Scan, XCircle, RefreshCw, Edit
     } from 'lucide-react';
 
     const API_URL = "https://script.google.com/macros/s/AKfycbyT1S47-5PnVzFp2ixPilfLbxYXwwtrlWQcPHTvo0ev2JFgogbx19gDCaMdBTuOi9d3/exec";
@@ -271,7 +273,6 @@
 
       const [filterAngkatan, setFilterAngkatan] = useState('Semua Angkatan');
       
-      // State Khusus Scanner Kehadiran
       const [isScannerOpen, setIsScannerOpen] = useState(false);
       const [scanResult, setScanResult] = useState(null);
 
@@ -310,7 +311,6 @@
           });
       }, [currentPage]); 
 
-      // Efek inisialisasi HTML5 QRCode Scanner saat modal terbuka
       useEffect(() => {
         if (isScannerOpen && !scanResult) {
             const scanner = new Html5QrcodeScanner(
@@ -321,11 +321,11 @@
 
             scanner.render(
                 (decodedText) => {
-                    scanner.clear(); // Hentikan kamera segera
+                    scanner.clear(); 
                     handleScanSuccess(decodedText);
                 },
                 (error) => {
-                    // Abaikan pesan error pemindaian standar (biasanya tidak ada QR di frame)
+                    // Abaikan pesan error pemindaian standar
                 }
             );
 
@@ -336,14 +336,30 @@
       }, [isScannerOpen, scanResult]);
 
       const handleScanSuccess = async (qrData) => {
-        setScanResult({ loading: true, name: qrData, success: false, message: 'Mencatat kehadiran...' });
+        let parsedData;
+        try {
+          // Validasi dan parsing format JSON kunci unik
+          parsedData = JSON.parse(qrData);
+          if (!parsedData.hp || !parsedData.nama) throw new Error("Format Tidak Valid");
+        } catch (err) {
+          setScanResult({ 
+            success: false, 
+            name: 'Akses Ditolak', 
+            message: 'QR Code tidak valid. Harap gunakan QR dari menu Akun aplikasi.' 
+          });
+          return;
+        }
+
+        setScanResult({ loading: true, name: parsedData.nama, success: false, message: 'Memverifikasi dan mencatat kehadiran...' });
+        
         try {
           const res = await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'text/plain' },
             body: JSON.stringify({
-              action: 'recordAttendance', // Action ini perlu ditangani di Google Apps Script Kamu
-              qrData: qrData,
+              action: 'recordAttendance', 
+              qrData: parsedData.hp, // Gunakan nomor HP sebagai identitas ke backend
+              nama: parsedData.nama,
               timestamp: new Date().toISOString()
             })
           });
@@ -352,18 +368,18 @@
           if (result.status === 'success') {
             setScanResult({ 
               success: true, 
-              name: result.name || qrData, 
-              message: result.message || 'Kehadiran berhasil dicatat!' 
+              name: result.name || parsedData.nama, 
+              message: result.message || 'Kehadiran berhasil dikonfirmasi!' 
             });
           } else {
             setScanResult({ 
               success: false, 
-              name: result.name || qrData, 
+              name: result.name || parsedData.nama, 
               message: result.message || 'Gagal mencatat kehadiran.' 
             });
           }
         } catch (err) {
-          setScanResult({ success: false, name: qrData, message: 'Koneksi bermasalah. Coba lagi.' });
+          setScanResult({ success: false, name: parsedData.nama, message: 'Koneksi bermasalah. Coba lagi.' });
         }
       };
 
@@ -1045,6 +1061,14 @@
             </main>
           );
         }
+        
+        // Buat objek data khusus untuk QR Code
+        const qrDataObj = {
+          hp: currentUser.data.hp,
+          nama: currentUser.data.nama
+        };
+        const qrCodeValue = JSON.stringify(qrDataObj);
+
         return (
           <main className="flex-1 px-4 py-6 pb-28 overflow-y-auto bg-gray-50 flex flex-col items-center">
             {/* Kartu Digital Anggota Premium */}
@@ -1119,14 +1143,15 @@
                    <div className="relative flex justify-center"><span className="bg-white px-3 text-[10px] text-gray-400 font-bold uppercase tracking-widest">Scan Kehadiran</span></div>
                 </div>
                 
-                <div className="bg-white p-2.5 rounded-2xl shadow-sm border border-gray-200 mb-2">
-                  <img 
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(String(currentUser.data.hp || currentUser.data.nama))}&margin=0`} 
-                    alt="QR Code Kehadiran" 
-                    className="w-28 h-28 object-contain" 
+                <div className="bg-white p-2.5 rounded-2xl shadow-sm border border-gray-200 mb-2 flex justify-center items-center h-32 w-32 mx-auto">
+                  <QRCodeSVG 
+                    value={qrCodeValue} 
+                    size={104} 
+                    level="H" 
+                    includeMargin={false}
                   />
                 </div>
-                <p className="text-gray-400 text-[10px] font-medium font-mono">
+                <p className="text-gray-400 text-[10px] font-medium font-mono mt-1">
                   ID: {String(currentUser.data.hp || '').slice(-4).padStart(8, '*')}
                 </p>
               </div>
@@ -1186,7 +1211,7 @@
                 <div className="p-6 overflow-y-auto flex-1 flex flex-col items-center justify-center">
                   {!scanResult ? (
                     <div className="w-full">
-                       <p className="text-sm text-center text-gray-500 mb-4 font-medium">Arahkan kamera ke QR Code peserta event</p>
+                       <p className="text-sm text-center text-gray-500 mb-4 font-medium">Arahkan kamera ke QR Code Profil Alumni</p>
                        <div id="reader" className="w-full rounded-xl overflow-hidden border-2 border-dashed border-gray-300"></div>
                     </div>
                   ) : (
@@ -1298,7 +1323,7 @@
             <div className="fixed inset-0 z-50 flex items-end justify-center bg-gray-900/60 backdrop-blur-sm">
               <div className="bg-white w-full sm:w-96 rounded-t-3xl shadow-2xl overflow-hidden flex flex-col relative" style={{ maxHeight: '90vh' }}>
                 {currentUser.role === 'admin' && (
-                  <button onClick={() => startEditing(selectedAlumni)} className="absolute top-4 left-4 p-2 bg-white/20 text-white rounded-full hover:bg-white/40 z-10 flex items-center gap-1 text-xs font-bold"><Edit directize={14} /> Edit</button>
+                  <button onClick={() => startEditing(selectedAlumni)} className="absolute top-4 left-4 p-2 bg-white/20 text-white rounded-full hover:bg-white/40 z-10 flex items-center gap-1 text-xs font-bold"><Edit size={14} /> Edit</button>
                 )}
                 <div className="relative h-32 bg-[#5D4C8C] shrink-0">
                   <button onClick={() => setSelectedAlumni(null)} className="absolute top-4 right-4 p-1.5 bg-black/20 text-white rounded-full"><X size={20} /></button>
