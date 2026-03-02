@@ -16,7 +16,8 @@
       "imports": {
         "react": "https://esm.sh/react@18.2.0",
         "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
-        "lucide-react": "https://esm.sh/lucide-react@0.263.1"
+        "lucide-react": "https://esm.sh/lucide-react@0.263.1",
+        "qrcode.react": "https://esm.sh/qrcode.react@3.1.0"
       }
     }
   </script>
@@ -89,6 +90,7 @@
   <script type="text/babel" data-type="module">
     import React, { useState, useMemo, useEffect } from 'react';
     import { createRoot } from 'react-dom/client';
+    import { QRCodeSVG } from 'qrcode.react';
     import {
       Search, SlidersHorizontal, ChevronRight, Home, Users, Map as MapIcon,
       Calendar, User, Briefcase, MapPin, Phone, Mail, X, Plus, Minus, LocateFixed,
@@ -1218,11 +1220,7 @@
                 </div>
                 
                 <div className="bg-white p-2.5 rounded-2xl shadow-sm border border-gray-200 mb-2 flex justify-center items-center h-32 w-32 mx-auto">
-                  {currentUser.qrCode ? (
-                    <img src={currentUser.qrCode} alt="QR Code Kehadiran" className="w-full h-full object-contain" />
-                  ) : (
-                    <img src={`https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=${encodeURIComponent(qrCodeValue)}&choe=UTF-8`} alt="QR Code" className="w-full h-full object-contain" />
-                  )}
+                  <QRCodeSVG value={qrCodeValue} size={104} level="H" includeMargin={false} />
                 </div>
                 <p className="text-gray-400 text-[10px] font-medium font-mono mt-1">
                   ID: {String(currentUser.data.hp || '').slice(-4).padStart(8, '*')}
@@ -1526,7 +1524,7 @@
                   <button onClick={() => setIsAddingEvent(false)} className="p-1 hover:bg-black/10 rounded-full"><X size={20} /></button>
                 </div>
                 <div className="p-4 overflow-y-auto flex-1 space-y-4 text-sm">
-                  <div><label className="text-gray-500 font-semibold mb-1 block">Judul Event</label><input type="text" className="w-full p-2.5 border rounded-lg" placeholder="Misal Buka Bersama 2026" value={eventFormData.title} onChange={e => setEventFormData({ ...eventFormData, title: e.target.value })} /></div>
+                  <div><label className="text-gray-500 font-semibold mb-1 block">Judul Event</label><input type="text" className="w-full p-2.5 border rounded-lg" placeholder="Misal: Buka Bersama 2026" value={eventFormData.title} onChange={e => setEventFormData({ ...eventFormData, title: e.target.value })} /></div>
                   <div className="grid grid-cols-2 gap-3">
                     <div><label className="text-gray-500 font-semibold mb-1 block">Tanggal</label><input type="text" className="w-full p-2.5 border rounded-lg" placeholder="15 Agustus 2026" value={eventFormData.date} onChange={e => setEventFormData({ ...eventFormData, date: e.target.value })} /></div>
                     <div><label className="text-gray-500 font-semibold mb-1 block">Waktu</label><input type="text" className="w-full p-2.5 border rounded-lg" placeholder="09:00 WIB" value={eventFormData.time} onChange={e => setEventFormData({ ...eventFormData, time: e.target.value })} /></div>
