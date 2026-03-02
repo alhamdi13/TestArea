@@ -1,414 +1,1390 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
- <head>
+
+<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manager Dashboard - Finance Integrated V4</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <title>Database Alumni IKATP & Absensi</title>
+
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Import HTML5 QRCode -->
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.2.0",
+        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+        "lucide-react": "https://esm.sh/lucide-react@0.263.1"
+      }
+    }
+  </script>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <style>
-    body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f1f5f9; min-height: 100vh; }
-    .dashboard-container { max-width: 1200px; margin: 0 auto; padding: 20px; display: none; }
-    #auth-overlay { position: fixed; inset: 0; background: #f8fafc; z-index: 50; display: flex; justify-content: center; align-items: center; }
-    .login-box { background: white; padding: 40px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
-    .input-field { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; margin-bottom: 15px; outline: none; transition: all 0.2s; }
-    .input-field:focus { border-color: #4f46e5; }
-    .btn-primary { width: 100%; padding: 12px; background: #4f46e5; color: white; border-radius: 10px; font-weight: 700; transition: background 0.2s; }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    .pb-safe {
+      padding-bottom: env(safe-area-inset-bottom, 20px);
+    }
+
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .custom-leaflet-marker {
+      background: transparent;
+      border: none;
+    }
+
+    .leaflet-container {
+      font-family: inherit;
+      z-index: 0 !important;
+    }
     
-    .card { background: white; padding: 20px; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
-    .status-posted { background: #dcfce7; color: #15803d; padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 800; border: 1px solid #bbf7d0; display: inline-flex; align-items: center; gap: 4px; }
-    .status-pending { background: #fef9c3; color: #854d0e; padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 800; border: 1px solid #fde047; display: inline-flex; align-items: center; gap: 4px; }
-    
-    .coa-badge { font-family: monospace; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #475569; font-size: 10px; border: 1px solid #cbd5e1; }
+    /* Styling khusus untuk Html5QrcodeScanner */
+    #reader {
+      width: 100%;
+      border-radius: 0.5rem;
+      border: none !important;
+    }
+    #reader button {
+      background-color: #5D4C8C;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      font-weight: bold;
+      margin: 10px 0;
+      cursor: pointer;
+    }
+    #reader select {
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-bottom: 10px;
+      width: 100%;
+    }
+    #reader a {
+      display: none !important;
+    }
   </style>
- </head>
- <body>
+</head>
 
-  <!-- AUTH SCREEN -->
-  <div id="auth-overlay">
-      <div class="login-box">
-          <div class="mb-6">
-            <h2 class="text-2xl font-extrabold text-slate-900">Manager Access V4</h2>
-            <p class="text-slate-500 text-sm">PayBoss Ops & Finance Integration</p>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel" data-type="module">
+    import React, { useState, useMemo, useEffect } from 'react';
+    import { createRoot } from 'react-dom/client';
+    import {
+      Search, SlidersHorizontal, ChevronRight, Home, Users, Map as MapIcon,
+      Calendar, User, Briefcase, MapPin, Phone, Mail, X, Plus, Minus, LocateFixed,
+      Navigation, TrendingUp, CalendarDays, Building2, KeyRound,
+      Send, Edit2, CheckCircle2, Save, LogOut, Loader2, UploadCloud, Lock, Key,
+      Ticket, Copy, BarChart2, QrCode, Scan, XCircle, RefreshCw
+    } from 'lucide-react';
+
+    const API_URL = "https://script.google.com/macros/s/AKfycbyT1S47-5PnVzFp2ixPilfLbxYXwwtrlWQcPHTvo0ev2JFgogbx19gDCaMdBTuOi9d3/exec";
+
+    const VOTING_START_DATE = new Date("2026-03-15T15:00:00+07:00").getTime();
+    const VOTING_END_DATE = new Date("2026-03-15T16:00:00+07:00").getTime();
+
+    const getDriveImageLink = (url) => {
+      if (!url) return null;
+      const strUrl = String(url).trim();
+      const match = strUrl.match(/(?:id=|file\/d\/|open\?id=)([a-zA-Z0-9_-]+)/);
+      if (match) return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w800`;
+      if (strUrl.startsWith('http')) return strUrl;
+      return null;
+    };
+
+    const getInitials = (name) => {
+      if (!name) return 'AL';
+      return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+    };
+
+    const getRegionInfo = (alumni) => {
+      let s = String(alumni.domisili || '').toLowerCase();
+
+      if (!s || s === 'undefined' || s.trim() === '') return { id: 'belum_ada', name: 'Belum Ada Data', lat: 0, lng: 0 };
+
+      if (s.match(/freeport|timika|tembagapura|mimika|papua tengah|nabire/)) return { id: 'papua_tengah', name: 'Timika / Tembagapura', lat: -4.2699, lng: 136.9350 };
+      if (s.match(/jayapura|merauke|biak|keerom|papua/)) return { id: 'papua', name: 'Papua', lat: -2.5337, lng: 140.7181 };
+      if (s.match(/sorong|manokwari|bintuni|fakfak|papua barat|berau macaque/)) return { id: 'papua_barat', name: 'Papua Barat', lat: -0.8615, lng: 134.0620 };
+      if (s.match(/halmahera|weda|obi|ternate|tidore|maluku utara|malut|nhm|iwip|bacan|morotai/)) return { id: 'malut', name: 'Maluku Utara', lat: 0.2833, lng: 127.9167 };
+      if (s.match(/ambon|tual|buru|seram|maluku/)) return { id: 'maluku', name: 'Maluku', lat: -3.2385, lng: 130.1453 };
+      if (s.match(/morowali|palu|luwuk|banggai|donggala|poso|sulawesi tengah|sulteng|imip|ptimip/)) return { id: 'sulteng', name: 'Sulawesi Tengah (Morowali)', lat: -2.5694, lng: 121.9547 };
+      if (s.match(/konawe|kendari|pomalaa|kolaka|bombana|buton|sulawesi tenggara|sultra|vdni|oss|antam/)) return { id: 'sultra', name: 'Sulawesi Tenggara (Konawe)', lat: -4.0198, lng: 122.5053 };
+      if (s.match(/sorowako|luwu|makassar|parepare|palopo|bone|gowa|bantaeng|huadi|sulawesi selatan|sulsel|vale/)) return { id: 'sulsel', name: 'Sulawesi Selatan (Sorowako)', lat: -2.5310, lng: 121.3533 };
+      if (s.match(/manado|bitung|minahasa|tomohon|sulawesi utara|sulut/)) return { id: 'sulut', name: 'Sulawesi Utara', lat: 1.4931, lng: 124.8413 };
+      if (s.match(/gorontalo|pohuwato|bone bolango/)) return { id: 'gorontalo', name: 'Gorontalo', lat: 0.5435, lng: 123.0568 };
+      if (s.match(/mamuju|majene|polewali|sulawesi barat|sulbar/)) return { id: 'sulbar', name: 'Sulawesi Barat', lat: -2.6787, lng: 118.8888 };
+      if (s.match(/tarakan|bulungan|malinau|nunukan|tana tidung|kalimantan utara|kaltara/)) return { id: 'kaltara', name: 'Kalimantan Utara', lat: 3.0731, lng: 117.6186 };
+      if (s.match(/berau|kpc|sangatta|kutai timur|kutim/)) return { id: 'kaltim_utara', name: 'Kaltim (Berau & Sangatta)', lat: 1.5, lng: 117.5 };
+      if (s.match(/balikpapan|samarinda|bontang|penajam|paser|kukar|kutai kartanegara|kalimantan timur|kaltim|kideco/)) return { id: 'kaltim_selatan', name: 'Kaltim (Balikpapan & Sekitar)', lat: -1.1, lng: 116.8 };
+      if (s.match(/banjarmasin|banjarbaru|kotabaru|tanah bumbu|batulicin|tabalong|tapin|pelaihari|kalimantan selatan|kalsel|adaro|arutmin|antang|jorong|bib|bss/)) return { id: 'kalsel', name: 'Kalimantan Selatan', lat: -2.1833, lng: 115.4667 };
+      if (s.match(/palangkaraya|sampit|pangkalan bun|murung raya|barito|kotawaringin|kalimantan tengah|kalteng|adaro metcoal/)) return { id: 'kalteng', name: 'Kalimantan Tengah', lat: -1.5845, lng: 113.5623 };
+      if (s.match(/pontianak|singkawang|ketapang|sanggau|sintang|kapuas hulu|kalimantan barat|kalbar|whw/)) return { id: 'kalbar', name: 'Kalimantan Barat', lat: -0.0227, lng: 109.3425 };
+      if (s.match(/mataram|sumbawa|dompu|bima|ntb|amman|amnt|batu hijau/)) return { id: 'ntb', name: 'Nusa Tenggara Barat', lat: -8.6500, lng: 117.3616 };
+      if (s.match(/kupang|ende|flores|sumba|manggarai|ntt/)) return { id: 'ntt', name: 'Nusa Tenggara Timur', lat: -9.8956, lng: 123.5986 };
+      if (s.match(/bali|denpasar|badung|gianyar|singaraja/)) return { id: 'bali', name: 'Bali', lat: -8.4095, lng: 115.1889 };
+      if (s.match(/surabaya|malang|gresik|sidoarjo|banyuwangi|jember|kediri|madiun|tuban|bojonegoro|pasuruan|mojokerto|probolinggo|jawa timur|jatim|freeport gresik|smelting/)) return { id: 'jatim', name: 'Jawa Timur', lat: -7.2504, lng: 112.7688 };
+      if (s.match(/semarang|solo|surakarta|boyolali|tegal|pekalongan|kudus|jepara|cilacap|banyumas|purwokerto|magelang|jawa tengah|jateng/)) return { id: 'jateng', name: 'Jawa Tengah', lat: -7.1509, lng: 110.1402 };
+      if (s.match(/yogyakarta|jogja|diy|sleman|bantul|gunungkidul/)) return { id: 'diy', name: 'DI Yogyakarta', lat: -7.7956, lng: 110.3695 };
+      if (s.match(/bandung|bogor|bekasi|depok|cirebon|indramayu|karawang|purwakarta|subang|sukabumi|tasikmalaya|garut|cimahi|jawa barat|jabar|antam pongkor/)) return { id: 'jabar', name: 'Jawa Barat', lat: -6.9147, lng: 107.6098 };
+      if (s.match(/banten|cilegon|serang|tangerang|lebak|pandeglang|krakatau/)) return { id: 'banten', name: 'Banten', lat: -6.4058, lng: 106.0640 };
+      if (s.match(/jakarta|dki|jabodetabek/)) return { id: 'jakarta', name: 'DKI Jakarta', lat: -6.2088, lng: 106.8456 };
+      if (s.match(/tanjung enim|palembang|lahat|muara enim|prabumulih|lubuklinggau|banyuasin|ogan ilir|sumsel|sumatra selatan|sumatera selatan|ptba|bukit asam|sriwijaya/)) return { id: 'sumsel', name: 'Sumatera Selatan', lat: -3.7431, lng: 103.7849 };
+      if (s.match(/bandar lampung|lampung|metro|tulang bawang|way kanan/)) return { id: 'lampung', name: 'Lampung', lat: -5.4500, lng: 105.2667 };
+      if (s.match(/pangkal pinang|bangka|belitung|sungailiat|muntok|babel|timah/)) return { id: 'babel', name: 'Bangka Belitung', lat: -2.1325, lng: 106.1122 };
+      if (s.match(/bengkulu|rejang lebong|mukomuko|lebong/)) return { id: 'bengkulu', name: 'Bengkulu', lat: -3.7928, lng: 102.2608 };
+      if (s.match(/jambi|bungo|merangin|sarolangun|kerinci/)) return { id: 'jambi', name: 'Jambi', lat: -1.5901, lng: 103.6128 };
+      if (s.match(/pekanbaru|dumai|pelalawan|siak|bengkalis|rokan|kampar|riau|chevron|phr/)) return { id: 'riau', name: 'Riau', lat: 0.5071, lng: 101.4451 };
+      if (s.match(/batam|tanjung pinang|bintan|karimun|natuna|kepri|kepulauan riau/)) return { id: 'kepri', name: 'Kepulauan Riau', lat: 1.0456, lng: 104.0305 };
+      if (s.match(/padang|bukittinggi|sawahlunto|pariaman|solok|pasaman|agam|dharmasraya|sijunjung|pesisir selatan|tanah datar|payakumbuh|sumatra barat|sumatera barat|sumbar|semen padang/)) return { id: 'sumbar', name: 'Sumatera Barat', lat: -0.9471, lng: 100.4172 };
+      if (s.match(/medan|binjai|siantar|asahan|deli serdang|karo|tapanuli|nias|sumatra utara|sumatera utara|sumut|agincourt|martabe/)) return { id: 'sumut', name: 'Sumatera Utara', lat: 3.5952, lng: 98.6722 };
+      if (s.match(/aceh|lhokseumawe|langsa|meulaboh|pidie|mifa/)) return { id: 'aceh', name: 'Aceh', lat: 4.6951, lng: 96.8209 };
+
+      return { id: 'lainnya', name: 'Lokasi Lainnya', lat: -0.7893, lng: 113.9213 };
+    };
+
+    const MapView = ({ locationGroups, selectedLocation, setSelectedLocation }) => {
+      const mapRef = React.useRef(null);
+      const mapInstance = React.useRef(null);
+      const markersRef = React.useRef({});
+
+      const handleZoomIn = () => { if (mapInstance.current) mapInstance.current.zoomIn(); };
+      const handleZoomOut = () => { if (mapInstance.current) mapInstance.current.zoomOut(); };
+      const handleLocateCenter = () => {
+        if (mapInstance.current) mapInstance.current.flyTo([-2.5489, 118.0149], 5, { duration: 0.5 });
+        setSelectedLocation(null);
+      };
+
+      React.useEffect(() => {
+        if (!mapRef.current) return;
+
+        if (!mapInstance.current) {
+          mapInstance.current = L.map(mapRef.current, {
+            zoomControl: false,
+            attributionControl: false
+          }).setView([-2.5489, 118.0149], 5);
+
+          L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: ''
+          }).addTo(mapInstance.current);
+        }
+
+        Object.values(markersRef.current).forEach(m => {
+          if (m) mapInstance.current.removeLayer(m);
+        });
+        markersRef.current = {};
+
+        locationGroups.forEach((group, idx) => {
+          const isActive = selectedLocation?.name === group.name;
+
+          const iconSize = isActive ? [46, 46] : [36, 36];
+          const iconAnchor = isActive ? [23, 23] : [18, 18];
+          const bgColor = isActive ? '#D4AF37' : '#5D4C8C';
+
+          const iconHtml = `<div style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; background-color: ${bgColor}; border-radius: 50%; border: 3px solid white; box-shadow: 0 4px 8px rgba(0,0,0,0.3); color: white; font-weight: bold; font-size: 14px; transition: all 0.3s ease;">
+               ${group.alumni.length}
+             </div>`;
+
+          const icon = L.divIcon({
+            html: iconHtml,
+            className: 'custom-leaflet-marker',
+            iconSize: iconSize,
+            iconAnchor: iconAnchor
+          });
+
+          const marker = L.marker(group.coordinates, { icon }).addTo(mapInstance.current);
+          marker.on('click', () => setSelectedLocation(group));
+
+          const tooltipContent = '<div class="text-center"><div class="font-bold text-gray-800">' + group.name + '</div><div class="text-xs text-gray-500 mt-0.5">' + group.alumni.length + ' Alumni Terdaftar</div></div>';
+
+          marker.bindTooltip(tooltipContent, {
+            direction: 'top',
+            offset: [0, -10],
+            opacity: 0.9,
+            className: 'shadow-lg rounded-lg border-none px-3 py-2 bg-white'
+          });
+
+          markersRef.current[idx] = marker;
+        });
+
+      }, [locationGroups, selectedLocation]);
+
+      React.useEffect(() => {
+        if (selectedLocation && mapInstance.current) {
+          mapInstance.current.flyTo(selectedLocation.coordinates, 8, { duration: 0.5 });
+        }
+      }, [selectedLocation]);
+
+      return (
+        <React.Fragment>
+          <div className="absolute right-4 top-4 flex flex-col gap-2 z-[400]">
+            <button onClick={handleZoomIn} className="w-10 h-10 bg-white rounded-lg shadow-lg flex items-center justify-center text-gray-700 hover:bg-gray-50"><Plus size={20} /></button>
+            <button onClick={handleZoomOut} className="w-10 h-10 bg-white rounded-lg shadow-lg flex items-center justify-center text-gray-700 hover:bg-gray-50"><Minus size={20} /></button>
+            <button onClick={handleLocateCenter} className="w-10 h-10 bg-white rounded-lg shadow-lg flex items-center justify-center text-[#5D4C8C] mt-2"><LocateFixed size={20} /></button>
           </div>
-          <form onsubmit="handleLogin(event)">
-              <input type="email" id="mgr-email" placeholder="Email Manager" class="input-field" required>
-              <input type="password" id="mgr-pass" placeholder="Password" class="input-field" required>
-              <button type="submit" id="btn-login" class="btn-primary">Masuk Dashboard</button>
-          </form>
-          <div id="login-status" class="mt-4 text-xs font-bold text-slate-500">Menunggu input...</div>
-      </div>
-  </div>
+          <div ref={mapRef} style={{ width: '100%', height: '100%', zIndex: 0 }} />
+        </React.Fragment>
+      );
+    };
 
-  <!-- DASHBOARD UI -->
-  <div id="dashboard-ui" class="dashboard-container">
-    
-    <!-- Header -->
-    <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-        <div>
-            <h1 class="text-2xl font-extrabold text-slate-800 flex items-center gap-2">
-                📊 Manager Control Room
-                <span class="bg-indigo-100 text-indigo-700 text-xs px-2 py-1 rounded-full border border-indigo-200">V4 Stable</span>
-            </h1>
-            <p class="text-slate-500 text-sm mt-1">Jembatan Data: Staff Ops (Cafe System) ➡ Finance (Buku Besar)</p>
-        </div>
-        <div class="flex gap-2">
-            <div class="bg-white px-4 py-2 rounded-lg border border-slate-200 text-xs shadow-sm flex flex-col justify-center">
-                <div class="text-slate-400 font-bold uppercase text-[10px]">Status Database</div>
-                <div id="connection-indicator" class="font-bold text-amber-600 flex items-center gap-1">
-                    <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> Menghubungkan...
+    function App() {
+      const [alumniData, setAlumniData] = useState([]);
+      const [eventsData, setEventsData] = useState([]);
+      const [voteTally, setVoteTally] = useState({ "1": 0, "2": 0 });
+      const [isLoading, setIsLoading] = useState(true);
+      const [currentPage, setCurrentPage] = useState('home');
+      const [searchTerm, setSearchTerm] = useState('');
+      const [activeChip, setActiveChip] = useState('All');
+
+      const [currentUser, setCurrentUser] = useState({ role: 'guest', data: null, hasVoted: false });
+      const [authForm, setAuthForm] = useState({ phone: '', password: '', nama: '', email: '', step: 'login', recoveredPass: '' });
+      const [toastMsg, setToastMsg] = useState('');
+
+      const [selectedAlumni, setSelectedAlumni] = useState(null);
+      const [selectedLocation, setSelectedLocation] = useState(null);
+      const [isEditingProfile, setIsEditingProfile] = useState(false);
+      const [editFormData, setEditFormData] = useState({});
+      const [isAddingEvent, setIsAddingEvent] = useState(false);
+      const [eventFormData, setEventFormData] = useState({ title: '', date: '', time: '', location: '', type: 'Organisasi' });
+      const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+      const [voteModal, setVoteModal] = useState(null);
+
+      const [filterAngkatan, setFilterAngkatan] = useState('Semua Angkatan');
+      
+      // State Khusus Scanner Kehadiran
+      const [isScannerOpen, setIsScannerOpen] = useState(false);
+      const [scanResult, setScanResult] = useState(null);
+
+      const uniqueAngkatan = useMemo(() => {
+        const angkatanSet = new Set(alumniData.map(a => String(a.angkatan).trim()).filter(a => a && a !== "undefined"));
+        return ['Semua Angkatan', ...Array.from(angkatanSet).sort((a, b) => b.localeCompare(a))];
+      }, [alumniData]);
+
+      const chips = ['All', 'Tambang', 'Non-Tambang', 'Sumatera Barat', 'Sumatera Selatan'];
+
+      const [nowTime, setNowTime] = useState(Date.now());
+      useEffect(() => {
+        const interval = setInterval(() => setNowTime(Date.now()), 10000); 
+        return () => clearInterval(interval);
+      }, []);
+
+      const isVotingUpcoming = nowTime < VOTING_START_DATE;
+      const isVotingOpen = nowTime >= VOTING_START_DATE && nowTime <= VOTING_END_DATE;
+      const isVotingClosed = nowTime > VOTING_END_DATE;
+
+      useEffect(() => {
+        fetch(API_URL)
+          .then(res => res.json())
+          .then(data => {
+            if (data.status === "success") {
+              setAlumniData(data.alumni || []);
+              setEventsData(data.events || []);
+              if(data.voteTally) setVoteTally(data.voteTally);
+            }
+            setIsLoading(false);
+          })
+          .catch(err => {
+            console.error(err);
+            setIsLoading(false);
+            showToast("Gagal mengambil data dari Google Sheets");
+          });
+      }, [currentPage]); 
+
+      // Efek inisialisasi HTML5 QRCode Scanner saat modal terbuka
+      useEffect(() => {
+        if (isScannerOpen && !scanResult) {
+            const scanner = new Html5QrcodeScanner(
+                "reader",
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                false
+            );
+
+            scanner.render(
+                (decodedText) => {
+                    scanner.clear(); // Hentikan kamera segera
+                    handleScanSuccess(decodedText);
+                },
+                (error) => {
+                    // Abaikan pesan error pemindaian standar (biasanya tidak ada QR di frame)
+                }
+            );
+
+            return () => {
+                scanner.clear().catch(e => console.log("Gagal membersihkan scanner", e));
+            };
+        }
+      }, [isScannerOpen, scanResult]);
+
+      const handleScanSuccess = async (qrData) => {
+        setScanResult({ loading: true, name: qrData, success: false, message: 'Mencatat kehadiran...' });
+        try {
+          const res = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({
+              action: 'recordAttendance', // Action ini perlu ditangani di Google Apps Script Kamu
+              qrData: qrData,
+              timestamp: new Date().toISOString()
+            })
+          });
+          const result = await res.json();
+          
+          if (result.status === 'success') {
+            setScanResult({ 
+              success: true, 
+              name: result.name || qrData, 
+              message: result.message || 'Kehadiran berhasil dicatat!' 
+            });
+          } else {
+            setScanResult({ 
+              success: false, 
+              name: result.name || qrData, 
+              message: result.message || 'Gagal mencatat kehadiran.' 
+            });
+          }
+        } catch (err) {
+          setScanResult({ success: false, name: qrData, message: 'Koneksi bermasalah. Coba lagi.' });
+        }
+      };
+
+      const filteredData = useMemo(() => {
+        return alumniData.filter(alumni => {
+          const matchSearch = String(alumni.nama || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+            String(alumni.perusahaan || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+            String(alumni.site || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+            String(alumni.domisili || '').toLowerCase().includes(searchTerm.toLowerCase());
+
+          let matchAngkatan = filterAngkatan === 'Semua Angkatan' || String(alumni.angkatan).trim() === filterAngkatan;
+
+          let matchChip = true;
+          if (activeChip !== 'All') {
+            if (activeChip === 'Tambang') matchChip = alumni.sesuaiBidang === 'YA';
+            else if (activeChip === 'Non-Tambang') matchChip = alumni.sesuaiBidang === 'TIDAK';
+            else if (activeChip === 'Sumatera Barat') matchChip = String(alumni.domisili).includes('Sumatera Barat') || String(alumni.site).includes('Sumatera Barat');
+            else if (activeChip === 'Sumatera Selatan') matchChip = String(alumni.domisili).includes('Sumatera Selatan') || String(alumni.site).includes('Sumatera Selatan');
+          }
+          return matchSearch && matchChip && matchAngkatan;
+        });
+      }, [alumniData, searchTerm, activeChip, filterAngkatan]);
+
+      const locationGroups = useMemo(() => {
+        const groups = {};
+
+        filteredData.forEach(alumni => {
+          const region = getRegionInfo(alumni);
+          
+          if (region.id === 'belum_ada') return;
+
+          if (!groups[region.id]) {
+            groups[region.id] = {
+              id: region.id,
+              name: region.name,
+              coordinates: [region.lat, region.lng],
+              alumni: [],
+              companies: new Set()
+            };
+          }
+          
+          groups[region.id].alumni.push(alumni);
+          if (alumni.perusahaan) {
+            groups[region.id].companies.add(alumni.perusahaan);
+          }
+        });
+
+        return Object.values(groups).sort((a, b) => b.alumni.length - a.alumni.length);
+      }, [filteredData]);
+
+      const showToast = (msg) => {
+        setToastMsg(msg);
+        setTimeout(() => setToastMsg(''), 3500);
+      };
+
+      const handlePhotoUpload = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (file.size > 3 * 1024 * 1024) {
+          showToast('Ukuran foto maksimal 3MB. Harap perkecil ukuran foto Kamu.');
+          return;
+        }
+
+        setIsUploadingPhoto(true);
+        const reader = new FileReader();
+        
+        reader.onload = async (event) => {
+          const base64Data = event.target.result.split(',')[1];
+          
+          try {
+            const res = await fetch(API_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain' },
+              body: JSON.stringify({
+                action: 'uploadPhoto',
+                data: {
+                  hp: editFormData.hp,
+                  fileName: `Foto_${editFormData.nama}_${Date.now()}`,
+                  mimeType: file.type,
+                  fileData: base64Data
+                }
+              })
+            });
+            const result = await res.json();
+            
+            if (result.status === 'success') {
+              setEditFormData({ ...editFormData, foto: result.url });
+              showToast('Foto berhasil diunggah!');
+            } else {
+              showToast('Gagal mengunggah foto: ' + result.message);
+            }
+          } catch (err) {
+            showToast('Kesalahan jaringan saat mengunggah.');
+          }
+          setIsUploadingPhoto(false);
+        };
+        
+        reader.readAsDataURL(file);
+      };
+
+      const handleRecoverPassword = async () => {
+        if (!authForm.nama || !authForm.email || !authForm.phone) {
+          showToast('Lengkapi semua data terlebih dahulu.');
+          return;
+        }
+
+        setIsLoading(true);
+        const normalizePhone = (p) => {
+          if (!p) return '';
+          let str = String(p).replace(/[^0-9]/g, '');
+          if (str.startsWith('0')) return str.substring(1);
+          if (str.startsWith('62')) return str.substring(2);
+          return str;
+        };
+
+        let phoneToSend = normalizePhone(authForm.phone);
+
+        try {
+          const res = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({
+              action: 'recoverPassword',
+              phone: phoneToSend,
+              nama: authForm.nama,
+              email: authForm.email
+            })
+          });
+          const result = await res.json();
+
+          if (result.status === 'success') {
+            setAuthForm({ ...authForm, recoveredPass: result.password });
+            showToast('Sandi berhasil diverifikasi.');
+          } else {
+            showToast(result.message);
+          }
+        } catch (err) {
+          showToast('Koneksi bermasalah saat memverifikasi data.');
+        }
+        setIsLoading(false);
+      };
+
+      const handleLogin = async () => {
+        setIsLoading(true);
+
+        const normalizePhone = (p) => {
+          if (!p) return '';
+          let str = String(p).replace(/[^0-9]/g, '');
+          if (str.startsWith('0')) return str.substring(1);
+          if (str.startsWith('62')) return str.substring(2);
+          return str;
+        };
+
+        let phoneToSend = authForm.phone;
+        if (authForm.phone !== 'admin') {
+          const inputNorm = normalizePhone(authForm.phone);
+          const foundAlumni = alumniData.find(a => normalizePhone(a.hp) === inputNorm);
+          if (foundAlumni) {
+            phoneToSend = String(foundAlumni.hp).replace(/[^0-9]/g, '');
+          }
+        }
+
+        try {
+          const res = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({ action: 'login', phone: phoneToSend, password: authForm.password })
+          });
+          const result = await res.json();
+          if (result.status === 'success') {
+            setCurrentUser({ role: result.role, data: result.data, hasVoted: result.hasVoted || false });
+            setAuthForm({ phone: '', password: '', nama: '', email: '', step: 'login', recoveredPass: '' });
+            showToast(`Selamat datang, ${result.data.nama}`);
+            setCurrentPage('home');
+          } else {
+            showToast(result.message || 'Nomor WA atau Sandi salah!');
+          }
+        } catch (err) {
+          showToast('Koneksi bermasalah!');
+        }
+        setIsLoading(false);
+      };
+
+      const handleLogout = () => {
+        setCurrentUser({ role: 'guest', data: null, hasVoted: false });
+        setCurrentPage('profile');
+        showToast('Kamu telah keluar.');
+      };
+
+      const startEditing = (alumni) => {
+        setEditFormData(alumni);
+        setIsEditingProfile(true);
+      };
+
+      const saveProfile = async () => {
+        setIsLoading(true);
+        try {
+          const res = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({ action: 'updateProfile', data: editFormData })
+          });
+          const result = await res.json();
+          if (result.status === 'success') {
+            const updatedData = alumniData.map(a => a.hp === editFormData.hp ? editFormData : a);
+            setAlumniData(updatedData);
+            if (currentUser.role === 'alumni' && currentUser.data.hp === editFormData.hp) {
+              setCurrentUser({ ...currentUser, data: editFormData });
+            }
+            setIsEditingProfile(false);
+            setSelectedAlumni(editFormData);
+            showToast('Profil berhasil diperbarui!');
+          } else {
+            showToast('Gagal menyimpan profil');
+          }
+        } catch (e) {
+          showToast('Terjadi kesalahan jaringan');
+        }
+        setIsLoading(false);
+      };
+
+      const saveNewEvent = async () => {
+        if (!eventFormData.title || !eventFormData.date) return showToast('Judul dan Tanggal wajib diisi');
+        setIsLoading(true);
+        const newEvent = { ...eventFormData, id: Date.now(), attendees: 0, status: 'Akan Datang' };
+
+        try {
+          const res = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({ action: 'addEvent', data: newEvent })
+          });
+          const result = await res.json();
+          if (result.status === 'success') {
+            setEventsData([...eventsData, newEvent]);
+            setIsAddingEvent(false);
+            setEventFormData({ title: '', date: '', time: '', location: '', type: 'Organisasi' });
+            showToast('Event berhasil ditambahkan!');
+          }
+        } catch (e) {
+          showToast('Gagal menyimpan event');
+        }
+        setIsLoading(false);
+      };
+
+      const handleSubmitVote = async () => {
+        setIsLoading(true);
+        try {
+          const res = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({
+              action: 'submitVote',
+              phone: currentUser.data.hp,
+              nama: currentUser.data.nama,
+              angkatan: currentUser.data.angkatan,
+              kandidatId: voteModal.id,
+              kandidatName: voteModal.name
+            })
+          });
+          const result = await res.json();
+          
+          if (result.status === 'success') {
+            setCurrentUser(prev => ({ ...prev, hasVoted: true }));
+            setVoteTally(prev => ({...prev, [voteModal.id]: (prev[voteModal.id] || 0) + 1}));
+            setVoteModal(null);
+            showToast('Terima kasih! Suara Kamu berhasil disimpan.');
+          } else {
+            showToast(result.message);
+          }
+        } catch (e) {
+          showToast('Koneksi bermasalah saat mengirim data pemilihan.');
+        }
+        setIsLoading(false);
+      };
+
+      const totalVotes = (voteTally["1"] || 0) + (voteTally["2"] || 0);
+      const getPercentage = (id) => {
+          if (totalVotes === 0) return 0;
+          return Math.round(((voteTally[id] || 0) / totalVotes) * 100);
+      };
+
+      const renderHeader = () => {
+        const titles = { home: "Dashboard", directory: "Directory", map: "Peta Sebaran", events: "Pemilu & Event", profile: "Akun Saya" };
+        return (
+          <header className="flex flex-col z-30 bg-white border-b border-gray-200 shadow-sm relative">
+            <div className="px-4 pt-8 pb-3">
+              <div className="flex items-center justify-between mb-4 mt-2">
+                <div>
+                  <h1 className="text-2xl font-bold text-[#5D4C8C] tracking-tight">{titles[currentPage]}</h1>
+                  <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">IKATP Universitas Negeri Padang</p>
+                </div>
+                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#5D4C8C] to-[#D4AF37] text-white flex items-center justify-center font-bold text-sm shadow-md cursor-pointer">
+                  {currentUser.role !== 'guest' ? getInitials(currentUser.data.nama) : 'GT'}
+                </div>
+              </div>
+
+              {(currentPage === 'directory' || currentPage === 'map') && (
+                <div className="flex gap-3">
+                  <div className="relative flex-1">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><Search className="text-gray-500" size={20} /></div>
+                    <input
+                      type="text" placeholder="Cari site, perusahaan, domisili, atau nama..."
+                      className="block w-full pl-10 pr-3 py-2.5 border-none rounded-xl bg-gray-100 text-sm text-gray-800 placeholder-gray-500 focus:ring-2 focus:ring-[#5D4C8C] outline-none"
+                      value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          </header>
+        );
+      };
+
+      const renderHome = () => {
+        const totalTambang = alumniData.filter(a => a.sesuaiBidang === 'YA').length;
+        const percentage = alumniData.length > 0 ? Math.round((totalTambang / alumniData.length) * 100) : 0;
+
+        return (
+          <main className="flex-1 px-4 py-6 space-y-6 pb-28 overflow-y-auto bg-gray-100">
+            <div className="bg-gradient-to-r from-[#5D4C8C] to-[#8A79B8] rounded-2xl p-6 text-white shadow-md relative overflow-hidden">
+              <div className="relative z-10">
+                <h2 className="text-xl font-bold mb-1">
+                  Selamat Datang{currentUser.role !== 'guest' ? `, ${currentUser.data.nama.split(' ')[0]}!` : '!'}
+                </h2>
+                <p className="text-sm text-purple-100 mb-4">Mari perkuat jaringan alumni tambang kita.</p>
+                {currentUser.role === 'guest' && (
+                  <button onClick={() => setCurrentPage('profile')} className="bg-white text-[#5D4C8C] px-4 py-2 rounded-lg text-sm font-semibold shadow-sm hover:bg-gray-50">
+                    Login Akun
+                  </button>
+                )}
+              </div>
+              <Building2 className="absolute right-[-20px] bottom-[-20px] text-white/10 w-40 h-40" />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+                <div className="w-10 h-10 rounded-full bg-purple-100 text-[#5D4C8C] flex items-center justify-center mb-3"><Users size={20} /></div>
+                <p className="text-2xl font-bold text-gray-800">{alumniData.length}</p>
+                <p className="text-xs text-gray-500 font-medium mt-1">Total Terdaftar</p>
+              </div>
+              <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+                <div className="w-10 h-10 rounded-full bg-amber-100 text-[#D4AF37] flex items-center justify-center mb-3"><TrendingUp size={20} /></div>
+                <p className="text-2xl font-bold text-gray-800">{percentage}%</p>
+                <p className="text-xs text-gray-500 font-medium mt-1">Sektor Tambang</p>
+              </div>
+            </div>
+
+            <div>
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="font-bold text-gray-800">Baru Bergabung</h3>
+                <button onClick={() => setCurrentPage('directory')} className="text-xs font-semibold text-[#5D4C8C]">Lihat Semua</button>
+              </div>
+              <div className="space-y-3">
+                {alumniData.slice(0, 3).map((alumni, i) => (
+                  <div key={i} onClick={() => setSelectedAlumni(alumni)} className="bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex items-center gap-3 cursor-pointer">
+                    {getDriveImageLink(alumni.foto) ? (
+                      <React.Fragment>
+                        <img src={getDriveImageLink(alumni.foto)} alt={alumni.nama} className="w-12 h-12 rounded-lg object-cover shrink-0" onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }} />
+                        <div className="w-12 h-12 rounded-lg bg-purple-50 items-center justify-center font-bold text-[#5D4C8C] shrink-0" style={{ display: 'none' }}>{getInitials(alumni.nama)}</div>
+                      </React.Fragment>
+                    ) : (
+                      <div className="w-12 h-12 rounded-lg bg-purple-50 flex items-center justify-center font-bold text-[#5D4C8C] shrink-0">{getInitials(alumni.nama)}</div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm text-gray-800 truncate">{alumni.nama}</p>
+                      <p className="text-xs text-gray-500 truncate">{alumni.perusahaan}</p>
+                    </div>
+                    <ChevronRight size={16} className="text-gray-400" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </main>
+        );
+      };
+
+      const renderDirectory = () => (
+        <main className="flex-1 px-4 py-4 space-y-4 pb-28 overflow-y-auto bg-gray-100">
+          <div className="flex gap-2 mb-2">
+            <select
+              className="bg-white border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-[#5D4C8C] focus:border-[#5D4C8C] block w-full p-2.5 shadow-sm outline-none font-medium"
+              value={filterAngkatan}
+              onChange={(e) => setFilterAngkatan(e.target.value)}
+            >
+              {uniqueAngkatan.map(angkatan => (
+                <option key={angkatan} value={angkatan}>{angkatan === 'Semua Angkatan' ? 'Semua Angkatan' : `Angkatan ${angkatan}`}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar">
+            {chips.map(chip => (
+              <button
+                key={chip} onClick={() => setActiveChip(chip)}
+                className={`px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap shadow-sm border ${activeChip === chip ? 'bg-[#5D4C8C] text-white border-[#5D4C8C]' : 'bg-white border-gray-200 text-gray-500'
+                  }`}
+              >
+                {chip}
+              </button>
+            ))}
+          </div>
+          <p className="text-sm font-semibold text-gray-500 mb-2">{filteredData.length} Alumni Ditemukan</p>
+
+          {filteredData.map((alumni, i) => (
+            <div key={i} onClick={() => setSelectedAlumni(alumni)} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-start gap-4 cursor-pointer">
+              <div className="relative shrink-0">
+                {getDriveImageLink(alumni.foto) ? (
+                  <React.Fragment>
+                    <img src={getDriveImageLink(alumni.foto)} alt={alumni.nama} className="w-16 h-16 rounded-xl object-cover border border-gray-200 shrink-0" onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }} />
+                    <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[#5D4C8C] to-[#D4AF37] items-center justify-center text-white text-xl font-bold shrink-0" style={{ display: 'none' }}>{getInitials(alumni.nama)}</div>
+                  </React.Fragment>
+                ) : (
+                  <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[#5D4C8C] to-[#D4AF37] flex items-center justify-center text-white text-xl font-bold shrink-0">{getInitials(alumni.nama)}</div>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex justify-between items-start">
+                  <h3 className="text-base font-bold text-gray-800 truncate">{alumni.nama}</h3>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-[#5D4C8C] shrink-0 ml-2">{alumni.angkatan}</span>
+                </div>
+                <p className="text-sm text-gray-500 truncate mt-0.5">{alumni.jabatan}</p>
+                <div className="flex items-center gap-1.5 mt-2 text-xs text-gray-500">
+                  <Briefcase size={14} className="text-[#D4AF37] shrink-0" />
+                  <span className="truncate font-medium text-gray-500">{alumni.perusahaan} di {alumni.domisili || alumni.site}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </main>
+      );
+
+      const renderMap = () => (
+        <main className="flex-1 relative w-full h-full bg-slate-200 overflow-hidden z-0">
+          <MapView
+            locationGroups={locationGroups}
+            selectedLocation={selectedLocation}
+            setSelectedLocation={setSelectedLocation}
+          />
+        </main>
+      );
+
+      const renderEvents = () => (
+        <main className="flex-1 px-4 py-6 space-y-6 pb-28 overflow-y-auto bg-gray-100 relative">
+          
+          {isVotingUpcoming ? (
+            <div className="bg-gray-900 rounded-2xl p-8 text-center shadow-lg border border-gray-800 flex flex-col items-center justify-center min-h-[300px]">
+              <Lock size={48} className="text-gray-500 mb-4" />
+              <h2 className="text-xl font-bold text-white mb-3">Sistem Voting Ditutup</h2>
+              <p className="text-sm text-gray-300 leading-relaxed">
+                Halaman ini akan kami buka apabila pemilihan ketua IKATP yang baru menggunakan mode voting atau tidak terjadinya musyawarah mufakat dalam agenda MUBES.
+              </p>
+            </div>
+          ) : (
+            <React.Fragment>
+              <div className="bg-gradient-to-r from-[#D4AF37] to-[#b08d24] rounded-2xl p-5 text-white shadow-md relative overflow-hidden">
+                <div className="relative z-10">
+                  <h2 className="text-xl font-bold mb-1">Pemilu Raya IKATP 2026</h2>
+                  
+                  <div className="bg-white/20 inline-block px-3 py-1.5 rounded-lg border border-white/40 backdrop-blur-sm mt-1 mb-3">
+                    {isVotingUpcoming && <p className="text-xs font-bold text-yellow-100">Dibuka: 1 Mar 2026, 08:00 WIB ⏳</p>}
+                    {isVotingOpen && <p className="text-xs font-bold text-green-100">Sedang Berlangsung 🟢</p>}
+                    {isVotingClosed && <p className="text-xs font-bold text-red-100">Pemilihan Ditutup 🔴</p>}
+                  </div>
+
+                  <p className="text-sm text-yellow-50 mb-3">
+                    {isVotingClosed ? `Total suara masuk: ${totalVotes} suara` : "Gunakan hak suara Kamu untuk memilih Ketua Umum periode selanjutnya."}
+                  </p>
+                  
+                  {currentUser.role === 'guest' && !isVotingClosed && (
+                    <button onClick={() => setCurrentPage('profile')} className="bg-white text-[#D4AF37] px-4 py-2 rounded-lg text-sm font-semibold shadow-sm hover:bg-gray-50">
+                      Login untuk Memilih
+                    </button>
+                  )}
+                  {currentUser.role !== 'guest' && !isVotingClosed && (
+                    <p className="text-sm font-semibold bg-black/20 p-2 rounded-lg inline-block">
+                      Status Kamu: {currentUser.hasVoted ? 'Sudah Memilih ✅' : 'Belum Memilih ⚠️'}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  {isVotingClosed ? <BarChart2 size={20} className="text-[#5D4C8C]"/> : <Users size={20} className="text-[#5D4C8C]"/>} 
+                  {isVotingClosed ? 'Hasil Akhir Pemilihan' : 'Calon Ketua Umum'}
+                </h3>
+                
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 relative overflow-hidden flex flex-col h-full">
+                    <div className="absolute top-0 right-0 bg-[#5D4C8C] text-white font-black text-2xl px-4 py-2 rounded-bl-2xl">SA</div>
+                    <div className="flex items-center gap-4 mb-4">
+                       <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center border-4 border-gray-100 overflow-hidden shrink-0">
+                          <img src="https://i.ibb.co.com/Vpq4KvDx/White-Minimalist-Wedding-Photo-Instagram-Story-1.png" alt="Selno Afdianto" className="w-full h-full object-cover" />
+                       </div>
+                       <div>
+                         <h4 className="text-lg font-bold text-gray-800">Selno Afdianto</h4>
+                         <p className="text-sm font-semibold text-[#D4AF37]">Kandidat Ketua</p>
+                       </div>
+                    </div>
+                    {!isVotingClosed && (
+                      <p className="text-sm text-gray-600 mb-5 italic flex-1">"Mewujudkan IKATP yang solid, kolaboratif, dan berdampak nyata bagi almamater dan seluruh anggota alumni."</p>
+                    )}
+                    
+                    {isVotingClosed ? (
+                       <div className="mt-auto pt-4 border-t border-gray-100">
+                         <div className="flex justify-between text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">
+                           <span>Perolehan Suara</span>
+                           <span className="text-[#5D4C8C]">{voteTally["1"] || 0} Suara ({getPercentage(1)}%)</span>
+                         </div>
+                         <div className="w-full bg-gray-100 rounded-full h-3">
+                           <div className="bg-[#5D4C8C] h-3 rounded-full transition-all duration-1000 ease-out" style={{ width: `${getPercentage(1)}%` }}></div>
+                         </div>
+                       </div>
+                    ) : (
+                       <button
+                        onClick={() => setVoteModal({ id: 1, name: 'Selno Afdianto' })}
+                        disabled={currentUser.role === 'guest' || currentUser.hasVoted || isVotingUpcoming}
+                        className={`w-full py-3 rounded-xl font-bold flex justify-center items-center gap-2 mt-auto transition-colors ${
+                          currentUser.role === 'guest' || currentUser.hasVoted || isVotingUpcoming
+                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                            : 'bg-[#5D4C8C] text-white hover:bg-[#4a3c70] shadow-md'
+                        }`}
+                      >
+                        {isVotingUpcoming ? 'Belum Dibuka' : currentUser.hasVoted ? 'Suara Telah Direkam' : 'Pilih Kandidat 01'}
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 relative overflow-hidden flex flex-col h-full">
+                    <div className="absolute top-0 right-0 bg-[#D4AF37] text-white font-black text-2xl px-4 py-2 rounded-bl-2xl">BR</div>
+                    <div className="flex items-center gap-4 mb-4">
+                       <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center border-4 border-gray-100 overflow-hidden shrink-0">
+                          <img src="https://i.ibb.co.com/35P9L4tK/4-Pas-Foto-Boby-Rahman-jpg.jpg" alt="Boby Rahman" className="w-full h-full object-cover" />
+                       </div>
+                       <div>
+                         <h4 className="text-lg font-bold text-gray-800">Boby Rahman</h4>
+                         <p className="text-sm font-semibold text-[#D4AF37]">Kandidat Ketua</p>
+                       </div>
+                    </div>
+                    {!isVotingClosed && (
+                      <p className="text-sm text-gray-600 mb-5 italic flex-1">"Mengedepankan inovasi digital dan penguatan jejaring profesional untuk alumni tambang yang kompetitif."</p>
+                    )}
+
+                    {isVotingClosed ? (
+                       <div className="mt-auto pt-4 border-t border-gray-100">
+                         <div className="flex justify-between text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">
+                           <span>Perolehan Suara</span>
+                           <span className="text-[#D4AF37]">{voteTally["2"] || 0} Suara ({getPercentage(2)}%)</span>
+                         </div>
+                         <div className="w-full bg-gray-100 rounded-full h-3">
+                           <div className="bg-[#D4AF37] h-3 rounded-full transition-all duration-1000 ease-out" style={{ width: `${getPercentage(2)}%` }}></div>
+                         </div>
+                       </div>
+                    ) : (
+                      <button
+                        onClick={() => setVoteModal({ id: 2, name: 'Boby Rahman' })}
+                        disabled={currentUser.role === 'guest' || currentUser.hasVoted || isVotingUpcoming}
+                        className={`w-full py-3 rounded-xl font-bold flex justify-center items-center gap-2 mt-auto transition-colors ${
+                          currentUser.role === 'guest' || currentUser.hasVoted || isVotingUpcoming
+                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                            : 'bg-[#5D4C8C] text-white hover:bg-[#4a3c70] shadow-md'
+                        }`}
+                      >
+                        {isVotingUpcoming ? 'Belum Dibuka' : currentUser.hasVoted ? 'Suara Telah Direkam' : 'Pilih Kandidat 02'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </React.Fragment>
+          )}
+
+          <div className="pt-6 border-t border-gray-200 mt-6">
+            <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2"><CalendarDays size={20} className="text-gray-500"/> Agenda Organisasi & Event</h3>
+            
+            {/* Action Buttons: Tambah Event & Scan Kehadiran */}
+            <div className="mb-4 flex flex-wrap justify-end gap-2">
+              <button onClick={() => setIsScannerOpen(true)} className="flex items-center gap-2 bg-[#5D4C8C] text-white px-4 py-2 rounded-xl text-sm font-bold shadow-md hover:bg-[#4a3c70]">
+                <QrCode size={18} /> Scan Kehadiran
+              </button>
+              {currentUser.role === 'admin' && (
+                <button onClick={() => setIsAddingEvent(true)} className="flex items-center gap-2 bg-[#D4AF37] text-white px-4 py-2 rounded-xl text-sm font-bold shadow-md hover:bg-[#b08d24]">
+                  <Plus size={18} /> Tambah Event
+                </button>
+              )}
+            </div>
+
+            <div className="space-y-4">
+              {eventsData.length === 0 && <div className="text-center text-gray-500 py-10">Belum ada agenda tersedia.</div>}
+              {eventsData.map((ev, i) => (
+                <div key={i} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+                  <div className="p-5">
+                    <div className="flex justify-between items-start mb-3">
+                      <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-purple-100 text-[#5D4C8C]">{ev.type}</span>
+                      <span className="text-xs font-semibold text-gray-400">{ev.status}</span>
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-800 leading-tight mb-4">{ev.title}</h3>
+                    <div className="space-y-2 mb-5">
+                      <div className="flex items-center gap-2 text-sm text-gray-600"><CalendarDays size={16} className="text-[#D4AF37]" /><span>{ev.date} • {ev.time}</span></div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600"><MapPin size={16} className="text-gray-400" /><span>{ev.location}</span></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </main>
+      );
+
+      const renderProfile = () => {
+        if (currentUser.role === 'guest') {
+          return (
+            <main className="flex-1 px-6 py-10 pb-28 overflow-y-auto bg-white flex flex-col justify-center items-center">
+              <div className="w-20 h-20 bg-purple-50 rounded-full flex items-center justify-center mb-6"><KeyRound size={32} className="text-[#5D4C8C]" /></div>
+              <h2 className="text-2xl font-bold text-gray-800 text-center mb-2">Akses Profil Kamu</h2>
+              <p className="text-sm text-gray-500 text-center mb-8">Masuk untuk melihat dan memperbarui data.</p>
+
+              <div className="w-full max-w-sm">
+                {authForm.step === 'login' ? (
+                  <React.Fragment>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-xs font-semibold text-gray-500 mb-1 block">Nomor WhatsApp</label>
+                        <input type="text" placeholder="Contoh: 08123456789" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[#5D4C8C]" value={authForm.phone} onChange={e => setAuthForm({ ...authForm, phone: e.target.value })} />
+                      </div>
+                      <div>
+                        <label className="text-xs font-semibold text-gray-500 mb-1 block">Sandi</label>
+                        <input type="password" placeholder="******" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[#5D4C8C] text-center tracking-[0.5em] text-lg font-bold" value={authForm.password} onChange={e => setAuthForm({ ...authForm, password: e.target.value })} />
+                      </div>
+                    </div>
+                    <button onClick={handleLogin} className="w-full py-3 bg-[#D4AF37] text-white rounded-xl font-bold flex justify-center items-center gap-2 mt-5">
+                      Masuk Akun <CheckCircle2 size={18} />
+                    </button>
+                    <button onClick={() => setAuthForm({ ...authForm, step: 'recovery', recoveredPass: '' })} className="w-full py-2 text-[#5D4C8C] text-sm font-semibold mt-3 underline">
+                      Belum punya sandi / Lupa sandi?
+                    </button>
+                  </React.Fragment>
+                ) : (
+                  <React.Fragment>
+                    <div className="bg-blue-50 text-blue-800 p-3 rounded-xl text-xs font-medium mb-4">
+                      Masukkan data sesuai database untuk memunculkan sandi Kamu.
+                    </div>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-xs font-semibold text-gray-500 block mb-1">Nama Lengkap</label>
+                        <input type="text" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" value={authForm.nama} onChange={e => setAuthForm({ ...authForm, nama: e.target.value })} />
+                      </div>
+                      <div>
+                        <label className="text-xs font-semibold text-gray-500 block mb-1">Email Terdaftar</label>
+                        <input type="email" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" value={authForm.email} onChange={e => setAuthForm({ ...authForm, email: e.target.value })} />
+                      </div>
+                      <div>
+                        <label className="text-xs font-semibold text-gray-500 block mb-1">Nomor WhatsApp</label>
+                        <input type="text" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" value={authForm.phone} onChange={e => setAuthForm({ ...authForm, phone: e.target.value })} />
+                      </div>
+                    </div>
+
+                    {authForm.recoveredPass && (
+                      <div className="mt-5 p-4 bg-green-50 border border-green-200 rounded-xl text-center">
+                        <p className="text-xs text-green-700 font-semibold mb-1">Sandi Kamu adalah:</p>
+                        <p className="text-2xl font-bold text-green-800 tracking-widest">{authForm.recoveredPass}</p>
+                      </div>
+                    )}
+
+                    {!authForm.recoveredPass && (
+                      <button onClick={handleRecoverPassword} className="w-full py-3 bg-[#5D4C8C] text-white rounded-xl font-bold flex justify-center items-center gap-2 mt-5">
+                        Tampilkan Sandi <Key size={18} />
+                      </button>
+                    )}
+
+                    <button onClick={() => setAuthForm({ ...authForm, step: 'login', recoveredPass: '' })} className="w-full py-2 text-gray-500 text-sm font-semibold mt-3">
+                      Kembali ke Halaman Login
+                    </button>
+                  </React.Fragment>
+                )}
+              </div>
+            </main>
+          );
+        }
+        return (
+          <main className="flex-1 px-4 py-8 pb-28 overflow-y-auto bg-white flex flex-col items-center">
+            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#5D4C8C] to-[#D4AF37] flex items-center justify-center text-white text-3xl font-bold shadow-lg mb-4">
+              {getInitials(currentUser.data.nama)}
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800 text-center">{currentUser.data.nama}</h2>
+            <p className="text-[#5D4C8C] font-semibold text-sm mt-1 uppercase tracking-wide">
+              {currentUser.role === 'admin' ? 'Administrator Sistem' : `Angkatan ${currentUser.data.angkatan}`}
+            </p>
+            <div className="mt-8 w-full max-w-sm space-y-3">
+              {currentUser.role === 'alumni' && (
+                <button onClick={() => startEditing(currentUser.data)} className="w-full py-3 bg-purple-50 border border-purple-100 rounded-xl font-semibold text-[#5D4C8C] flex justify-between items-center px-4 hover:bg-purple-100">
+                  <div className="flex items-center gap-2"><Edit2 size={18} /> Perbarui Data Profil</div><ChevronRight size={18} />
+                </button>
+              )}
+              <button onClick={handleLogout} className="w-full py-3 bg-red-50 border border-red-100 rounded-xl font-semibold text-red-600 flex justify-between items-center px-4 hover:bg-red-100">
+                <div className="flex items-center gap-2"><LogOut size={18} /> Keluar</div><ChevronRight size={18} />
+              </button>
+            </div>
+          </main>
+        );
+      };
+
+      const canViewContact = selectedAlumni && (
+        currentUser.role === 'admin' ||
+        (currentUser.role !== 'guest' && currentUser.data?.hp === selectedAlumni.hp) ||
+        (currentUser.role !== 'guest' && String(currentUser.data?.angkatan).trim() === String(selectedAlumni.angkatan).trim())
+      );
+
+      return (
+        <div className="bg-gray-100 text-gray-800 h-screen flex flex-col antialiased font-sans overflow-hidden">
+          {toastMsg && (
+            <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[70] bg-gray-900 text-white px-4 py-2 rounded-full text-xs font-semibold shadow-lg">
+              {toastMsg}
+            </div>
+          )}
+          {isLoading && (
+            <div className="fixed inset-0 z-[100] bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center">
+              <Loader2 className="animate-spin text-[#5D4C8C] mb-4" size={40} />
+              <p className="text-sm font-semibold text-gray-600">Sistem Sedang Memproses...</p>
+            </div>
+          )}
+
+          {renderHeader()}
+          {currentPage === 'home' && renderHome()}
+          {currentPage === 'directory' && renderDirectory()}
+          {currentPage === 'map' && renderMap()}
+          {currentPage === 'events' && renderEvents()}
+          {currentPage === 'profile' && renderProfile()}
+
+          {/* Modal Scanner Kehadiran */}
+          {isScannerOpen && (
+            <div className="fixed inset-0 z-[80] flex items-center justify-center bg-gray-900/80 backdrop-blur-sm p-4">
+              <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col relative" style={{ maxHeight: '90vh', minHeight: '60vh' }}>
+                <div className="bg-[#5D4C8C] p-4 flex justify-between items-center text-white">
+                  <h3 className="font-bold text-lg flex items-center gap-2"><Scan size={20} /> Scanner Kehadiran</h3>
+                  <button onClick={() => { setIsScannerOpen(false); setScanResult(null); }} className="p-1 hover:bg-white/20 rounded-full"><X size={20} /></button>
+                </div>
+                
+                <div className="p-6 overflow-y-auto flex-1 flex flex-col items-center justify-center">
+                  {!scanResult ? (
+                    <div className="w-full">
+                       <p className="text-sm text-center text-gray-500 mb-4 font-medium">Arahkan kamera ke QR Code peserta event</p>
+                       <div id="reader" className="w-full rounded-xl overflow-hidden border-2 border-dashed border-gray-300"></div>
+                    </div>
+                  ) : (
+                    <div className="text-center w-full py-8">
+                      {scanResult.loading ? (
+                         <div className="flex flex-col items-center">
+                           <Loader2 className="animate-spin text-[#5D4C8C] mb-4" size={48} />
+                           <p className="font-semibold text-gray-600">{scanResult.message}</p>
+                         </div>
+                      ) : (
+                         <React.Fragment>
+                           {scanResult.success ? (
+                             <CheckCircle2 size={80} className="text-green-500 mx-auto mb-4" />
+                           ) : (
+                             <XCircle size={80} className="text-red-500 mx-auto mb-4" />
+                           )}
+                           
+                           <h2 className="text-2xl font-black text-gray-800 mb-2 truncate px-2">{scanResult.name}</h2>
+                           
+                           <div className={`px-4 py-2 mt-2 rounded-lg inline-block font-bold text-sm ${scanResult.success ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+                             {scanResult.message}
+                           </div>
+                           
+                           <button 
+                             onClick={() => setScanResult(null)} 
+                             className="w-full mt-8 py-3 bg-[#5D4C8C] text-white rounded-xl font-bold flex justify-center items-center gap-2 hover:bg-[#4a3c70] shadow-md"
+                           >
+                             <RefreshCw size={20} /> Scan Peserta Lain
+                           </button>
+                         </React.Fragment>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Modal Konfirmasi Vote */}
+          {voteModal && (
+            <div className="fixed inset-0 z-[70] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4">
+                <div className="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6 text-center relative">
+                    <button onClick={() => setVoteModal(null)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                      <X size={24} />
+                    </button>
+                    <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Ticket size={28} className="text-[#5D4C8C]" />
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-800 mb-1">Konfirmasi Pilihan</h3>
+                    <p className="text-sm text-gray-500 mb-4">Kamu akan memberikan suara untuk:</p>
+                    
+                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-6">
+                      <p className="text-2xl font-black text-[#5D4C8C]">KANDIDAT 0{voteModal.id}</p>
+                      <p className="text-lg font-bold text-gray-800">{voteModal.name}</p>
+                    </div>
+                    
+                    <p className="text-xs text-red-500 font-semibold mb-6">Perhatian: Pilihan bersifat final dan tidak dapat diubah.</p>
+                    
+                    <div className="flex gap-3">
+                      <button onClick={() => setVoteModal(null)} className="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-200">
+                        Batal
+                      </button>
+                      <button onClick={handleSubmitVote} className="flex-1 py-3 bg-[#D4AF37] text-white rounded-xl font-bold hover:bg-[#b08d24]">
+                        Setuju
+                      </button>
+                    </div>
                 </div>
             </div>
-            <button onclick="doLogout()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 px-4 py-2 rounded-lg font-bold text-sm border border-rose-200 transition">Logout</button>
-        </div>
-    </div>
+          )}
 
-    <!-- Overview Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div class="card bg-gradient-to-br from-white to-indigo-50 border-indigo-100">
-            <h3 class="text-indigo-900 font-bold text-sm mb-2">📥 Laporan Menunggu Posting</h3>
-            <div id="pending-count" class="text-4xl font-extrabold text-indigo-600">0</div>
-            <p class="text-xs text-indigo-400 mt-1">Shift Staff yang belum masuk buku besar</p>
-        </div>
-        <div class="card">
-            <h3 class="text-slate-600 font-bold text-sm mb-2">💰 Estimasi Omzet Shift (Pending)</h3>
-            <div id="pending-value" class="text-2xl font-bold text-slate-800">Rp 0</div>
-            <p class="text-xs text-slate-400 mt-1">Potensi data yang akan diposting</p>
-        </div>
-        <div class="card">
-            <h3 class="text-slate-600 font-bold text-sm mb-2">✅ Terposting Hari Ini</h3>
-            <div id="posted-today" class="text-2xl font-bold text-emerald-600">0</div>
-            <p class="text-xs text-slate-400 mt-1">Laporan berhasil disinkronkan</p>
-        </div>
-    </div>
-
-    <!-- MAIN TABLE -->
-    <div class="card overflow-hidden p-0">
-        <div class="p-5 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-            <div>
-                <h3 class="font-bold text-slate-800">Antrean Laporan Shift (Staff App)</h3>
-                <p class="text-xs text-slate-500">Klik "Post" untuk memecah laporan ke Kode Akun (COA) secara otomatis.</p>
+          {currentPage === 'map' && selectedLocation && (
+            <div className="absolute inset-x-0 bottom-0 z-40 bg-white rounded-t-3xl shadow-2xl flex flex-col" style={{ maxHeight: '75%' }}>
+              <div className="w-full flex items-center justify-center pt-3 pb-1 cursor-grab"><div className="w-12 h-1.5 bg-gray-200 rounded-full"></div></div>
+              <div className="px-5 pb-4 border-b border-gray-100">
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-800">{selectedLocation.name}</h2>
+                    <div className="flex items-center gap-1 text-gray-500 mt-1">
+                      <Navigation size={14} />
+                      <p className="text-xs font-semibold">{selectedLocation.companies.size > 0 ? `${selectedLocation.companies.size} Perusahaan Terdaftar` : 'Beragam Perusahaan'}</p>
+                    </div>
+                  </div>
+                  <button onClick={() => setSelectedLocation(null)} className="p-1.5 rounded-full hover:bg-gray-100 text-gray-400"><X size={20} /></button>
+                </div>
+              </div>
+              <div className="overflow-y-auto flex-1 p-0 pb-24">
+                {selectedLocation.alumni.map((alumni, i) => (
+                  <div key={i} onClick={() => setSelectedAlumni(alumni)} className="flex items-center gap-3 p-4 border-b border-gray-50 hover:bg-gray-50 cursor-pointer">
+                    {getDriveImageLink(alumni.foto) ? (
+                      <React.Fragment>
+                        <img src={getDriveImageLink(alumni.foto)} alt={alumni.nama} className="w-10 h-10 rounded-full object-cover shrink-0" onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }} />
+                        <div className="w-10 h-10 rounded-full bg-purple-100 items-center justify-center font-bold text-[#5D4C8C] text-sm shrink-0" style={{ display: 'none' }}>{getInitials(alumni.nama)}</div>
+                      </React.Fragment>
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center font-bold text-[#5D4C8C] text-sm shrink-0">{getInitials(alumni.nama)}</div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm font-semibold text-gray-800 truncate">{alumni.nama}</h3>
+                      <p className="text-xs text-gray-500 truncate">{alumni.perusahaan ? `${alumni.perusahaan} - ${alumni.domisili}` : alumni.domisili}</p>
+                    </div>
+                    <button className="px-3 py-1.5 rounded-lg bg-purple-50 text-[#5D4C8C] text-xs font-semibold">Profil</button>
+                  </div>
+                ))}
+              </div>
             </div>
-            <button onclick="initData()" class="text-xs font-bold text-blue-600 hover:text-blue-800">🔄 Refresh Data</button>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm text-left">
-                <thead class="bg-slate-50 text-slate-500 font-bold uppercase text-xs">
-                    <tr>
-                        <th class="p-4">Waktu Laporan</th>
-                        <th class="p-4">Info Shift</th>
-                        <th class="p-4 text-right">Total Fisik</th>
-                        <th class="p-4 text-right">Pengeluaran</th>
-                        <th class="p-4 text-center">Selisih</th>
-                        <th class="p-4 text-center">Status</th>
-                        <th class="p-4 text-right">Aksi Manager</th>
-                    </tr>
-                </thead>
-                <tbody id="staffDataTable" class="divide-y divide-slate-100">
-                    <tr><td colspan="7" class="p-8 text-center text-slate-400 italic">Sedang menghubungkan ke dua database...</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
+          )}
 
-    <!-- COA REFERENCE (Accordion) -->
-    <div class="mt-6 border border-slate-200 rounded-xl overflow-hidden">
-        <button onclick="document.getElementById('coa-ref').classList.toggle('hidden')" class="w-full p-4 bg-white text-left font-bold text-slate-700 flex justify-between items-center hover:bg-slate-50">
-            <span>📚 Referensi Mapping COA (Sesuai PDF)</span>
-            <span class="text-xs text-slate-400">▼</span>
-        </button>
-        <div id="coa-ref" class="hidden bg-slate-50 p-4 text-xs text-slate-600 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-                <p class="font-bold mb-2">Pemasukan (Auto Split):</p>
-                <ul class="list-disc pl-4 space-y-1">
-                    <li>F&B (Makan/Minum) ➡ <span class="coa-badge">4101</span></li>
-                    <li>Karaoke (Room) ➡ <span class="coa-badge">4201</span></li>
-                    <li>Billiard (Meja) ➡ <span class="coa-badge">4203</span></li>
-                    <li>Wellness (Pijat) ➡ <span class="coa-badge">4301</span></li>
-                    <li>Hipnoterapi ➡ <span class="coa-badge">4303</span></li>
-                </ul>
+          {selectedAlumni && !isEditingProfile && (
+            <div className="fixed inset-0 z-50 flex items-end justify-center bg-gray-900/60 backdrop-blur-sm">
+              <div className="bg-white w-full sm:w-96 rounded-t-3xl shadow-2xl overflow-hidden flex flex-col relative" style={{ maxHeight: '90vh' }}>
+                {currentUser.role === 'admin' && (
+                  <button onClick={() => startEditing(selectedAlumni)} className="absolute top-4 left-4 p-2 bg-white/20 text-white rounded-full hover:bg-white/40 z-10 flex items-center gap-1 text-xs font-bold"><Edit directize={14} /> Edit</button>
+                )}
+                <div className="relative h-32 bg-[#5D4C8C] shrink-0">
+                  <button onClick={() => setSelectedAlumni(null)} className="absolute top-4 right-4 p-1.5 bg-black/20 text-white rounded-full"><X size={20} /></button>
+                </div>
+                
+                <div className="absolute top-16 left-0 w-full flex justify-center z-10 pointer-events-none">
+                  <div className="w-32 h-32 rounded-full border-4 border-white bg-white shadow-md overflow-hidden flex items-center justify-center pointer-events-auto">
+                    {getDriveImageLink(selectedAlumni.foto) ? (
+                      <React.Fragment>
+                        <img src={getDriveImageLink(selectedAlumni.foto)} alt={selectedAlumni.nama} className="w-full h-full object-cover shrink-0" onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }} />
+                        <div className="w-full h-full bg-gradient-to-br from-[#5D4C8C] to-[#D4AF37] items-center justify-center text-white text-4xl font-bold shrink-0" style={{ display: 'none' }}>{getInitials(selectedAlumni.nama)}</div>
+                      </React.Fragment>
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-[#5D4C8C] to-[#D4AF37] flex items-center justify-center text-white text-4xl font-bold shrink-0">{getInitials(selectedAlumni.nama)}</div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="px-6 pb-6 pt-20 relative flex-1 overflow-y-auto">
+                  <div className="text-center mb-6">
+                    <h2 className="text-2xl font-bold text-gray-800">{selectedAlumni.nama}</h2>
+                    <p className="text-[#5D4C8C] font-semibold mt-1">Angkatan {selectedAlumni.angkatan}</p>
+                    <p className="text-sm text-gray-500 mt-1">{selectedAlumni.pekerjaan}</p>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="bg-gray-50 rounded-xl p-4 flex gap-4 items-start border border-gray-100">
+                      <Briefcase className="text-[#D4AF37] shrink-0 mt-0.5" size={20} />
+                      <div><p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Pekerjaan</p><p className="font-semibold text-gray-800 mt-0.5">{selectedAlumni.jabatan}</p><p className="text-sm text-gray-600">{selectedAlumni.perusahaan}</p></div>
+                    </div>
+                    <div className="bg-gray-50 rounded-xl p-4 flex gap-4 items-start border border-gray-100">
+                      <MapPin className="text-[#5D4C8C] shrink-0 mt-0.5" size={20} />
+                      <div>
+                        <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Domisili</p>
+                        <p className="font-semibold text-gray-800 mt-0.5">{selectedAlumni.domisili || '-'}</p>
+                        <p className="text-sm text-gray-600">Site: {selectedAlumni.site || '-'}</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-gray-50 rounded-xl p-4 flex flex-col gap-2 border border-gray-100 items-center text-center">
+                        <Phone className="text-[#5D4C8C]" size={20} />
+                        <div>
+                          <p className="text-xs text-gray-500 font-medium mb-1">WhatsApp</p>
+                          {canViewContact ? (
+                            <a href={`https://wa.me/${String(selectedAlumni.hp || '').replace(/[^0-9]/g, '')}`} target="_blank" className="text-sm font-semibold text-blue-600 hover:underline">Hubungi</a>
+                          ) : (
+                            <span className="text-xs font-semibold text-gray-400 flex items-center gap-1 justify-center"><Lock size={12}/> Seangkatan</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="bg-gray-50 rounded-xl p-4 flex flex-col gap-2 border border-gray-100 items-center text-center">
+                        <Mail className="text-[#D4AF37]" size={20} />
+                        <div className="w-full">
+                          <p className="text-xs text-gray-500 font-medium mb-1">Email</p>
+                          {canViewContact ? (
+                            <p className="text-xs font-semibold text-gray-800 truncate w-full">{selectedAlumni.email || 'Tersedia'}</p>
+                          ) : (
+                            <p className="text-xs font-semibold text-gray-400 truncate w-full flex items-center gap-1 justify-center"><Lock size={12}/> Rahasia</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div>
-                <p class="font-bold mb-2">Pengeluaran (Sesuai Staff):</p>
-                <ul class="list-disc pl-4 space-y-1">
-                    <li>Bahan Baku ➡ <span class="coa-badge">5101</span></li>
-                    <li>Air & Gas ➡ <span class="coa-badge">5302</span></li>
-                    <li>Kebersihan ➡ <span class="coa-badge">5304</span></li>
-                    <li>Transport ➡ <span class="coa-badge">5404</span></li>
-                </ul>
+          )}
+
+          {isEditingProfile && (
+            <div className="fixed inset-0 z-[60] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4">
+              <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl flex flex-col" style={{ maxHeight: '90vh' }}>
+                <div className="bg-[#5D4C8C] p-4 flex justify-between items-center text-white rounded-t-2xl">
+                  <h3 className="font-bold text-lg">Edit Profil</h3>
+                  <button onClick={() => setIsEditingProfile(false)} className="p-1 hover:bg-white/20 rounded-full"><X size={20} /></button>
+                </div>
+                <div className="p-4 overflow-y-auto flex-1 space-y-4 text-sm">
+                  
+                  <div className="flex flex-col items-center bg-gray-50 p-4 rounded-xl border border-gray-100">
+                    <div className="w-20 h-20 rounded-full border-2 border-white shadow-sm overflow-hidden mb-3 bg-white flex items-center justify-center relative">
+                      {isUploadingPhoto && (
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-10">
+                          <Loader2 className="animate-spin text-white" size={20} />
+                        </div>
+                      )}
+                      {getDriveImageLink(editFormData.foto) ? (
+                        <img src={getDriveImageLink(editFormData.foto)} alt="Preview" className="w-full h-full object-cover" onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }} />
+                      ) : (
+                        <span className="text-gray-400 font-bold text-xl">{getInitials(editFormData.nama)}</span>
+                      )}
+                    </div>
+                    
+                    <div className="w-full relative">
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        onChange={handlePhotoUpload}
+                        className="hidden" 
+                        id="foto-upload"
+                      />
+                      <label htmlFor="foto-upload" className="w-full flex items-center justify-center gap-2 bg-white border-2 border-dashed border-[#5D4C8C] text-[#5D4C8C] px-3 py-2.5 rounded-lg text-xs font-bold cursor-pointer hover:bg-purple-50 transition-colors">
+                        <UploadCloud size={16} /> Pilih & Unggah Foto Baru
+                      </label>
+                      <p className="text-[10px] text-gray-500 text-center mt-2">Maksimal ukuran 3MB. Foto akan langsung tersimpan.</p>
+                    </div>
+                  </div>
+
+                  <div><label className="text-gray-500 font-semibold mb-1 block">Nama Lengkap</label><input type="text" className="w-full p-2.5 border rounded-lg" value={editFormData.nama || ''} onChange={e => setEditFormData({ ...editFormData, nama: e.target.value })} /></div>
+                  <div><label className="text-gray-500 font-semibold mb-1 block">Perusahaan</label><input type="text" className="w-full p-2.5 border rounded-lg" value={editFormData.perusahaan || ''} onChange={e => setEditFormData({ ...editFormData, perusahaan: e.target.value })} /></div>
+                  <div><label className="text-gray-500 font-semibold mb-1 block">Jabatan</label><input type="text" className="w-full p-2.5 border rounded-lg" value={editFormData.jabatan || ''} onChange={e => setEditFormData({ ...editFormData, jabatan: e.target.value })} /></div>
+                  
+                  <div><label className="text-gray-500 font-semibold mb-1 block">Kota Domisili (Acuan Peta)</label><input type="text" className="w-full p-2.5 border rounded-lg" value={editFormData.domisili || ''} onChange={e => setEditFormData({ ...editFormData, domisili: e.target.value })} /></div>
+                  <div><label className="text-gray-500 font-semibold mb-1 block">Lokasi Kerja / Site</label><input type="text" className="w-full p-2.5 border rounded-lg" value={editFormData.site || ''} onChange={e => setEditFormData({ ...editFormData, site: e.target.value })} /></div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div><label className="text-gray-500 font-semibold mb-1 block">Angkatan</label><input type="text" className="w-full p-2.5 border rounded-lg" value={editFormData.angkatan || ''} onChange={e => setEditFormData({ ...editFormData, angkatan: e.target.value })} /></div>
+                    <div><label className="text-gray-500 font-semibold mb-1 block">Sektor Tambang?</label><select className="w-full p-2.5 border rounded-lg bg-white" value={editFormData.sesuaiBidang || 'YA'} onChange={e => setEditFormData({ ...editFormData, sesuaiBidang: e.target.value })}><option value="YA">Ya (Sesuai)</option><option value="TIDAK">Lainnya</option></select></div>
+                  </div>
+                </div>
+                <div className="p-4 border-t bg-gray-50 rounded-b-2xl">
+                  <button onClick={saveProfile} className="w-full py-3 bg-[#D4AF37] text-white rounded-xl font-bold flex justify-center items-center gap-2 hover:bg-[#b08d24]"><Save size={18} /> Simpan Perubahan</button>
+                </div>
+              </div>
             </div>
+          )}
+
+          {isAddingEvent && (
+            <div className="fixed inset-0 z-[60] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4">
+              <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl flex flex-col" style={{ maxHeight: '90vh' }}>
+                <div className="bg-[#D4AF37] p-4 flex justify-between items-center text-white rounded-t-2xl">
+                  <h3 className="font-bold text-lg">Tambah Event Baru</h3>
+                  <button onClick={() => setIsAddingEvent(false)} className="p-1 hover:bg-black/10 rounded-full"><X size={20} /></button>
+                </div>
+                <div className="p-4 overflow-y-auto flex-1 space-y-4 text-sm">
+                  <div><label className="text-gray-500 font-semibold mb-1 block">Judul Event</label><input type="text" className="w-full p-2.5 border rounded-lg" placeholder="Misal: Buka Bersama 2026" value={eventFormData.title} onChange={e => setEventFormData({ ...eventFormData, title: e.target.value })} /></div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div><label className="text-gray-500 font-semibold mb-1 block">Tanggal</label><input type="text" className="w-full p-2.5 border rounded-lg" placeholder="15 Agustus 2026" value={eventFormData.date} onChange={e => setEventFormData({ ...eventFormData, date: e.target.value })} /></div>
+                    <div><label className="text-gray-500 font-semibold mb-1 block">Waktu</label><input type="text" className="w-full p-2.5 border rounded-lg" placeholder="09:00 WIB" value={eventFormData.time} onChange={e => setEventFormData({ ...eventFormData, time: e.target.value })} /></div>
+                  </div>
+                  <div><label className="text-gray-500 font-semibold mb-1 block">Lokasi</label><input type="text" className="w-full p-2.5 border rounded-lg" placeholder="Nama Tempat / Link" value={eventFormData.location} onChange={e => setEventFormData({ ...eventFormData, location: e.target.value })} /></div>
+                  <div><label className="text-gray-500 font-semibold mb-1 block">Kategori</label><select className="w-full p-2.5 border rounded-lg bg-white" value={eventFormData.type} onChange={e => setEventFormData({ ...eventFormData, type: e.target.value })}><option value="Organisasi">Organisasi</option><option value="Edukasi">Edukasi / Webinar</option><option value="Sosial">Sosial / Santai</option><option value="Olahraga">Olahraga</option></select></div>
+                </div>
+                <div className="p-4 border-t bg-gray-50 rounded-b-2xl">
+                  <button onClick={saveNewEvent} className="w-full py-3 bg-[#5D4C8C] text-white rounded-xl font-bold flex justify-center items-center gap-2 hover:bg-[#4a3c70]"><Save size={18} /> Publish Event</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 pb-safe pt-2 px-6 z-40">
+            <div className="flex justify-between items-center pb-4">
+              <button onClick={() => setCurrentPage('home')} className={`flex flex-col items-center gap-1 ${currentPage === 'home' ? 'text-[#5D4C8C]' : 'text-gray-500'}`}><Home size={24} /><span className="text-[10px] font-medium">Home</span></button>
+              <button onClick={() => setCurrentPage('directory')} className={`flex flex-col items-center gap-1 ${currentPage === 'directory' ? 'text-[#5D4C8C]' : 'text-gray-500'}`}><Users size={24} /><span className="text-[10px] font-medium">Direktori</span></button>
+              <div className="relative -top-5">
+                <button onClick={() => setCurrentPage('map')} className={`h-14 w-14 rounded-full bg-[#D4AF37] text-white shadow-lg flex items-center justify-center ring-4 ring-gray-100 ${currentPage === 'map' ? 'scale-110' : ''}`}><MapIcon size={26} /></button>
+              </div>
+              <button onClick={() => setCurrentPage('events')} className={`flex flex-col items-center gap-1 ${currentPage === 'events' ? 'text-[#5D4C8C]' : 'text-gray-500'}`}><CheckCircle2 size={24} /><span className="text-[10px] font-medium">Pemilu</span></button>
+              <button onClick={() => setCurrentPage('profile')} className={`flex flex-col items-center gap-1 ${currentPage === 'profile' ? 'text-[#5D4C8C]' : 'text-gray-500'}`}><User size={24} /><span className="text-[10px] font-medium">Akun</span></button>
+            </div>
+          </nav>
         </div>
-    </div>
-
-  </div>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc, writeBatch, getDoc, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-    import { getAuth, signInWithEmailAndPassword, signInAnonymously, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-
-    // --- KONFIGURASI DUAL DATABASE ---
-    
-    // 1. Database Operasional (Staff App & Manager App)
-    const configOps = {
-      apiKey: "AIzaSyB0nHqdAw_dV9pHcQ_cSnWtNsn4CwwwUNc",
-      authDomain: "payboss-cafe-system.firebaseapp.com",
-      projectId: "payboss-cafe-system",
-      storageBucket: "payboss-cafe-system.firebasestorage.app",
-      messagingSenderId: "570523503793",
-      appId: "1:570523503793:web:0a7ba7ce751eb95a3f6690"
-    };
-
-    // 2. Database Finance (Cashflow App) - SESUAI INPUT ANDA
-    const configFin = {
-      apiKey: "AIzaSyDZj7rxsE-q3vl0R-dCRplw3fFrSRiK_A4",
-      authDomain: "payboss-finance.firebaseapp.com",
-      projectId: "payboss-finance",
-      storageBucket: "payboss-finance.firebasestorage.app",
-      messagingSenderId: "634368910018",
-      appId: "1:634368910018:web:aba7ddb774c98ca5c9515b"
-    };
-
-    // --- INISIALISASI ---
-    const appOps = initializeApp(configOps, "opsApp");
-    const appFin = initializeApp(configFin, "finApp");
-
-    const dbOps = getFirestore(appOps);
-    const dbFin = getFirestore(appFin);
-
-    const authOps = getAuth(appOps);
-    const authFin = getAuth(appFin);
-
-    // Path Finance (Harus sama dengan Cashflow App)
-    const FIN_COLLECTION = 'payboss_trx_v1'; 
-    const FIN_PATH_ARGS = ['artifacts', 'payboss-live-v1', 'public', 'data', FIN_COLLECTION];
-
-    let allShiftReports = [];
-    let isFinanceReady = false;
-
-    // --- AUTHENTICATION FLOW ---
-    const loginStatus = document.getElementById('login-status');
-    const connIndicator = document.getElementById('connection-indicator');
-
-    // 1. Login ke Ops (Email/Pass Manager)
-    onAuthStateChanged(authOps, (user) => {
-        if (user) {
-            loginStatus.innerText = "Manager dikenali. Menghubungkan ke Finance...";
-            connectToFinance();
-        } else {
-            document.getElementById('auth-overlay').style.display = 'flex';
-        }
-    });
-
-    // 2. Login ke Finance (Anonymous)
-    async function connectToFinance() {
-        try {
-            await signInAnonymously(authFin);
-            isFinanceReady = true;
-            
-            // Update UI Success
-            document.getElementById('auth-overlay').style.display = 'none';
-            document.getElementById('dashboard-ui').style.display = 'block';
-            connIndicator.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Ops & Finance Terhubung';
-            connIndicator.className = 'font-bold text-emerald-600 flex items-center gap-1';
-            
-            initData();
-        } catch (err) {
-            console.error("Finance Auth Error:", err);
-            connIndicator.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-500"></span> Gagal Koneksi Finance';
-            connIndicator.className = 'font-bold text-red-600 flex items-center gap-1';
-            alert("GAGAL MENGHUBUNGKAN KE FINANCE APP.\n\nError: " + err.message + "\n\nPastikan 'Anonymous Auth' diaktifkan di Firebase Console Payboss Finance.");
-        }
+      );
     }
 
-    window.handleLogin = async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('mgr-email').value;
-        const pass = document.getElementById('mgr-pass').value;
-        const btn = document.getElementById('btn-login');
-        
-        btn.innerText = "Memverifikasi..."; btn.disabled = true;
-        try {
-            await signInWithEmailAndPassword(authOps, email, pass);
-        } catch(e) { 
-            alert("Login Gagal: " + e.message); 
-            btn.innerText = "Masuk Dashboard"; btn.disabled = false;
-        }
-    };
-
-    window.doLogout = () => {
-        signOut(authOps);
-        signOut(authFin);
-        location.reload();
-    };
-
-    // --- DATA HANDLING ---
-    window.initData = function() {
-        const q = query(collection(dbOps, "shift_reports"), orderBy("createdAt", "desc"));
-        onSnapshot(q, (snap) => {
-            allShiftReports = snap.docs.map(d => ({id: d.id, ...d.data()}));
-            renderTable();
-            updateStats();
-        });
-    };
-
-    function renderTable() {
-        const tbody = document.getElementById('staffDataTable');
-        if(allShiftReports.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400">Belum ada data shift dari Staff App</td></tr>';
-            return;
-        }
-
-        tbody.innerHTML = allShiftReports.map(r => {
-            const isPosted = r.financePosted === true;
-            const statusBadge = isPosted 
-                ? `<span class="status-posted">✅ SUKSES</span>` 
-                : `<span class="status-pending">⏳ MENUNGGU</span>`;
-            
-            const btnAction = isPosted
-                ? `<span class="text-xs text-slate-400 font-medium">Terposting: ${new Date(r.postedAt).toLocaleDateString()}</span>`
-                : `<button onclick="postToFinance('${r.id}')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-4 py-2 rounded-lg font-bold shadow-sm shadow-indigo-200 transition transform hover:-translate-y-0.5 active:translate-y-0">🚀 POST KE FINANCE</button>`;
-
-            const diff = r.difference || 0;
-            const diffClass = diff < 0 ? 'text-rose-600 bg-rose-50' : (diff > 0 ? 'text-emerald-600 bg-emerald-50' : 'text-slate-400 bg-slate-50');
-
-            return `
-            <tr class="bg-white hover:bg-slate-50 border-b border-slate-100 transition">
-                <td class="p-4">
-                    <div class="font-bold text-slate-700">${r.date}</div>
-                    <div class="text-xs text-slate-400 font-mono">${new Date(r.createdAt?.seconds*1000).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})}</div>
-                </td>
-                <td class="p-4">
-                    <div class="font-bold text-slate-800">${r.staffName}</div>
-                    <span class="bg-indigo-50 text-indigo-600 text-[10px] font-bold px-2 py-0.5 rounded uppercase">${r.shift}</span>
-                </td>
-                <td class="p-4 text-right font-mono font-bold text-slate-700">${fmt(r.physicalCash)}</td>
-                <td class="p-4 text-right font-mono text-rose-600">${fmt(r.expenses)}</td>
-                <td class="p-4 text-center">
-                    <span class="${diffClass} px-2 py-1 rounded text-xs font-bold">${diff > 0 ? '+' : ''}${fmt(diff)}</span>
-                </td>
-                <td class="p-4 text-center">${statusBadge}</td>
-                <td class="p-4 text-right">${btnAction}</td>
-            </tr>
-            `;
-        }).join('');
-    }
-
-    function updateStats() {
-        const pending = allShiftReports.filter(r => !r.financePosted);
-        const posted = allShiftReports.filter(r => r.financePosted && r.date === new Date().toLocaleDateString('id-ID'));
-        
-        document.getElementById('pending-count').innerText = pending.length;
-        document.getElementById('posted-today').innerText = posted.length;
-        
-        const pendingVal = pending.reduce((sum, r) => sum + (r.physicalCash || 0) + (r.qrisSales || 0), 0);
-        document.getElementById('pending-value').innerText = fmt(pendingVal);
-    }
-
-    // --- LOGIKA UTAMA: POSTING ---
-    window.postToFinance = async (reportId) => {
-        console.log("Tombol diklik untuk Report ID:", reportId);
-        
-        if (!isFinanceReady) {
-            alert("Sistem Finance BELUM TERHUBUNG. Coba refresh halaman dan pastikan login sukses.");
-            return;
-        }
-
-        const report = allShiftReports.find(r => r.id === reportId);
-        if(!report) { alert("Data laporan tidak ditemukan di memori."); return; }
-
-        if(!confirm(`Konfirmasi Posting Laporan ${report.shift} oleh ${report.staffName}?\n\nSistem akan otomatis memecah transaksi ke COA yang sesuai.`)) return;
-
-        const batchFin = writeBatch(dbFin); 
-        const batchOps = writeBatch(dbOps); 
-        const newFinDoc = () => doc(collection(dbFin, ...FIN_PATH_ARGS));
-
-        const timestamp = Date.now();
-        const dateString = report.date.split('/').reverse().join('-');
-        
-        const baseTrx = {
-            dateString: dateString, 
-            timestamp: timestamp,
-            userId: "MANAGER_AUTOSYNC",
-            lastModified: new Date().toISOString(),
-            shiftRef: reportId,
-            shiftInfo: `Shift ${report.shift} (${report.staffName})`
-        };
-
-        let trxCount = 0;
-
-        // MAPPING PEMASUKAN
-        const addTrx = (unit, unitName, method, coa, coaName, amount, note) => {
-            if(amount > 0) {
-                batchFin.set(newFinDoc(), { 
-                    ...baseTrx, 
-                    unit, unitName, 
-                    trxType:'in', 
-                    paymentMethod: method, 
-                    coaCode: coa, coaName: coaName, 
-                    amount: amount, 
-                    note: `${note} - ${baseTrx.shiftInfo}` 
-                });
-                trxCount++;
-            }
-        };
-
-        // F&B
-        addTrx('fnb', 'Coffee & Resto', 'Tunai', '4101', 'Pendapatan Jual Makanan', report.incomeFnbCash, 'Penjualan F&B Tunai');
-        addTrx('fnb', 'Coffee & Resto', 'QRIS', '4101', 'Pendapatan Jual Makanan', report.incomeFnbQris, 'Penjualan F&B QRIS');
-
-        // Karaoke
-        addTrx('ent', 'Karaoke & Billiard', 'Tunai', '4201', 'Sewa Room Karaoke', report.incomeKaraokeCash, 'Karaoke Tunai');
-        addTrx('ent', 'Karaoke & Billiard', 'QRIS', '4201', 'Sewa Room Karaoke', report.incomeKaraokeQris, 'Karaoke QRIS');
-
-        // Billiard
-        addTrx('ent', 'Karaoke & Billiard', 'Tunai', '4203', 'Sewa Meja Billiard', report.incomeBilliardCash, 'Billiard Tunai');
-        addTrx('ent', 'Karaoke & Billiard', 'QRIS', '4203', 'Sewa Meja Billiard', report.incomeBilliardQris, 'Billiard QRIS');
-
-        // Wellness
-        addTrx('wel', 'Wellness', 'Tunai', '4301', 'Jasa Pijat/Refleksi', report.incomeMassageCash, 'Pijat Tunai');
-        addTrx('wel', 'Wellness', 'QRIS', '4301', 'Jasa Pijat/Refleksi', report.incomeMassageQris, 'Pijat QRIS');
-        addTrx('wel', 'Wellness', 'Tunai', '4303', 'Pendapatan Hipnoterapi', report.incomeHypnoCash, 'Hipno Tunai');
-        addTrx('wel', 'Wellness', 'QRIS', '4303', 'Pendapatan Hipnoterapi', report.incomeHypnoQris, 'Hipno QRIS');
-
-        // MAPPING PENGELUARAN
-        if(report.expenseDetails && report.expenseDetails.length > 0) {
-            report.expenseDetails.forEach(exp => {
-                let unit = 'ops'; let unitName = 'Operasional';
-                if(exp.categoryCode.startsWith('5101') || exp.categoryCode.startsWith('5102')) { unit='fnb'; unitName='Coffee & Resto'; }
-                if(exp.categoryCode.startsWith('5103')) { unit='ent'; unitName='Karaoke & Billiard'; }
-                if(exp.categoryCode.startsWith('5104')) { unit='wel'; unitName='Wellness'; }
-
-                batchFin.set(newFinDoc(), {
-                    ...baseTrx,
-                    unit: unit, unitName: unitName,
-                    trxType: 'out',
-                    paymentMethod: 'Tunai', 
-                    coaCode: exp.categoryCode || '5000',
-                    coaName: exp.categoryName || 'Pengeluaran Umum',
-                    amount: exp.amount,
-                    note: `[Biaya Shift] ${exp.desc}`
-                });
-                trxCount++;
-            });
-        }
-
-        try {
-            const shiftRef = doc(dbOps, "shift_reports", reportId);
-            batchOps.update(shiftRef, { financePosted: true, postedAt: new Date().toISOString() });
-
-            await batchFin.commit(); 
-            await batchOps.commit(); 
-
-            alert(`BERHASIL! ${trxCount} transaksi sukses diposting.`);
-        } catch(err) {
-            console.error(err);
-            alert("GAGAL Posting: " + err.message);
-        }
-    };
-
-    function fmt(n) { return 'Rp ' + (n||0).toLocaleString('id-ID'); }
+    const root = createRoot(document.getElementById('root'));
+    root.render(<App />);
   </script>
- </body>
+</body>
+
 </html>
